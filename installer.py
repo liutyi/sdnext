@@ -803,7 +803,9 @@ def install_ipex():
         torch_command = os.environ.get('TORCH_COMMAND', '--upgrade --pre torch torchvision --index-url https://download.pytorch.org/whl/nightly/xpu')
     else:
         # torch 2.8 segfaults with torch.compile: https://github.com/pytorch/pytorch/issues/159974
-        torch_command = os.environ.get('TORCH_COMMAND', 'torch==2.7.1+xpu torchvision==0.22.1+xpu --index-url https://download.pytorch.org/whl/xpu')
+        torch_command = os.environ.get('TORCH_COMMAND', 'torch==2.7.1+xpu torchvision==0.22.1+xpu torchaudio==2.7.1+xpu --index-url https://download.pytorch.org/whl/xpu')
+        install(os.environ.get('TORCH_COMMAND', 'torch==2.7.1+xpu torchvision==0.22.1+xpu torchaudio==2.7.1+xpu --index-url https://download.pytorch.org/whl/xpu'), ignore=True)
+        install(os.environ.get('TORCH_COMMAND', 'intel-extension-for-pytorch==2.7.10+xpu oneccl_bind_pt==2.7.0+xpu --extra-index-url https://pytorch-extension.intel.com/release-whl/stable/xpu/us/'), ignore=True)
 
     ts('ipex', t_start)
     return torch_command

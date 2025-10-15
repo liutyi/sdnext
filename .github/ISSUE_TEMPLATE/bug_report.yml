@@ -33,7 +33,7 @@ body:
         Load packages: {'torch': '2.3.1+cu121', 'diffusers': '0.29.1', 'gradio': '3.43.2'}
         Engine: backend=Backend.DIFFUSERS compute=cuda device=cuda attention="Scaled-Dot-Product" mode=no_grad
         Device: device=NVIDIA GeForce RTX 4090 n=1 arch=sm_90 cap=(8, 9) cuda=12.1 cudnn=8902 driver=555.99
-        Extensions: enabled=['sd-webui-agent-scheduler', 'sd-extension-chainner', 'sd-extension-system-info', 'sdnext-modernui', 'Lora'] extensions-builtin
+        Extensions: enabled=['sdnext-scheduler', 'sd-extension-chainner', 'sd-extension-system-info', 'sdnext-modernui', 'Lora'] extensions-builtin
         Extensions: enabled=[] extensions
         ```
   - type: markdown

@@ -37,7 +37,7 @@ exclude = [
 
     "extensions-builtin/Lora",
     "extensions-builtin/sd-extension-chainner/nodes",
-    "extensions-builtin/sd-webui-agent-scheduler",
+    "extensions-builtin/sdnext-scheduler",
     "extensions-builtin/sdnext-modernui/node_modules",
 ]
 line-length = 250

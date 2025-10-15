@@ -24,7 +24,7 @@ def temp_disable_extensions():
         'sd-webui-controlnet',
         'multidiffusion-upscaler-for-automatic1111',
         'a1111-sd-webui-lycoris',
-        'sd-webui-agent-scheduler',
+        'sdnext-scheduler',
         'clip-interrogator-ext',
         'stable-diffusion-webui-images-browser',
     ]
