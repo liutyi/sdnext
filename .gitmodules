@@ -17,6 +17,12 @@
 [submodule "extensions-builtin/sdnext-modernui"]
   path = extensions-builtin/sdnext-modernui
   url = https://github.com/BinaryQuantumSoul/sdnext-modernui
+  ignore = dirty
 [submodule "extensions-builtin/sdnext-kanvas"]
-	path = extensions-builtin/sdnext-kanvas
-	url = https://github.com/vladmandic/sdnext-kanvas
+  path = extensions-builtin/sdnext-kanvas
+  url = https://github.com/vladmandic/sdnext-kanvas
+  ignore = dirty
+[submodule "extensions-builtin/sdnext-scheduler"]
+  path = extensions-builtin/sdnext-scheduler
+  url = https://github.com/liutyi/sdnext-scheduler
+  ignore = dirty
