@@ -20,7 +20,7 @@ class Dot(dict): # dot notation access to dictionary attributes
 
 
 pkg_resources, setuptools, distutils = None, None, None # defined via ensure_base_requirements
-version = None
+version = { 'app': 'sd.next', 'updated': 'unknown', 'commit': 'unknown', 'branch': 'unknown', 'url': 'unknown', 'kanvas': 'unknown' }
 current_branch = None
 log = logging.getLogger("sd")
 console = None
@@ -613,7 +613,7 @@ def check_diffusers():
     t_start = time.time()
     if args.skip_all:
         return
-    sha = 'b3e9dfced7c9e8d00f646c710766b532383f04c6' # diffusers commit hash
+    sha = 'cd3bbe2910666880307b84729176203f5785ff7e' # diffusers commit hash
     # if args.use_rocm or args.use_zluda or args.use_directml:
     #     sha = '043ab2520f6a19fce78e6e060a68dbc947edb9f9' # lock diffusers versions for now
     pkg = pkg_resources.working_set.by_key.get('diffusers', None)
@@ -690,7 +690,6 @@ def install_rocm_zluda():
     amd_gpus = []
     try:
         amd_gpus = rocm.get_agents()
-        log.info('ROCm: AMD toolkit detected')
     except Exception as e:
         log.warning(f'ROCm agent enumerator failed: {e}')
 
@@ -716,7 +715,7 @@ def install_rocm_zluda():
             if device_id < len(amd_gpus):
                 device = amd_gpus[device_id]
 
-    if sys.platform == "win32" and args.use_rocm and device is not None and device.therock is not None:
+    if sys.platform == "win32" and not args.use_zluda and device is not None and device.therock is not None and not installed("rocm"):
         check_python(supported_minors=[11, 12, 13], reason='ROCm backend requires a Python version between 3.11 and 3.13')
         install(f"rocm rocm-sdk-core --index-url https://rocm.nightlies.amd.com/v2-staging/{device.therock}")
         rocm.refresh()
@@ -727,16 +726,7 @@ def install_rocm_zluda():
     log.info(msg)
 
     if sys.platform == "win32":
-        if args.use_rocm: # TODO install: switch to pytorch source when it becomes available
-            if device is None:
-                log.warning('No ROCm agent was found. Please make sure that graphics driver is installed and up to date.')
-            if isinstance(rocm.environment, rocm.PythonPackageEnvironment):
-                check_python(supported_minors=[11, 12, 13], reason='ROCm backend requires a Python version between 3.11 and 3.13')
-                torch_command = os.environ.get('TORCH_COMMAND', f'torch torchvision --index-url https://rocm.nightlies.amd.com/v2-staging/{device.therock}')
-            else:
-                check_python(supported_minors=[12], reason='ROCm Windows preview requires Python version 3.12')
-                torch_command = os.environ.get('TORCH_COMMAND', '--no-cache-dir https://repo.radeon.com/rocm/windows/rocm-rel-6.4.4/torch-2.8.0a0%2Bgitfc14c65-cp312-cp312-win_amd64.whl https://repo.radeon.com/rocm/windows/rocm-rel-6.4.4/torchvision-0.24.0a0%2Bc85f008-cp312-cp312-win_amd64.whl')
-        else:
+        if args.use_zluda:
             #check_python(supported_minors=[10, 11, 12, 13], reason='ZLUDA backend requires a Python version between 3.10 and 3.13')
             torch_command = os.environ.get('TORCH_COMMAND', 'torch==2.7.1+cu118 torchvision==0.22.1+cu118 --index-url https://download.pytorch.org/whl/cu118')
 
@@ -759,6 +749,15 @@ def install_rocm_zluda():
                 zluda_installer.load()
             except Exception as e:
                 log.warning(f'Failed to load ZLUDA: {e}')
+        else: # TODO install: switch to pytorch source when it becomes available
+            if device is None:
+                log.warning('No ROCm agent was found. Please make sure that graphics driver is installed and up to date.')
+            if isinstance(rocm.environment, rocm.PythonPackageEnvironment):
+                check_python(supported_minors=[11, 12, 13], reason='ROCm backend requires a Python version between 3.11 and 3.13')
+                torch_command = os.environ.get('TORCH_COMMAND', f'torch torchvision --index-url https://rocm.nightlies.amd.com/v2-staging/{device.therock}')
+            else:
+                check_python(supported_minors=[12], reason='ROCm Windows preview requires Python version 3.12')
+                torch_command = os.environ.get('TORCH_COMMAND', '--no-cache-dir https://repo.radeon.com/rocm/windows/rocm-rel-6.4.4/torch-2.8.0a0%2Bgitfc14c65-cp312-cp312-win_amd64.whl https://repo.radeon.com/rocm/windows/rocm-rel-6.4.4/torchvision-0.24.0a0%2Bc85f008-cp312-cp312-win_amd64.whl')
     else:
         #check_python(supported_minors=[10, 11, 12, 13, 14], reason='ROCm backend requires a Python version between 3.10 and 3.13')
         if args.use_nightly:
@@ -915,7 +914,7 @@ def check_torch():
 
         if not is_cuda_available and not is_ipex_available and allow_rocm:
             from modules import rocm
-            is_rocm_available = allow_rocm and (args.use_rocm or args.use_zluda or rocm.is_installed) # late eval to avoid unnecessary import
+            is_rocm_available = allow_rocm and (args.use_rocm or args.use_zluda or (len(rocm.agents) != 0 if sys.platform == "win32" else rocm.is_installed)) # late eval to avoid unnecessary import
 
         if is_cuda_available and args.use_cuda: # prioritize cuda
             torch_command = install_cuda()
@@ -1212,6 +1211,7 @@ def ensure_base_requirements():
     setuptools_version = '69.5.1'
 
     def update_setuptools():
+        local_log = logging.getLogger('sdnext.installer')
         global pkg_resources, setuptools, distutils # pylint: disable=global-statement
         # python may ship with incompatible setuptools
         subprocess.run(f'"{sys.executable}" -m pip install setuptools=={setuptools_version}', shell=True, check=False, env=os.environ, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -1219,12 +1219,27 @@ def ensure_base_requirements():
         modules = [m for m in sys.modules if m.startswith('setuptools') or m.startswith('pkg_resources') or m.startswith('distutils')]
         for m in modules:
             del sys.modules[m]
-        setuptools = importlib.import_module('setuptools')
-        sys.modules['setuptools'] = setuptools
-        distutils = importlib.import_module('distutils')
-        sys.modules['distutils'] = distutils
-        pkg_resources = importlib.import_module('pkg_resources')
-        sys.modules['pkg_resources'] = pkg_resources
+        try:
+            setuptools = importlib.import_module('setuptools')
+            sys.modules['setuptools'] = setuptools
+        except ImportError as e:
+            local_log.info(f'Python: version={platform.python_version()} platform={platform.system()} bin="{sys.executable}" venv="{sys.prefix}"')
+            local_log.critical(f'Import: setuptools {e}')
+            os._exit(1)
+        try:
+            distutils = importlib.import_module('distutils')
+            sys.modules['distutils'] = distutils
+        except ImportError as e:
+            local_log.info(f'Python: version={platform.python_version()} platform={platform.system()} bin="{sys.executable}" venv="{sys.prefix}"')
+            local_log.critical(f'Import: distutils {e}')
+            os._exit(1)
+        try:
+            pkg_resources = importlib.import_module('pkg_resources')
+            sys.modules['pkg_resources'] = pkg_resources
+        except ImportError as e:
+            local_log.info(f'Python: version={platform.python_version()} platform={platform.system()} bin="{sys.executable}" venv="{sys.prefix}"')
+            local_log.critical(f'Import: pkg_resources {e}')
+            os._exit(1)
 
     try:
         global pkg_resources, setuptools # pylint: disable=global-statement
@@ -1423,8 +1438,7 @@ def check_extensions():
 
 def get_version(force=False):
     t_start = time.time()
-    global version # pylint: disable=global-statement
-    if version is None or force:
+    if version.get('branch', 'unknown') == 'unknown' or force:
         try:
             subprocess.run('git config log.showsignature false', stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell=True, check=True)
         except Exception:
@@ -1432,20 +1446,19 @@ def get_version(force=False):
         try:
             res = subprocess.run('git log --pretty=format:"%h %ad" -1 --date=short', stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell=True, check=True)
             ver = res.stdout.decode(encoding = 'utf8', errors='ignore') if len(res.stdout) > 0 else '  '
-            githash, updated = ver.split(' ')
+            commit, updated = ver.split(' ')
+            version['commit'], version['updated'] = commit, updated
+        except Exception as e:
+            log.warning(f'Version: where=commit {e}')
+        try:
             res = subprocess.run('git remote get-url origin', stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell=True, check=True)
             origin = res.stdout.decode(encoding = 'utf8', errors='ignore') if len(res.stdout) > 0 else ''
             res = subprocess.run('git rev-parse --abbrev-ref HEAD', stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell=True, check=True)
             branch_name = res.stdout.decode(encoding = 'utf8', errors='ignore') if len(res.stdout) > 0 else ''
-            version = {
-                'app': 'sd.next',
-                'updated': updated,
-                'hash': githash,
-                'branch': branch_name.replace('\n', ''),
-                'url': origin.replace('\n', '').removesuffix('.git') + '/tree/' + branch_name.replace('\n', '')
-            }
-        except Exception:
-            version = { 'app': 'sd.next', 'version': 'unknown', 'branch': 'unknown' }
+            version['url'] = origin.replace('\n', '').removesuffix('.git') + '/tree/' + branch_name.replace('\n', '')
+            version['branch'] = branch_name.replace('\n', '')
+        except Exception as e:
+            log.warning(f'Version: where=branch {e}')
         cwd = os.getcwd()
         try:
             if os.path.exists('extensions-builtin/sdnext-modernui'):
@@ -1456,7 +1469,8 @@ def get_version(force=False):
                 version['ui'] = branch_ui
             else:
                 version['ui'] = 'unavailable'
-        except Exception:
+        except Exception as e:
+            log.warning(f'Version: where=modernui {e}')
             version['ui'] = 'unknown'
         finally:
             os.chdir(cwd)
@@ -1471,7 +1485,8 @@ def get_version(force=False):
                 version['kanvas'] = branch_kanvas
             else:
                 version['kanvas'] = 'unavailable'
-        except Exception:
+        except Exception as e:
+            log.warning(f'Version: where=kanvas {e}')
             version['kanvas'] = 'unknown'
         finally:
             os.chdir(cwd)
@@ -1788,3 +1803,4 @@ def read_options():
             except Exception as e:
                 log.error(f'Error reading options file: {file} {e}')
     ts('options', t_start)
+
