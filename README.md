@@ -1,7 +1,7 @@
 <div align="center">
 <img src="https://github.com/vladmandic/sdnext/raw/master/html/logo-transparent.png" width=200 alt="SD.Next">
 
-# SD.Next: All-in-one WebUI for AI generative image and video creation
+# SD.Next: All-in-one WebUI for AI generative image and video creation (fork for Intel Arc iGPU)
 
 ![Last update](https://img.shields.io/github/last-commit/vladmandic/sdnext?svg=true)
 ![License](https://img.shields.io/github/license/vladmandic/sdnext?svg=true)
@@ -46,12 +46,12 @@ All individual features are not listed here, instead check [ChangeLog](CHANGELOG
 
 **Desktop** interface  
 <div align="center">
-<img src="https://github.com/user-attachments/assets/d6119a63-6ee5-4597-95f6-29ed0701d3b5" alt="screenshot-modernui-desktop" width="90%">
+<img src="https://github.com/user-attachments/assets/556c9cc0-28f2-4af6-8988-6392f8a2334b" alt="screenshot-modernui-desktop" width="90%">
 </div>
 
 **Mobile** interface  
 <div align="center">
-<img src="https://github.com/user-attachments/assets/ced9fe0c-d2c2-46d1-94a7-8f9f2307ce38" alt="screenshot-modernui-mobile" width="35%">
+<img src="https://github.com/user-attachments/assets/e76f5ce5-27dd-4ff9-b79b-5e713daf4ffb" alt="screenshot-modernui-mobile" width="35%">
 </div>
 
 For screenshots and information on other available themes, see [Themes](https://vladmandic.github.io/sdnext-docs/Themes/)
