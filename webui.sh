@@ -106,7 +106,7 @@ then
 elif [[ ! -z "${IPEXRUN}" ]] && [ ${IPEXRUN}="True" ] && [ -x "$(command -v ipexrun)" ]
 then
     echo "Launch: ipexrun"
-    exec ipexrun --multi-task-manager 'taskset' --memory-allocator 'jemalloc' launch.py "$@"
+    exec ipexrun xpu launch.py "$@"
 elif [[ -f "${venv_dir}/bin/python3" ]]
 then
     PYTHON="${venv_dir}/bin/python3"
