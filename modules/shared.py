@@ -552,7 +552,7 @@ options_templates.update(options_section(('saving-paths', "Image Paths"), {
     "use_original_name_batch": OptionInfo(True, "Batch uses original name"),
     "save_to_dirs": OptionInfo(False, "Save images to a subdirectory"),
     "directories_filename_pattern": OptionInfo("[date]", "Directory name pattern", component_args=hide_dirs),
-    "samples_filename_pattern": OptionInfo("[seq]-[date]-[model_name]", "Images filename pattern", component_args=hide_dirs),
+    "samples_filename_pattern": OptionInfo("[date]-[seq]-[model_name]-[width]x[height]-Seed[seed]-CFG[cfg]-AG[pag]-STEP[steps]", "Images filename pattern", component_args=hide_dirs),
     "directories_max_prompt_words": OptionInfo(8, "Max words", gr.Slider, {"minimum": 1, "maximum": 99, "step": 1, **hide_dirs}),
 
     "outdir_sep_dirs": OptionInfo("<h2>Folders</h2>", "", gr.HTML),
@@ -582,7 +582,7 @@ options_templates.update(options_section(('image-metadata', "Image Metadata"), {
 
 options_templates.update(options_section(('ui', "User Interface"), {
     "themes_sep_ui": OptionInfo("<h2>Theme options</h2>", "", gr.HTML),
-    "theme_type": OptionInfo("Modern", "Theme type", gr.Radio, {"choices": ["Modern", "Standard", "None"]}),
+    "theme_type": OptionInfo("Standard", "Theme type", gr.Radio, {"choices": ["Modern", "Standard", "None"]}),
     "theme_style": OptionInfo("Auto", "Theme mode", gr.Radio, {"choices": ["Auto", "Dark", "Light"]}),
     "gradio_theme": OptionInfo("black-teal", "UI theme", gr.Dropdown, lambda: {"choices": theme.list_themes()}, refresh=theme.refresh_themes),
 
@@ -593,7 +593,7 @@ options_templates.update(options_section(('ui', "User Interface"), {
     "autolaunch": OptionInfo(False, "Autolaunch browser upon startup"),
     "motd": OptionInfo(False, "Show MOTD"),
     "subpath": OptionInfo("", "Mount URL subpath"),
-    "ui_request_timeout": OptionInfo(120000, "UI request timeout", gr.Slider, {"minimum": 1000, "maximum": 300000, "step": 10}),
+    "ui_request_timeout": OptionInfo(300000, "UI request timeout", gr.Slider, {"minimum": 1000, "maximum": 300000, "step": 10}),
 
     "ui_tabs": OptionInfo("<h2>UI Tabs</h2>", "", gr.HTML),
     "ui_disabled": OptionInfo([], "Disabled UI tabs", gr.Dropdown, { 'visible': False }),
