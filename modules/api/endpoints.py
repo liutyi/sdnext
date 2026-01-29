@@ -145,8 +145,6 @@ def post_caption(req: models.ReqCaption):
         raise HTTPException(status_code=404, detail="Model not found")
     # Build clip overrides from request (only include non-None values)
     clip_overrides = {}
-    if req.min_length is not None:
-        clip_overrides['min_length'] = req.min_length
     if req.max_length is not None:
         clip_overrides['max_length'] = req.max_length
     if req.chunk_size is not None:
@@ -314,8 +312,6 @@ def _dispatch_openclip(req: models.ReqCaptionOpenCLIP) -> models.ResCaptionDispa
         raise HTTPException(status_code=404, detail="Model not found")
     # Build clip overrides from request
     clip_overrides = {}
-    if req.min_length is not None:
-        clip_overrides['min_length'] = req.min_length
     if req.max_length is not None:
         clip_overrides['max_length'] = req.max_length
     if req.chunk_size is not None:
@@ -499,7 +495,8 @@ def get_vqa_prompts(model: Optional[str] = None):
 
     **Prompt Categories:**
     - Common: Use Prompt, Short/Normal/Long Caption
-    - Florence: Phrase Grounding, Object Detection, OCR, Dense Region Caption
+    - Florence: Phrase Grounding, Object Detection, OCR, Dense Region Caption (all Florence models)
+    - PromptGen: Analyze, Generate Tags, Mixed Caption (MiaoshouAI PromptGen fine-tunes only)
     - Moondream: Point at..., Detect all..., Detect Gaze
     """
     from modules.caption import vqa
@@ -509,6 +506,7 @@ def get_vqa_prompts(model: Optional[str] = None):
     return {
         "common": vqa.vlm_prompts_common,
         "florence": vqa.vlm_prompts_florence,
+        "promptgen": vqa.vlm_prompts_promptgen,
         "moondream": vqa.vlm_prompts_moondream,
         "moondream2_only": vqa.vlm_prompts_moondream2
     }
