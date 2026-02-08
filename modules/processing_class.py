@@ -57,7 +57,6 @@ class StableDiffusionProcessing:
                  # other
                  hidiffusion: bool = False,
                  do_not_reload_embeddings: bool = False,
-                 restore_faces: bool = False,
                  # detailer
                  detailer_enabled: bool = False,
                  detailer_prompt: str = '',
@@ -214,7 +213,6 @@ class StableDiffusionProcessing:
         self.detailer_steps = detailer_steps
         self.detailer_strength = detailer_strength
         self.detailer_resolution = detailer_resolution
-        self.restore_faces = restore_faces
         self.init_images = init_images
         self.init_control = init_control
         self.resize_mode = resize_mode
