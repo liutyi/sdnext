@@ -100,11 +100,6 @@ def initialize():
     shared.prompt_styles.reload()
     timer.startup.record("styles")
 
-    import modules.postprocess.codeformer_model as codeformer
-    codeformer.setup_model(shared.opts.codeformer_models_path)
-    sys.modules["modules.codeformer_model"] = codeformer
-    import modules.postprocess.gfpgan_model as gfpgan
-    gfpgan.setup_model(shared.opts.gfpgan_models_path)
     import modules.postprocess.yolo as yolo
     yolo.initialize()
     timer.startup.record("detailer")
