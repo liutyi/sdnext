@@ -21,10 +21,6 @@ predefined = [ # <https://huggingface.co/vladmandic/yolo-detailers/tree/main>
     'https://huggingface.co/vladmandic/yolo-detailers/resolve/main/anzhc-eyes-seg.pt',
     'https://huggingface.co/vladmandic/yolo-detailers/resolve/main/anzhc-face-1024-seg-8n.pt',
     'https://huggingface.co/vladmandic/yolo-detailers/resolve/main/anzhc-head-seg-8n.pt',
-    'https://huggingface.co/netrunner-exe/Face-Upscalers-onnx/resolve/main/codeformer.fp16.onnx',
-    'https://huggingface.co/netrunner-exe/Face-Upscalers-onnx/resolve/main/restoreformer.fp16.onnx',
-    'https://huggingface.co/netrunner-exe/Face-Upscalers-onnx/resolve/main/GFPGANv1.4.fp16.onnx',
-    'https://huggingface.co/netrunner-exe/Face-Upscalers-onnx/resolve/main/GPEN-BFR-512.fp16.onnx',
 ]
 load_lock = threading.Lock()
 
@@ -312,12 +308,6 @@ class YoloRestorer(Detailer):
             name, model = self.load(model_name)
             if model is None:
                 shared.log.warning(f'Detailer: model="{name}" not loaded')
-                continue
-
-            if name.endswith('.fp16'): # run gfpgan or codeformer directly and skip detailer processing
-                from modules.postprocess import restorer
-                np_image = restorer.restore(np_image, name, model, p.detailer_strength)
-                image = Image.fromarray(np_image)
                 continue
 
             if image is None:
