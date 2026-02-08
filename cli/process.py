@@ -126,11 +126,9 @@ def reset():
     all_images = []
 
 
-def upscale_restore_image(res: Result, upscale: bool = False, restore: bool = False):
+def upscale_restore_image(res: Result, upscale: bool = False):
     kwargs = util.Map({
         'image': encode(res.image),
-        'codeformer_visibility': 0.0,
-        'codeformer_weight': 0.0,
     })
     if res.image.width >= options.process.target_size and res.image.height >= options.process.target_size:
         upscale = False
@@ -138,14 +136,10 @@ def upscale_restore_image(res: Result, upscale: bool = False, restore: bool = Fa
         kwargs.upscaler_1 = 'SwinIR_4x'
         kwargs.upscaling_resize = 2
         res.ops.append('upscale')
-    if restore:
-        kwargs.codeformer_visibility = 1.0
-        kwargs.codeformer_weight = 0.2
-        res.ops.append('restore')
-    if upscale or restore:
+    if upscale:
         result = sdapi.postsync('/sdapi/v1/extra-single-image', kwargs)
         if 'image' not in result:
-            res.message = 'failed to upscale/restore image'
+            res.message = 'failed to upscale image'
         else:
             res.image = Image.open(io.BytesIO(base64.b64decode(result['image'])))
     return res
@@ -309,7 +303,7 @@ def file(filename: str, folder: str, tag = None, requested = []):
     if res.image is None:
         return res
     # post processing steps
-    res = upscale_restore_image(res, 'upscale' in requested, 'restore' in requested)
+    res = upscale_restore_image(res, 'upscale' in requested)
     if res.image.width < options.process.target_size or res.image.height < options.process.target_size:
         res.message = f'low resolution: [{res.image.width}, {res.image.height}]'
         res.image = None
