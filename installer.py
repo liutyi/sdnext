@@ -1379,7 +1379,6 @@ def install_optional():
     t_start = time.time()
     log.info('Installing optional requirements...')
     install('--no-build-isolation git+https://github.com/Disty0/BasicSR@23c1fb6f5c559ef5ce7ad657f2fa56e41b121754', 'basicsr', ignore=True, quiet=True)
-    install('--no-build-isolation git+https://github.com/Disty0/GFPGAN@ae0f7e44fafe0ef4716f3c10067f8f379b74c21c', 'gfpgan', ignore=True, quiet=True)
     install('av', ignore=True, quiet=True)
     install('beautifulsoup4', ignore=True, quiet=True)
     install('clean-fid', ignore=True, quiet=True)
