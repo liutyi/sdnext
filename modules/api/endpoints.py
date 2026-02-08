@@ -47,9 +47,6 @@ def get_controlnets(model_type: Optional[str] = None):
     from modules.control.units.controlnet import api_list_models
     return api_list_models(model_type)
 
-def get_restorers():
-    return [{"name":x.name(), "path": getattr(x, "cmd_dir", None)} for x in shared.face_restorers]
-
 def get_detailers():
     shared.yolo.enumerate()
     return [{"name": k, "path": v} for k, v in shared.yolo.list.items()]
