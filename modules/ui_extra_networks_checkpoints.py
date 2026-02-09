@@ -88,7 +88,7 @@ class ExtraNetworksPageCheckpoints(ui_extra_networks.ExtraNetworksPage):
                 path = f'{v.get("path", "")}'
 
             tag = v.get('tags', '')
-            if tag == 'nunchaku' and devices.backend != 'cuda':
+            if tag == 'nunchaku' and (devices.backend != 'cuda' and not shared.cmd_opts.experimental):
                 count['hidden'] += 1
                 continue
             if tag in count:
