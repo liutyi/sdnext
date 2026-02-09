@@ -11,6 +11,7 @@
   - pipelines: add **ZImageInpaint**, thanks @CalamitousFelicitousness  
   - add `--remote` command line flag that reduces client/server chatter and improves link stability  
     for long-running generates, useful when running on remote servers  
+  - hires: allow using different lora in refiner prompt  
 - **UI**
   - ui: **themes** add *CTD-NT64Light* and *CTD-NT64Dark*, thanks @resonantsky  
   - ui: **gallery** add option to auto-refresh gallery, thanks @awsr  
