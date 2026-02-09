@@ -156,7 +156,6 @@ def parse_prompt(prompt: str | None) -> tuple[str, defaultdict[str, list[ExtraNe
     if prompt is None:
         return "", res
     if isinstance(prompt, list):
-        shared.log.warning(f"parse_prompt was called with a list instead of a string: {prompt}")
         return parse_prompts(prompt)
 
     def found(m: re.Match[str]):
@@ -168,13 +167,17 @@ def parse_prompt(prompt: str | None) -> tuple[str, defaultdict[str, list[ExtraNe
     return updated_prompt, res
 
 
-def parse_prompts(prompts: list[str]):
+def parse_prompts(prompts: list[str], extra_data=None):
     updated_prompt_list: list[str] = []
-    extra_data: defaultdict[str, list[ExtraNetworkParams]] = defaultdict(list)
+    extra_data: defaultdict[str, list[ExtraNetworkParams]] = extra_data or defaultdict(list)
     for prompt in prompts:
         updated_prompt, parsed_extra_data = parse_prompt(prompt)
         if not extra_data:
             extra_data = parsed_extra_data
+        elif parsed_extra_data:
+            extra_data = parsed_extra_data
+        else:
+            pass
         updated_prompt_list.append(updated_prompt)
 
     return updated_prompt_list, extra_data

@@ -171,6 +171,7 @@ def process_base(p: processing.StableDiffusionProcessing):
         modelstats.analyze()
     try:
         t0 = time.time()
+        p.prompts, p.network_data = extra_networks.parse_prompts(p.prompts, p.network_data)
         extra_networks.activate(p, exclude=['text_encoder', 'text_encoder_2', 'text_encoder_3'])
 
         if hasattr(shared.sd_model, 'tgate') and getattr(p, 'gate_step', -1) > 0:
@@ -297,10 +298,20 @@ def process_hires(p: processing.StableDiffusionProcessing, output):
             p.denoising_strength = strength
             orig_image = p.task_args.pop('image', None) # remove image override from hires
             process_pre(p)
+
+            prompts = p.prompts
+            reset_prompts = False
+            if len(p.refiner_prompt) > 0:
+                prompts = len(output.images)* [p.refiner_prompt]
+                prompts, p.network_data = extra_networks.parse_prompts(prompts)
+                reset_prompts = True
+            if reset_prompts or ('base' in p.skip):
+                extra_networks.activate(p)
+
             hires_args = set_pipeline_args(
                 p=p,
                 model=shared.sd_model,
-                prompts=len(output.images)* [p.refiner_prompt] if len(p.refiner_prompt) > 0 else p.prompts,
+                prompts=prompts,
                 negative_prompts=len(output.images) * [p.refiner_negative] if len(p.refiner_negative) > 0 else p.negative_prompts,
                 prompts_2=len(output.images) * [p.refiner_prompt] if len(p.refiner_prompt) > 0 else p.prompts,
                 negative_prompts_2=len(output.images) * [p.refiner_negative] if len(p.refiner_negative) > 0 else p.negative_prompts,
@@ -314,11 +325,10 @@ def process_hires(p: processing.StableDiffusionProcessing, output):
                 strength=strength,
                 desc='Hires',
             )
+
             hires_steps = hires_args.get('prior_num_inference_steps', None) or p.hr_second_pass_steps or hires_args.get('num_inference_steps', None)
             shared.state.update(get_job_name(p, shared.sd_model), hires_steps, 1)
             try:
-                if 'base' in p.skip:
-                    extra_networks.activate(p)
                 taskid = shared.state.begin('Inference')
                 output = shared.sd_model(**hires_args) # pylint: disable=not-callable
                 shared.state.end(taskid)
