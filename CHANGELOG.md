@@ -1,6 +1,6 @@
 # Change Log for SD.Next
 
-## Update for 2026-02-07
+## Update for 2026-02-09
 
 - **Upscalers**
   - add support for [spandrel](https://github.com/chaiNNer-org/spandrel)  
@@ -15,8 +15,13 @@
   - ui: **themes** add *CTD-NT64Light* and *CTD-NT64Dark*, thanks @resonantsky  
   - ui: **gallery** add option to auto-refresh gallery, thanks @awsr  
 - **Internal**
+  - refactor: nunchaku models are now listed in networks tab as reference models  
+    instead of being used implicitly via quantization, thanks @CalamitousFelicitousness  
   - refactor: reorganize `cli` scripts  
+  - update `lint` rules, thanks @awsr  
 - **Fixes**
+  - fix: handle `clip` installer doing unwanted `setuptools` update  
+  - fix: cleanup for `uv` installer fallback  
   - fix: add metadata restore to always-on scripts  
   - fix: improve wildcard weights parsing, thanks @Tillerz  
   - fix: ui gallery cace recursive cleanup, thanks @awsr  
