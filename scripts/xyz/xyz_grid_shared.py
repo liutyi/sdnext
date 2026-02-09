@@ -284,10 +284,8 @@ def apply_context(p: processing.StableDiffusionProcessingTxt2Img, opt, x):
 
 
 def apply_detailer(p, opt, x):
-    opt = opt.lower()
-    is_active = opt in ('true', 'yes', 'y', '1')
-    p.detailer_enabled = is_active
-    shared.log.debug(f'XYZ grid apply face-restore: "{x}"')
+    p.detailer_enabled = bool(opt)
+    shared.log.debug(f'XYZ grid apply detailer: "{x}"')
 
 
 def apply_control(field):
