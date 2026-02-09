@@ -19,6 +19,7 @@
     instead of being used implicitly via quantization, thanks @CalamitousFelicitousness  
   - refactor: reorganize `cli` scripts  
   - update `lint` rules, thanks @awsr  
+  - update `requirements`  
 - **Fixes**
   - fix: handle `clip` installer doing unwanted `setuptools` update  
   - fix: cleanup for `uv` installer fallback  
