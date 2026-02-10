@@ -687,7 +687,7 @@ def check_diffusers():
     t_start = time.time()
     if args.skip_all:
         return
-    sha = '99e2cfff27dec514a43e260e885c5e6eca038b36' # diffusers commit hash
+    sha = '5bf248ddd8796b4f4958559429071a28f9b2dd3a' # diffusers commit hash
     # if args.use_rocm or args.use_zluda or args.use_directml:
     #     sha = '043ab2520f6a19fce78e6e060a68dbc947edb9f9' # lock diffusers versions for now
     pkg = pkg_resources.working_set.by_key.get('diffusers', None)
