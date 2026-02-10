@@ -431,6 +431,26 @@ def run(cmd: str, arg: str):
     return txt
 
 
+def cleanup_broken_packages():
+    """Remove dist-info directories with missing RECORD files that uv may have left behind"""
+    try:
+        import site
+        for site_dir in site.getsitepackages():
+            if not os.path.isdir(site_dir):
+                continue
+            for entry in os.listdir(site_dir):
+                if not entry.endswith('.dist-info'):
+                    continue
+                dist_info = os.path.join(site_dir, entry)
+                record_file = os.path.join(dist_info, 'RECORD')
+                if not os.path.isfile(record_file):
+                    pkg_name = entry.split('-')[0]
+                    log.warning(f'Install: removing broken package metadata: {pkg_name} path={dist_info}')
+                    shutil.rmtree(dist_info, ignore_errors=True)
+    except Exception:
+        pass
+
+
 def pip(arg: str, ignore: bool = False, quiet: bool = True, uv = True):
     t_start = time.time()
     originalArg = arg
@@ -454,6 +474,7 @@ def pip(arg: str, ignore: bool = False, quiet: bool = True, uv = True):
             err = result.stderr.decode(encoding="utf8", errors="ignore")
             log.warning(f'Install: cmd="{pipCmd}" args="{all_args}" cannot use uv, fallback to pip')
             debug(f'Install: uv pip error: {err}')
+            cleanup_broken_packages()
             return pip(originalArg, ignore, quiet, uv=False)
         else:
             txt += ('\n' if len(txt) > 0 else '') + result.stderr.decode(encoding="utf8", errors="ignore")
@@ -468,7 +489,7 @@ def pip(arg: str, ignore: bool = False, quiet: bool = True, uv = True):
 
 
 # install package using pip if not already installed
-def install(package, friendly: str = None, ignore: bool = False, reinstall: bool = False, no_deps: bool = False, quiet: bool = False, force: bool = False):
+def install(package, friendly: str = None, ignore: bool = False, reinstall: bool = False, no_deps: bool = False, quiet: bool = False, force: bool = False, no_build_isolation: bool = False):
     t_start = time.time()
     res = ''
     if args.reinstall or args.upgrade:
@@ -476,7 +497,8 @@ def install(package, friendly: str = None, ignore: bool = False, reinstall: bool
         quick_allowed = False
     if (args.reinstall) or (reinstall) or (not installed(package, friendly, quiet=quiet)):
         deps = '' if not no_deps else '--no-deps '
-        cmd = f"install{' --upgrade' if not args.uv else ''}{' --force-reinstall' if force else ''} {deps}{package}"
+        isolation = '' if not no_build_isolation else '--no-build-isolation '
+        cmd = f"install{' --upgrade' if not args.uv else ''}{' --force-reinstall' if force else ''} {deps}{isolation}{package}"
         res = pip(cmd, ignore=ignore, uv=package != "uv" and not package.startswith('git+'))
         try:
             importlib.reload(pkg_resources)
@@ -665,7 +687,7 @@ def check_diffusers():
     t_start = time.time()
     if args.skip_all:
         return
-    sha = '99e2cfff27dec514a43e260e885c5e6eca038b36' # diffusers commit hash
+    sha = '5bf248ddd8796b4f4958559429071a28f9b2dd3a' # diffusers commit hash
     # if args.use_rocm or args.use_zluda or args.use_directml:
     #     sha = '043ab2520f6a19fce78e6e060a68dbc947edb9f9' # lock diffusers versions for now
     pkg = pkg_resources.working_set.by_key.get('diffusers', None)
@@ -1100,8 +1122,9 @@ def install_packages():
         pr.enable()
     # log.info('Install: verifying packages')
     clip_package = os.environ.get('CLIP_PACKAGE', "git+https://github.com/openai/CLIP.git")
-    install(clip_package, 'clip', quiet=True)
+    install(clip_package, 'clip', quiet=True, no_build_isolation=True)
     install('open-clip-torch', no_deps=True, quiet=True)
+    install(clip_package, 'ftfy', quiet=True, no_build_isolation=True)
     # tensorflow_package = os.environ.get('TENSORFLOW_PACKAGE', 'tensorflow==2.13.0')
     # tensorflow_package = os.environ.get('TENSORFLOW_PACKAGE', None)
     # if tensorflow_package is not None:

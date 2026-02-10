@@ -1,6 +1,6 @@
 # Change Log for SD.Next
 
-## Update for 2026-02-07
+## Update for 2026-02-09
 
 - **Upscalers**
   - add support for [spandrel](https://github.com/chaiNNer-org/spandrel)  
@@ -11,12 +11,21 @@
   - pipelines: add **ZImageInpaint**, thanks @CalamitousFelicitousness  
   - add `--remote` command line flag that reduces client/server chatter and improves link stability  
     for long-running generates, useful when running on remote servers  
+  - hires: allow using different lora in refiner prompt  
+  - **nunchaku** models are now listed in networks tab as reference models  
+    instead of being used implicitly via quantization, thanks @CalamitousFelicitousness  
 - **UI**
   - ui: **themes** add *CTD-NT64Light* and *CTD-NT64Dark*, thanks @resonantsky  
   - ui: **gallery** add option to auto-refresh gallery, thanks @awsr  
 - **Internal**
+  - refactor: switch to `pyproject.toml` for tool configs  
   - refactor: reorganize `cli` scripts  
+  - refactor: move tests to dedicated `/test/`  
+  - update `lint` rules, thanks @awsr  
+  - update `requirements`  
 - **Fixes**
+  - fix: handle `clip` installer doing unwanted `setuptools` update  
+  - fix: cleanup for `uv` installer fallback  
   - fix: add metadata restore to always-on scripts  
   - fix: improve wildcard weights parsing, thanks @Tillerz  
   - fix: ui gallery cace recursive cleanup, thanks @awsr  
