@@ -16,7 +16,8 @@
   - ui: **themes** add *CTD-NT64Light* and *CTD-NT64Dark*, thanks @resonantsky  
   - ui: **gallery** add option to auto-refresh gallery, thanks @awsr  
 - **Internal**
-  - refactor: nunchaku models are now listed in networks tab as reference models  
+  - refactor: switch to `pyproject.toml` for tool configs  
+  - refactor: **nunchaku** models are now listed in networks tab as reference models  
     instead of being used implicitly via quantization, thanks @CalamitousFelicitousness  
   - refactor: reorganize `cli` scripts  
   - update `lint` rules, thanks @awsr  

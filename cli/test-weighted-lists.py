@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import sys, os
+import sys
+import os
 from collections import Counter
 
 script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,25 +21,25 @@ tolerance_pct = 5
 # tests
 tests = [
     # - empty
-    ["", { '': 100 } ], 
+    ["", { '': 100 } ],
     # - no weights
-    [ "red|blonde|black", { 'black': 33, 'red': 33, 'blonde': 33 } ], 
+    [ "red|blonde|black", { 'black': 33, 'red': 33, 'blonde': 33 } ],
     # - full weights <= 1
-    [ "red:0.1|blonde:0.9", { 'blonde': 90, 'red': 10 } ], 
+    [ "red:0.1|blonde:0.9", { 'blonde': 90, 'red': 10 } ],
     # - weights > 1 to test normalization
-    [ "red:1|blonde:2|black:5", { 'blonde': 25, 'red': 12.5, 'black': 62.5 } ], 
+    [ "red:1|blonde:2|black:5", { 'blonde': 25, 'red': 12.5, 'black': 62.5 } ],
     # - disabling 0 weights to force one result
-    [ "red:0|blonde|black:0", { 'blonde': 100 } ], 
+    [ "red:0|blonde|black:0", { 'blonde': 100 } ],
     # - weights <= 1 with distribution of the leftover
-    [ "red:0.5|blonde|black:0.3|brown", { 'red': 50, 'black': 30, 'brown': 10, 'blonde': 10 } ], 
+    [ "red:0.5|blonde|black:0.3|brown", { 'red': 50, 'black': 30, 'brown': 10, 'blonde': 10 } ],
     # - weights > 1, unweightes should get default of 1
-    [ "red:2|blonde|black", { 'red': 50, 'blonde': 25, 'black': 25 } ], 
+    [ "red:2|blonde|black", { 'red': 50, 'blonde': 25, 'black': 25 } ],
     # - ignore content of ()
-    [ "red:0.5|(blonde:1.3)", { 'red': 50, '(blonde:1.3)': 50 } ], 
+    [ "red:0.5|(blonde:1.3)", { 'red': 50, '(blonde:1.3)': 50 } ],
     # - ignore content of []
-    [ "red:0.5|[stuff:1.3]", { '[stuff:1.3]': 50, 'red': 50 } ], 
+    [ "red:0.5|[stuff:1.3]", { '[stuff:1.3]': 50, 'red': 50 } ],
     # - ignore content of <>
-    [ "red:0.5|<lora:1.0>", { '<lora:1.0>': 50, 'red': 50 } ] 
+    [ "red:0.5|<lora:1.0>", { '<lora:1.0>': 50, 'red': 50 } ]
 ]
 
 # -------------------------------------------------
