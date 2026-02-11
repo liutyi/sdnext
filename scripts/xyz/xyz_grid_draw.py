@@ -2,6 +2,7 @@ import time
 from copy import copy
 from PIL import Image
 from modules import shared, images, processing
+from modules.image.util import draw_text
 
 
 def draw_xyz_grid(p, xs, ys, zs, x_labels, y_labels, z_labels, cell, draw_legend, include_lone_images, include_sub_grids, first_axes_processed, second_axes_processed, margin_size, no_grid: False, include_time: False, include_text: False): # pylint: disable=unused-argument
@@ -50,7 +51,7 @@ def draw_xyz_grid(p, xs, ys, zs, x_labels, y_labels, z_labels, cell, draw_legend
             if include_time:
                 overlay_text += f'Time: {elapsed:.2f}'
             if len(overlay_text) > 0:
-                processed_result.images[idx] = images.draw_overlay(processed_result.images[idx], overlay_text)
+                processed_result.images[idx] = draw_text(processed_result.images[idx], overlay_text)
             processed_result.all_prompts[idx] = processed.prompt
             processed_result.all_seeds[idx] = processed.seed
             processed_result.infotexts[idx] = processed.infotexts[0]

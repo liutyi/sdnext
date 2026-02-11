@@ -8,6 +8,7 @@ import numpy as np
 from PIL import Image, ImageOps
 from modules import shared, images, scripts_manager, masking, sd_models, sd_vae, processing_helpers
 from modules.paths import resolve_output_path
+from modules.image.util import flatten
 
 
 debug = shared.log.trace if os.environ.get('SD_PROCESS_DEBUG', None) is not None else lambda *args, **kwargs: None
@@ -538,7 +539,7 @@ class StableDiffusionProcessingImg2Img(StableDiffusionProcessing):
             self.init_img_height = getattr(self, 'init_img_height', img.height) # pylint: disable=attribute-defined-outside-init
             if shared.opts.save_init_img:
                 images.save_image(img, path=resolve_output_path(shared.opts.outdir_samples, shared.opts.outdir_init_images), basename=None, forced_filename=self.init_img_hash, suffix="-init-image")
-            image = images.flatten(img, shared.opts.img2img_background_color)
+            image = flatten(img, shared.opts.img2img_background_color)
             if crop_region is None and self.resize_mode > 0:
                 image = images.resize_image(self.resize_mode, image, self.width, self.height, upscaler_name=self.resize_name, context=self.resize_context)
                 self.width = image.width

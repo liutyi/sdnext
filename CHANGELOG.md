@@ -18,13 +18,14 @@
     instead of being used implicitly via quantization, thanks @CalamitousFelicitousness  
   - removed: old `codeformer` and `gfpgan` face restorers, thanks @CalamitousFelicitousness  
 - **UI**
-  - ui: **themes** add *CTD-NT64Light* and *CTD-NT64Dark*, thanks @resonantsky  
+  - ui: **themes** add *CTD-NT64Light*, *CTD-NT64Medium* and *CTD-NT64Dark*, thanks @resonantsky  
   - ui: **gallery** add option to auto-refresh gallery, thanks @awsr  
 - **Internal**
   - refactor: to/from image/tensor logic, thanks @CalamitousFelicitousness  
   - refactor: switch to `pyproject.toml` for tool configs  
   - refactor: reorganize `cli` scripts  
   - refactor: move tests to dedicated `/test/`  
+  - refactor: all image handling to `modules/image/`  
   - refactor: captioning part-2, thanks @CalamitousFelicitousness  
   - refactor: remove face restoration, thanks @CalamitousFelicitousness  
   - update `lint` rules, thanks @awsr  

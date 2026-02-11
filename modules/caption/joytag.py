@@ -17,7 +17,8 @@ import torchvision
 import einops
 from einops.layers.torch import Rearrange
 import huggingface_hub
-from modules import shared, devices, sd_models, images_sharpfin
+from modules import shared, devices, sd_models
+from modules.image import convert
 
 
 model = None
@@ -1034,8 +1035,8 @@ def prepare_image(image: Image.Image, target_size: int) -> torch.Tensor:
     padded_image.paste(image, (pad_left, pad_top))
     if max_dim != target_size:
         padded_image = padded_image.resize((target_size, target_size), Image.Resampling.LANCZOS)
-    image_tensor = images_sharpfin.to_tensor(padded_image)
-    image_tensor = images_sharpfin.normalize(image_tensor, mean=[0.48145466, 0.4578275, 0.40821073], std=[0.26862954, 0.26130258, 0.27577711])
+    image_tensor = convert.to_tensor(padded_image)
+    image_tensor = convert.normalize(image_tensor, mean=[0.48145466, 0.4578275, 0.40821073], std=[0.26862954, 0.26130258, 0.27577711])
     return image_tensor
 
 

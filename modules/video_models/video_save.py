@@ -11,7 +11,7 @@ from modules.video_models.video_utils import check_av
 
 
 def get_video_filename(p:processing.StableDiffusionProcessingVideo):
-    from modules.images_namegen import FilenameGenerator
+    from modules.image.namegen import FilenameGenerator
     namegen = FilenameGenerator(p, seed=p.seed if p is not None else 0, prompt=p.prompt if p is not None else '')
     filename = namegen.apply(shared.opts.samples_filename_pattern if shared.opts.samples_filename_pattern and len(shared.opts.samples_filename_pattern) > 0 else "[seq]-[prompt_words]")
     if shared.opts.save_to_dirs:
