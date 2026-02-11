@@ -3,7 +3,7 @@ import json
 import time
 import numpy as np
 from PIL import Image, ImageOps
-from modules import shared, devices, errors, images, scripts_manager, memstats, script_callbacks, extra_networks, detailer, sd_models, sd_checkpoint, sd_vae, processing_helpers, timer, face_restoration
+from modules import shared, devices, errors, images, scripts_manager, memstats, script_callbacks, extra_networks, detailer, sd_models, sd_checkpoint, sd_vae, processing_helpers, timer
 from modules.sd_hijack_hypertile import context_hypertile_vae, context_hypertile_unet
 from modules.processing_class import StableDiffusionProcessing, StableDiffusionProcessingTxt2Img, StableDiffusionProcessingImg2Img, StableDiffusionProcessingControl, StableDiffusionProcessingVideo # pylint: disable=unused-import
 from modules.processing_info import create_infotext
@@ -55,8 +55,6 @@ class Processed:
 
         self.audio = audio
 
-        self.restore_faces = p.restore_faces or False
-        self.face_restoration_model = shared.opts.face_restoration_model if p.restore_faces else None
         self.detailer = p.detailer_enabled or False
         self.detailer_model = shared.opts.detailer_model if p.detailer_enabled else None
         self.seed_resize_from_w = p.seed_resize_from_w
@@ -295,15 +293,6 @@ def process_samples(p: StableDiffusionProcessing, samples):
             image = image[0]
 
         if not shared.state.interrupted and not shared.state.skipped:
-
-            if p.restore_faces:
-                p.ops.append('restore')
-                if not p.do_not_save_samples and shared.opts.save_images_before_detailer:
-                    info = create_infotext(p, p.prompts, p.seeds, p.subseeds, index=i)
-                    images.save_image(Image.fromarray(sample), path=p.outpath_samples, basename="", seed=p.seeds[i], prompt=p.prompts[i], extension=shared.opts.samples_format, info=info, p=p, suffix="-before-restore")
-                sample = face_restoration.restore_faces(sample, p)
-                if sample is not None:
-                    image = Image.fromarray(sample)
 
             if p.detailer_enabled:
                 p.ops.append('detailer')

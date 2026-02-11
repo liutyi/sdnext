@@ -22,8 +22,6 @@
 - Refactor: Move `nunchaku` models to refernce instead of internal decision, owner @CalamitousFelicitousness
 - Refactor: [GGUF](https://huggingface.co/docs/diffusers/main/en/quantization/gguf)
 - Refactor: move sampler options to settings to config
-- Refactor: remove `CodeFormer`, owner @CalamitousFelicitousness
-- Refactor: remove `GFPGAN`, owner @CalamitousFelicitousness
 - Reimplement `llama` remover for Kanvas, pending end-to-end review of `Kanvas`
 
 ## Modular

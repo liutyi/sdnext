@@ -16,7 +16,6 @@ exclude = [
     ".vscode",
 
     "modules/cfgzero",
-    "modules/facelib",
     "modules/flash_attn_triton_amd",
     "modules/hidiffusion",
     "modules/intel/ipex",
@@ -137,7 +136,6 @@ main.ignore-paths=[
              "modules/control/proc",
              "modules/control/units",
              "modules/dml",
-             "modules/facelib",
              "modules/flash_attn_triton_amd",
              "modules/ggml",
              "modules/hidiffusion",

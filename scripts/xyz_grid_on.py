@@ -452,7 +452,6 @@ class Script(scripts_manager.Script):
 
     def process_images(self, p, *args): # pylint: disable=W0221, W0613
         if xyz_results_cache is not None and len(xyz_results_cache.images) > 0:
-            p.restore_faces = False
             p.detailer_enabled = False
             p.color_corrections = None
             # p.scripts = None
