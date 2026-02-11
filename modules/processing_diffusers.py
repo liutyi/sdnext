@@ -4,11 +4,12 @@ import time
 import numpy as np
 import torch
 from PIL import Image
-from modules import shared, devices, processing, sd_models, errors, sd_hijack_hypertile, processing_vae, sd_models_compile, timer, modelstats, extra_networks, attention, images_sharpfin
+from modules import shared, devices, processing, sd_models, errors, sd_hijack_hypertile, processing_vae, sd_models_compile, timer, modelstats, extra_networks, attention
 from modules.processing_helpers import resize_hires, calculate_base_steps, calculate_hires_steps, calculate_refiner_steps, save_intermediate, update_sampler, is_txt2img, is_refiner_enabled, get_job_name
 from modules.processing_args import set_pipeline_args
 from modules.onnx_impl import preprocess_pipeline as preprocess_onnx_pipeline, check_parameters_changed as olive_check_parameters_changed
 from modules.lora import lora_common
+from modules.image import convert
 
 
 debug = os.environ.get('SD_DIFFUSERS_DEBUG', None) is not None
@@ -269,9 +270,9 @@ def process_hires(p: processing.StableDiffusionProcessing, output):
             sd_hijack_hypertile.hypertile_set(p, hr=True)
         elif torch.is_tensor(output.images) and output.images.shape[-1] == 3: # nhwc
             if output.images.dim() == 3:
-                output.images = images_sharpfin.to_pil(output.images)
+                output.images = convert.to_pil(output.images)
             elif output.images.dim() == 4:
-                output.images = [images_sharpfin.to_pil(output.images[i]) for i in range(output.images.shape[0])]
+                output.images = [convert.to_pil(output.images[i]) for i in range(output.images.shape[0])]
 
         strength = p.hr_denoising_strength if p.hr_denoising_strength > 0 else p.denoising_strength
         if (p.hr_upscaler is not None) and (p.hr_upscaler.lower().startswith('latent') or p.hr_force) and strength > 0:
@@ -571,7 +572,7 @@ def process_diffusers(p: processing.StableDiffusionProcessing):
     if hasattr(shared.sd_model, 'unet') and hasattr(shared.sd_model.unet, 'config') and hasattr(shared.sd_model.unet.config, 'in_channels') and shared.sd_model.unet.config.in_channels == 9 and not is_control:
         shared.sd_model = sd_models.set_diffuser_pipe(shared.sd_model, sd_models.DiffusersTaskType.INPAINTING) # force pipeline
         if len(getattr(p, 'init_images', [])) == 0:
-            p.init_images = [images_sharpfin.to_pil(torch.rand((3, getattr(p, 'height', 512), getattr(p, 'width', 512))))]
+            p.init_images = [convert.to_pil(torch.rand((3, getattr(p, 'height', 512), getattr(p, 'width', 512))))]
     if not p.prompts:
         p.prompts = p.all_prompts[p.iteration * p.batch_size:(p.iteration+1) * p.batch_size]
     if not p.negative_prompts:

@@ -109,8 +109,8 @@ class Upscaler:
                 if img.width >= dest_w and img.height >= dest_h:
                     break
             if img.width != dest_w or img.height != dest_h:
-                from modules import images_sharpfin
-                img = images_sharpfin.resize(img, (int(dest_w), int(dest_h)))
+                from modules.image import sharpfin
+                img = sharpfin.resize(img, (int(dest_w), int(dest_h)))
         shared.state.end(jobid)
         return img
 

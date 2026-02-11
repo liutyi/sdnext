@@ -4,6 +4,7 @@ from PIL import Image
 from modules import processing, shared, images, devices, scripts_manager
 from modules.processing import get_processed
 from modules.shared import opts, state, log
+from modules.image.util import flatten
 
 
 class Script(scripts_manager.Script):
@@ -32,7 +33,7 @@ class Script(scripts_manager.Script):
 
         if init_img is None:
             return None
-        init_img = images.flatten(init_img, opts.img2img_background_color)
+        init_img = flatten(init_img, opts.img2img_background_color)
 
         if isinstance(upscaler_index, str):
             upscaler_index = [x.name.lower() for x in shared.sd_upscalers].index(upscaler_index.lower())

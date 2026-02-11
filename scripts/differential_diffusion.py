@@ -858,8 +858,8 @@ class StableDiffusionXLDiffImg2ImgPipeline(DiffusionPipeline, FromSingleFileMixi
 
         # 4. Preprocess image
         #image = self.image_processor.preprocess(image) #ideally we would have preprocess the image with diffusers, but for this POC we won't --- it throws a deprecated warning
-        from modules import images_sharpfin
-        map = images_sharpfin.resize_tensor(map, tuple(s // self.vae_scale_factor for s in original_image.shape[2:]), linearize=False)
+        from modules.image import sharpfin
+        map = sharpfin.resize_tensor(map, tuple(s // self.vae_scale_factor for s in original_image.shape[2:]), linearize=False)
         # 5. Prepare timesteps
         def denoising_value_valid(dnv):
             return type(denoising_end) == float and 0 < dnv < 1
@@ -1758,8 +1758,8 @@ class StableDiffusionDiffImg2ImgPipeline(DiffusionPipeline):
 
         # 7. Prepare extra step kwargs.
         extra_step_kwargs = self.prepare_extra_step_kwargs(generator, eta)
-        from modules import images_sharpfin
-        map = images_sharpfin.resize_tensor(map, tuple(s // self.vae_scale_factor for s in image.shape[2:]), linearize=False)
+        from modules.image import sharpfin
+        map = sharpfin.resize_tensor(map, tuple(s // self.vae_scale_factor for s in image.shape[2:]), linearize=False)
 
         # 8. Denoising loop
         num_warmup_steps = len(timesteps) - num_inference_steps * self.scheduler.order
@@ -1834,7 +1834,8 @@ class StableDiffusionDiffImg2ImgPipeline(DiffusionPipeline):
 import gradio as gr
 import diffusers
 from PIL import Image, ImageEnhance, ImageOps # pylint: disable=reimported
-from modules import errors, shared, devices, scripts_manager, processing, sd_models, images, images_sharpfin
+from modules import errors, shared, devices, scripts_manager, processing, sd_models, images
+from modules.image import convert
 
 
 detector = None
@@ -1888,9 +1889,9 @@ class Script(scripts_manager.Script):
         else:
             return None, None, None
         image_mask = image_map.copy()
-        image_map = images_sharpfin.to_tensor(image_map)
+        image_map = convert.to_tensor(image_map)
         image_map = image_map.to(devices.device)
-        image_init = 2 * images_sharpfin.to_tensor(image_init) - 1
+        image_init = 2 * convert.to_tensor(image_init) - 1
         image_init = image_init.unsqueeze(0)
         image_init = image_init.to(devices.device)
         return image_init, image_map, image_mask

@@ -26,13 +26,13 @@ class Script(scripts_manager.Script):
     def encode(self, p: processing.StableDiffusionProcessing, image: Image.Image):
         if image is None:
             return None
-        from modules import images_sharpfin
+        from modules.image import convert
         if p.width is None or p.width == 0:
             p.width = int(8 * (image.width * p.scale_by // 8))
         if p.height is None or p.height == 0:
             p.height = int(8 * (image.height * p.scale_by // 8))
         image = images.resize_image(p.resize_mode, image, p.width, p.height, upscaler_name=p.resize_name, context=p.resize_context)
-        tensor = images_sharpfin.to_tensor(image).unsqueeze(0).to(device=devices.device, dtype=devices.dtype)
+        tensor = convert.to_tensor(image).unsqueeze(0).to(device=devices.device, dtype=devices.dtype)
         tensor = 2.0 * tensor - 1.0
         with devices.inference_context():
             latent = shared.sd_model.vae.tiled_encode(tensor)

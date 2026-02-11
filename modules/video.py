@@ -3,7 +3,7 @@ import threading
 import numpy as np
 from PIL import Image
 from modules import shared, errors
-from modules.images_namegen import FilenameGenerator # pylint: disable=unused-import
+from modules.image.namegen import FilenameGenerator # pylint: disable=unused-import
 
 
 def interpolate_frames(images, count: int = 0, scale: float = 1.0, pad: int = 1, change: float = 0.3):

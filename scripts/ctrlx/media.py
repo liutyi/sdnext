@@ -1,7 +1,7 @@
 import numpy as np
 import torch
-from modules import images_sharpfin
 import PIL
+from modules.image import convert
 
 
 JPEG_QUALITY = 95
@@ -13,7 +13,7 @@ def preprocess(image, processor, **kwargs):
     elif isinstance(image, np.ndarray):
         image = PIL.Image.fromarray(image)
     elif isinstance(image, torch.Tensor):
-        image = images_sharpfin.to_pil(image)
+        image = convert.to_pil(image)
     else:
         raise TypeError(f"Image must be of type PIL.Image, np.ndarray, or torch.Tensor, got {type(image)} instead.")
 
