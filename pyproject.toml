@@ -360,3 +360,7 @@ variables.dummy-variables-rgx="_+$|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?$)|dummy|^ignored
 variables.ignored-argument-names="_.*|^ignored_|^unused_"
 variables.init-import=false
 variables.redefining-builtins-modules=["six.moves","past.builtins","future.builtins","builtins","io"]
+
+[tool.pyright]
+pythonVersion = "3.10"
+pythonPlatform = "All"
