@@ -45,7 +45,7 @@ OCR_TEST_IMAGE = 'models/Reference/HiDream-ai--HiDream-I1-Fast.jpg'
 BRACKET_TEST_IMAGE = 'models/Reference/SDXL-Flash_Mini.jpg'
 
 # Custom prefill text used for dual-prefill verification across tests
-CUSTOM_PREFILL = "Vlado is the best, and I'm looking at his robot which"
+CUSTOM_PREFILL = "I'm looking at robot which"
 
 
 class CaptionAPITest:
