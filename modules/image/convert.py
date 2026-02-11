@@ -7,13 +7,13 @@ from installer import log
 
 def to_tensor(image: Image.Image | np.ndarray):
     """PIL Image -> float32 CHW tensor [0,1]. Pure torch, no torchvision."""
-    # fn = f'{sys._getframe(2).f_code.co_name}:{sys._getframe(1).f_code.co_name}' # pylint: disable=protected-access
-    if not isinstance(image, Image.Image):
+    if isinstance(image, Image.Image):
         pic = np.array(image, copy=True)
     elif isinstance(image, np.ndarray):
         pic = image.copy()
     else:
-        raise TypeError(f"Expected PIL Image or np.ndarray, got {type(image)}")
+        fn = f'{sys._getframe(2).f_code.co_name}:{sys._getframe(1).f_code.co_name}' # pylint: disable=protected-access
+        raise TypeError(f"convert: target=tensor type={type(image)} fn={fn} unsupported")
     if pic.ndim == 2:
         pic = pic[:, :, np.newaxis]
     tensor = torch.from_numpy(pic.transpose((2, 0, 1))).contiguous()
@@ -30,7 +30,8 @@ def to_pil(tensor: torch.Tensor | np.ndarray):
     elif isinstance(tensor, np.ndarray):
         tensor = torch.from_numpy(tensor)
     else:
-        raise TypeError(f"Expected torch.Tensor, got {type(tensor)}")
+        fn = f'{sys._getframe(2).f_code.co_name}:{sys._getframe(1).f_code.co_name}' # pylint: disable=protected-access
+        raise TypeError(f"convert: target=image type={type(tensor)} fn={fn} unsupported")
     try:
         if tensor.dim() == 4:
             if tensor.shape[-1] in (1, 3, 4) and tensor.shape[-1] < tensor.shape[-2]:  # BHWC
