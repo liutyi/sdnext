@@ -18,7 +18,7 @@ class DeepDanbooru:
         with load_lock:
             if self.model is not None:
                 return
-            model_path = os.path.join(shared.opts.clip_models_path, "DeepDanbooru")
+            model_path = os.path.join(shared.models_path, "DeepDanbooru")
             shared.log.debug(f'Caption load: module=DeepDanbooru folder="{model_path}"')
             files = modelloader.load_models(
                 model_path=model_path,

@@ -8,7 +8,6 @@ import base64
 import sys
 import os
 import asyncio
-from types import SimpleNamespace
 import filetype
 from PIL import Image
 from util import log, Map
@@ -67,7 +66,7 @@ async def caption(f):
     else:
         log.error({ 'caption clip error': res })
     # run tagger (DeepBooru)
-    tagger_req = SimpleNamespace(image=json.image, model='deepbooru', show_scores=True)
+    tagger_req = Map({'image': json.image, 'model': 'deepbooru', 'show_scores': True})
     res = await sdapi.post('/sdapi/v1/tagger', tagger_req)
     keywords = {}
     if 'scores' in res and res.scores:
