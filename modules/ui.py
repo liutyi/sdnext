@@ -65,7 +65,7 @@ def setup_progressbar(*args, **kwargs): # pylint: disable=unused-argument
     pass
 
 
-def create_ui(startup_timer = None):
+def create_ui(startup_timer = None) -> gr.Blocks:
     global interfaces # pylint: disable=global-statement
     if startup_timer is None:
         timer.startup = timer.Timer()
