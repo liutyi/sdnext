@@ -525,7 +525,7 @@ class ScriptRunner:
                 self.script_load_ctr = (self.script_load_ctr + 1) % len(self.titles)
                 return gr.update(visible=visibility)
             else:
-                errors.log.warning(f'Script: title="{title}" op=visibility not found')
+                # errors.log.warning(f'Script: title="{title}" op=visibility not found')
                 return gr.update(visible=False)
 
         self.infotext_fields.append((dropdown, lambda x: gr.update(value=x.get('Script', 'None'))))
