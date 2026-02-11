@@ -364,3 +364,4 @@ variables.redefining-builtins-modules=["six.moves","past.builtins","future.built
 [tool.pyright]
 pythonVersion = "3.10"
 pythonPlatform = "All"
+typeCheckingMode = "off"
