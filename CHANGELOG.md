@@ -16,6 +16,7 @@
   - hires: allow using different lora in refiner prompt  
   - **nunchaku** models are now listed in networks tab as reference models  
     instead of being used implicitly via quantization, thanks @CalamitousFelicitousness  
+  - removed: old `codeformer` and `gfpgan` face restorers, thanks @CalamitousFelicitousness  
 - **UI**
   - ui: **themes** add *CTD-NT64Light* and *CTD-NT64Dark*, thanks @resonantsky  
   - ui: **gallery** add option to auto-refresh gallery, thanks @awsr  
@@ -25,6 +26,7 @@
   - refactor: reorganize `cli` scripts  
   - refactor: move tests to dedicated `/test/`  
   - refactor: captioning part-2, thanks @CalamitousFelicitousness  
+  - refactor: remove face restoration, thanks @CalamitousFelicitousness  
   - update `lint` rules, thanks @awsr  
   - update `requirements`  
 - **Fixes**
