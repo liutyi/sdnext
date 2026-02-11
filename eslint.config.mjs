@@ -25,6 +25,7 @@ const jsConfig = defineConfig([
         ecmaVersion: 'latest',
       },
       globals: { // Set per project
+        ...globals.node,
         ...globals.builtin,
         ...globals.browser,
         ...globals.jquery,
