@@ -24,6 +24,7 @@
   - refactor: switch to `pyproject.toml` for tool configs  
   - refactor: reorganize `cli` scripts  
   - refactor: move tests to dedicated `/test/`  
+  - refactor: captioning part-2, thanks @CalamitousFelicitousness  
   - update `lint` rules, thanks @awsr  
   - update `requirements`  
 - **Fixes**
