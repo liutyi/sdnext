@@ -36,10 +36,12 @@
   - fix: cleanup for `uv` installer fallback  
   - fix: add metadata restore to always-on scripts  
   - fix: improve wildcard weights parsing, thanks @Tillerz  
-  - fix: ui gallery cace recursive cleanup, thanks @awsr  
+  - fix: ui gallery cache recursive cleanup, thanks @awsr  
+  - fix: main results pane sizing  
   - fix: `anima` model detection  
   - fix: lora unwanted unload  
   - fix: improve preview error handler  
+  - fix: gallery over remote/unsecure connections
 
 ## Update for 2026-02-04
 
