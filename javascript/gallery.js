@@ -661,7 +661,6 @@ async function addSeparators() {
 const gallerySendImage = (_images) => [currentImage]; // invoked by gradio button
 
 async function getHash(str) {
-  galleryProgressBar.error('File hash error');
   try {
     let hex = '';
     const strBuf = new TextEncoder().encode(str);
