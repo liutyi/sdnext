@@ -26,6 +26,17 @@ const el = {
 
 const SUPPORTED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'tiff', 'jp2', 'jxl', 'gif', 'mp4', 'mkv', 'avi', 'mjpeg', 'mpg', 'avr'];
 
+async function getHash(str) {
+  let hex = '';
+  const strBuf = new TextEncoder().encode(str);
+  let hashBuf;
+  if (crypto?.subtle?.digest) hashBuf = await crypto.subtle.digest('SHA-256', strBuf);
+  else hashBuf = hash(strBuf).buffer; // from sha256.js
+  const view = new DataView(hashBuf);
+  for (let i = 0; i < hashBuf.byteLength; i += 4) hex += (`00000000${view.getUint32(i).toString(16)}`).slice(-8);
+  return hex;
+}
+
 function getVisibleGalleryFiles() {
   if (!el.files) return [];
   return Array.from(el.files.children).filter((node) => node.name && node.offsetParent);
@@ -449,7 +460,12 @@ class GalleryFile extends HTMLElement {
       }
     }
 
-    this.hash = await getHash(`${this.src}/${this.size}/${this.mtime}`); // eslint-disable-line
+    this.hash = await getHash(`${this.src}/${this.size}/${this.mtime}`)
+      .catch((err) => {
+        error('getHash:', err);
+        galleryProgressBar.error('File hash error');
+        return null;
+      });
     const cachedData = (this.hash && opts.browser_cache) ? await idbGet(this.hash).catch(() => undefined) : undefined;
     const img = document.createElement('img');
     img.className = 'gallery-file';
@@ -658,23 +674,6 @@ async function addSeparators() {
 // methods
 
 const gallerySendImage = (_images) => [currentImage]; // invoked by gradio button
-
-async function getHash(str) {
-  try {
-    let hex = '';
-    const strBuf = new TextEncoder().encode(str);
-    let hashBuf;
-    if (crypto?.subtle?.digest) hashBuf = await crypto.subtle.digest('SHA-256', strBuf);
-    else hashBuf = await hash(strBuf).buffer; // from sha256.js
-    const view = new DataView(hashBuf);
-    for (let i = 0; i < hashBuf.byteLength; i += 4) hex += (`00000000${view.getUint32(i).toString(16)}`).slice(-8);
-    return hex;
-  } catch (err) {
-    error('getHash:', err);
-    galleryProgressBar.error('File hash error');
-    return undefined;
-  }
-}
 
 /**
  * Helper function to update status with sort mode
