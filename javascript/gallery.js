@@ -8,7 +8,6 @@ let outstanding = 0;
 let lastSort = 0;
 let lastSortName = 'None';
 let gallerySelection = { files: [], index: -1 };
-const galleryHashes = new Set();
 let maintenanceController = new AbortController();
 const folderStylesheet = new CSSStyleSheet();
 const fileStylesheet = new CSSStyleSheet();
@@ -111,7 +110,8 @@ async function awaitForOutstanding(num, signal) {
  * @param {AbortSignal} signal - AbortController signal
  */
 async function awaitForGallery(expectedSize, signal) {
-  while (galleryHashes.size < expectedSize && !signal.aborted) await new Promise((resolve) => { setTimeout(resolve, 500); }); // longer interval because it's a low priority check
+  // eslint-disable-next-line no-use-before-define
+  while (Math.max(galleryHashes.size, galleryHashes.fallback) < expectedSize && !signal.aborted) await new Promise((resolve) => { setTimeout(resolve, 500); }); // longer interval because it's a low priority check
   signal.throwIfAborted();
 }
 
@@ -184,6 +184,26 @@ function updateGalleryStyles() {
 }
 
 // Classes
+
+class HashSet extends Set {
+  constructor(val) {
+    super(val);
+    // Using a variable to store a counter has sometimes been unreliable in the past
+    this.fallback = 0;
+  }
+
+  add(value) {
+    ++this.fallback;
+    super.add(value);
+  }
+
+  clear() {
+    this.fallback = 0;
+    super.clear();
+  }
+}
+
+const galleryHashes = new HashSet();
 
 class SimpleProgressBar {
   #container = document.createElement('div');
