@@ -149,7 +149,7 @@ def resize_pil(image: Image.Image, target_size: tuple[int, int], *, kernel=None,
 
     rk = get_kernel(kernel)
     if rk is None:
-        log.debug(f'Resize image: method=PI source={image.width}x{image.height} target={w}x{h} kernel=None fn={fn}')
+        log.debug(f'Resize image: method=PIL source={image.width}x{image.height} target={w}x{h} kernel=None fn={fn}')
         return image.resize((w, h), resample=Image.Resampling.LANCZOS)
 
     from modules.sharpfin.functional import scale
