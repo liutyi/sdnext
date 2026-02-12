@@ -520,7 +520,7 @@ class GalleryFile extends HTMLElement {
           this.height = json.height;
           this.size = json.size;
           this.mtime = new Date(json.mtime);
-          if (opts.browser_cache) {
+          if (opts.browser_cache && this.hash) {
             await idbAdd({
               hash: this.hash,
               folder: this.fullFolder,
