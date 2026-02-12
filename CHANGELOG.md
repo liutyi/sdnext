@@ -1,6 +1,6 @@
 # Change Log for SD.Next
 
-## Update for 2026-02-11
+## Update for 2026-02-12
 
 - **Image manipulation**
   - use high-quality [sharpfin](https://github.com/drhead/Sharpfin) accelerated library  
@@ -29,6 +29,7 @@
   - refactor: captioning part-2, thanks @CalamitousFelicitousness  
   - refactor: remove face restoration, thanks @CalamitousFelicitousness  
   - update `lint` rules, thanks @awsr  
+  - remove requirements: `clip`, `open-clip`  
   - update `requirements`  
 - **Fixes**
   - fix: handle `clip` installer doing unwanted `setuptools` update  

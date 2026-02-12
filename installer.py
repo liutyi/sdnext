@@ -633,11 +633,12 @@ def get_platform():
             release = platform.release()
         return {
             'arch': platform.machine(),
-            'cpu': platform.processor(),
+            'cpu': f'{platform.processor()}',
             'system': platform.system(),
             'release': release,
             'python': platform.python_version(),
             'locale': locale.getlocale(),
+            'setuptools': package_version('setuptools'),
             'docker': os.environ.get('SD_DOCKER', None) is not None,
             # 'host': platform.node(),
             # 'version': platform.version(),
@@ -1114,27 +1115,6 @@ def check_modified_files():
     ts('files', t_start)
 
 
-# install required packages
-def install_packages():
-    t_start = time.time()
-    if args.profile:
-        pr = cProfile.Profile()
-        pr.enable()
-    # log.info('Install: verifying packages')
-    clip_package = os.environ.get('CLIP_PACKAGE', "git+https://github.com/openai/CLIP.git")
-    install(clip_package, 'clip', quiet=True, no_build_isolation=True)
-    install('open-clip-torch', no_deps=True, quiet=True)
-    install(clip_package, 'ftfy', quiet=True, no_build_isolation=True)
-    # tensorflow_package = os.environ.get('TENSORFLOW_PACKAGE', 'tensorflow==2.13.0')
-    # tensorflow_package = os.environ.get('TENSORFLOW_PACKAGE', None)
-    # if tensorflow_package is not None:
-    #    install(tensorflow_package, 'tensorflow-rocm' if 'rocm' in tensorflow_package else 'tensorflow', ignore=True, quiet=True)
-    if args.profile:
-        pr.disable( )
-        print_profile(pr, 'Packages')
-    ts('packages', t_start)
-
-
 # run extension installer
 def run_extension_installer(folder):
     path_installer = os.path.realpath(os.path.join(folder, "install.py"))
@@ -1390,17 +1370,12 @@ def install_optional():
     install('nvidia-ml-py', ignore=True, quiet=True)
     install('pillow-jxl-plugin==1.3.5', ignore=True, quiet=True)
     install('ultralytics==8.3.40', ignore=True, quiet=True)
+    install('open-clip-torch', no_deps=True, quiet=True)
     install('git+https://github.com/tencent-ailab/IP-Adapter.git', 'ip_adapter', ignore=True, quiet=True)
+    # install('git+https://github.com/openai/CLIP.git', 'clip', quiet=True, no_build_isolation=True)
     # install('torchao==0.10.0', ignore=True, quiet=True)
     # install('bitsandbytes==0.47.0', ignore=True, quiet=True)
     # install('optimum-quanto==0.2.7', ignore=True, quiet=True)
-    try:
-        import gguf
-        scripts_dir = os.path.join(os.path.dirname(gguf.__file__), '..', 'scripts')
-        if os.path.exists(scripts_dir):
-            os.rename(scripts_dir, scripts_dir + '_gguf')
-    except Exception:
-        pass
     ts('optional', t_start)
 
 

@@ -8,7 +8,7 @@ def lang_detect(text:str, top:int=1, threshold:float=0.25) -> str:
         from modules import shared
         if model is None:
             from installer import install
-            install("fasttext")
+            install('fasttext')
             import fasttext
             from huggingface_hub import hf_hub_download
             model_path = hf_hub_download(repo_id, filename="model.bin", cache_dir=shared.opts.hfcache_dir)
