@@ -183,6 +183,7 @@ class SimpleProgressBar {
   #hideTimeout = null;
   #interval = null;
   #max = 0;
+  #errorState = false;
   /** @type {Set} */
   #monitoredSet;
 
@@ -199,6 +200,7 @@ class SimpleProgressBar {
   }
 
   start(total) {
+    if (this.#errorState) return;
     this.clear();
     this.#max = total;
     this.#interval = setInterval(() => {
@@ -215,12 +217,27 @@ class SimpleProgressBar {
 
   clear() {
     this.#stop();
+    this.#errorState = false;
     clearTimeout(this.#hideTimeout);
     this.#hideTimeout = null;
     this.#container.style.display = 'none';
     this.#visible = false;
     this.#progress.style.width = '0';
     this.#text.textContent = '';
+  }
+
+  error(message) {
+    if (!this.#errorState) {
+      this.#errorState = true;
+      this.#stop();
+      this.#container.style.display = 'block';
+      this.#visible = true;
+      clearTimeout(this.#hideTimeout);
+      this.#text.textContent = message;
+      this.#hideTimeout = setTimeout(() => {
+        this.clear();
+      }, 2000);
+    }
   }
 
   #update(loaded, max) {
@@ -655,6 +672,7 @@ async function getHash(str) {
     return hex;
   } catch (err) {
     error('getHash:', err);
+    galleryProgressBar.error('File hash error');
     return undefined;
   }
 }
