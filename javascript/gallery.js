@@ -223,6 +223,15 @@ class SimpleProgressBar {
     this.#text.textContent = '';
   }
 
+  error(message) {
+    this.#stop();
+    clearTimeout(this.#hideTimeout);
+    this.#text.textContent = message;
+    this.#hideTimeout = setTimeout(() => {
+      this.clear();
+    }, 2000);
+  }
+
   #update(loaded, max) {
     if (this.#hideTimeout) {
       this.#hideTimeout = null;
@@ -655,6 +664,7 @@ async function getHash(str) {
     return hex;
   } catch (err) {
     error('getHash:', err);
+    galleryProgressBar.error('File hash error');
     return undefined;
   }
 }
