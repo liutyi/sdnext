@@ -432,7 +432,8 @@ class GalleryFile extends HTMLElement {
       }
     }
 
-    this.hash = await getHash(`${this.src}/${this.size}/${this.mtime}`); // eslint-disable-line no-use-before-define
+    this.hash = await getHash(`${this.src}/${this.size}/${this.mtime}`); // eslint-disable-line
+    console.log('CREATE HASH', this.hash, `${this.src}/${this.size}/${this.mtime}`);
     const cachedData = (this.hash && opts.browser_cache) ? await idbGet(this.hash).catch(() => undefined) : undefined;
     const img = document.createElement('img');
     img.className = 'gallery-file';
@@ -642,15 +643,18 @@ async function addSeparators() {
 
 const gallerySendImage = (_images) => [currentImage]; // invoked by gradio button
 
-async function getHash(str, algo = 'SHA-256') {
+async function getHash(str) {
   try {
     let hex = '';
     const strBuf = new TextEncoder().encode(str);
-    const hash = await crypto.subtle.digest(algo, strBuf);
-    const view = new DataView(hash);
-    for (let i = 0; i < hash.byteLength; i += 4) hex += (`00000000${view.getUint32(i).toString(16)}`).slice(-8);
+    let hashBuf;
+    if (crypto?.subtle?.digest) hashBuf = await crypto.subtle.digest('SHA-256', strBuf);
+    else hashBuf = await hash(strBuf).buffer; // from sha256.js
+    const view = new DataView(hashBuf);
+    for (let i = 0; i < hashBuf.byteLength; i += 4) hex += (`00000000${view.getUint32(i).toString(16)}`).slice(-8);
     return hex;
-  } catch {
+  } catch (err) {
+    error('getHash:', err);
     return undefined;
   }
 }
