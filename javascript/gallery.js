@@ -450,7 +450,6 @@ class GalleryFile extends HTMLElement {
     }
 
     this.hash = await getHash(`${this.src}/${this.size}/${this.mtime}`); // eslint-disable-line
-    console.log('CREATE HASH', this.hash, `${this.src}/${this.size}/${this.mtime}`);
     const cachedData = (this.hash && opts.browser_cache) ? await idbGet(this.hash).catch(() => undefined) : undefined;
     const img = document.createElement('img');
     img.className = 'gallery-file';
