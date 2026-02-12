@@ -253,7 +253,7 @@ def main():
     if not args.skip_env or args.skip_all:
         installer.set_environment()
     if args.uv:
-        installer.install("uv", "uv")
+        installer.install('uv', 'uv')
     installer.install_gradio()
     installer.check_torch()
     installer.check_onnx()
@@ -272,7 +272,6 @@ def main():
         init_paths()
     else:
         installer.install_requirements()
-        installer.install_packages()
         if installer.check_timestamp():
             installer.log.info('Startup: quick launch')
             init_paths()

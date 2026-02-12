@@ -102,6 +102,8 @@ def get_clip_models():
 
 
 def refresh_clip_models():
+    from installer import install
+    install('open-clip-torch', no_deps=True, quiet=True)
     global clip_models # pylint: disable=global-statement
     import open_clip
     models = sorted(open_clip.list_pretrained())
