@@ -149,7 +149,7 @@ class UpscalerSeedVR(Upscaler):
             result_tensor = generation.generation_loop(
                 runner=self.model,
                 images=image_tensor,
-                cfg_scale=opts.seedvt_cfg_scale,
+                cfg_scale=opts.seedvr_cfg_scale,
                 seed=seed,
                 res_w=width,
                 batch_size=1,
@@ -157,7 +157,7 @@ class UpscalerSeedVR(Upscaler):
                 device=devices.device,
             )
         t1 = time.time()
-        log.info(f'Upscaler: type="{self.name}" model="{selected_file}" scale={self.scale} cfg={opts.seedvt_cfg_scale} seed={seed} time={t1 - t0:.2f}')
+        log.info(f'Upscaler: type="{self.name}" model="{selected_file}" scale={self.scale} cfg={opts.seedvr_cfg_scale} seed={seed} time={t1 - t0:.2f}')
         img = convert.to_pil(result_tensor.squeeze())
 
         if opts.upscaler_unload:

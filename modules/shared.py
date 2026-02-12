@@ -531,8 +531,8 @@ options_templates.update(options_section(('saving-images', "Image Options"), {
     "image_sep_browser": OptionInfo("<h2>Image Gallery</h2>", "", gr.HTML),
     "browser_cache": OptionInfo(True, "Use image gallery cache"),
     "browser_folders": OptionInfo("", "Additional image browser folders"),
-    "browser_gallery_autoupdate": OptionInfo(False, "Automatically update when switching to the gallery"),
-    "browser_fixed_width": OptionInfo(False, "Use fixed width thumbnails"),
+    "browser_gallery_autoupdate": OptionInfo(True, "Gallery auto-update on tab change", gr.Checkbox, { "visible": False}),
+    "browser_fixed_width": OptionInfo(False, "Use fixed width thumbnails", gr.Checkbox, { "visible": False}),
     "viewer_show_metadata": OptionInfo(True, "Show metadata in full screen image browser"),
 
     "save_sep_options": OptionInfo("<h2>Intermediate Image Saving</h2>", "", gr.HTML),
@@ -656,8 +656,8 @@ options_templates.update(options_section(('postprocessing', "Postprocessing"), {
     "detailer_unload": OptionInfo(False, "Move detailer model to CPU when complete"),
     "detailer_augment": OptionInfo(False, "Detailer use model augment"),
 
-    "postprocessing_sep_seedvt": OptionInfo("<h2>SeedVT</h2>", "", gr.HTML),
-    "seedvt_cfg_scale": OptionInfo(3.5, "SeedVR CFG Scale", gr.Slider, {"minimum": 1, "maximum": 15, "step": 1}),
+    "postprocessing_sep_seedvr": OptionInfo("<h2>SeedVR</h2>", "", gr.HTML),
+    "seedvr_cfg_scale": OptionInfo(3.5, "SeedVR CFG Scale", gr.Slider, {"minimum": 1, "maximum": 15, "step": 1}),
 
 
     "postprocessing_sep_upscalers": OptionInfo("<h2>Upscaling</h2>", "", gr.HTML),
@@ -667,8 +667,8 @@ options_templates.update(options_section(('postprocessing', "Postprocessing"), {
     "upscaler_tile_overlap": OptionInfo(8, "Upscaler tile overlap", gr.Slider, {"minimum": 0, "maximum": 64, "step": 1}),
 
     "postprocessing_sep_resize": OptionInfo("<h2>Resize</h2>", "", gr.HTML),
-    "resize_quality": OptionInfo("Sharpfin MKS2021", "Image resize algorithm", gr.Dropdown, {"choices": ["PIL Lanczos", "Sharpfin MKS2021", "Sharpfin Lanczos3", "Sharpfin Mitchell", "Sharpfin Catmull-Rom"]}),
-    "resize_linearize_srgb": OptionInfo(True, "Apply sRGB linearization during image resize"),
+    "resize_quality": OptionInfo("PIL Lanczos", "Image resize algorithm", gr.Dropdown, {"choices": ["PIL Lanczos", "Sharpfin MKS2021", "Sharpfin Lanczos3", "Sharpfin Mitchell", "Sharpfin Catmull-Rom"]}),
+    "resize_linearize_srgb": OptionInfo(True, "Apply sRGB linearization"),
 }))
 
 
