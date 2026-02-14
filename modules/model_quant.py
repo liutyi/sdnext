@@ -255,10 +255,9 @@ def check_quant(module: str = ''):
 
 def check_nunchaku(module: str = ''):
     from modules import shared
-    model_name = getattr(shared.opts, 'sd_model_checkpoint', '')
-    if '+nunchaku' not in model_name:
+    if 'nunchaku' not in shared.opts.sd_model_checkpoint.lower():
         return False
-    base_path = model_name.split('+')[0]
+    base_path = shared.opts.sd_model_checkpoint.split('+')[0]
     for v in shared.reference_models.values():
         if v.get('path', '') != base_path:
             continue

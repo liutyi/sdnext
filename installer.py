@@ -688,23 +688,23 @@ def check_diffusers():
     t_start = time.time()
     if args.skip_all:
         return
-    sha = '5bf248ddd8796b4f4958559429071a28f9b2dd3a' # diffusers commit hash
+    target_commit = '6141ae2348c1af14836ac076bf089a0259daa340' # diffusers commit hash
     # if args.use_rocm or args.use_zluda or args.use_directml:
     #     sha = '043ab2520f6a19fce78e6e060a68dbc947edb9f9' # lock diffusers versions for now
     pkg = pkg_resources.working_set.by_key.get('diffusers', None)
     minor = int(pkg.version.split('.')[1] if pkg is not None else -1)
-    cur = opts.get('diffusers_version', '') if minor > -1 else ''
-    if (minor == -1) or ((cur != sha) and (not args.experimental)):
+    current = opts.get('diffusers_version', '') if minor > -1 else ''
+    if (minor == -1) or ((current != target_commit) and (not args.experimental)):
         if minor == -1:
-            log.info(f'Diffusers install: commit={sha}')
+            log.info(f'Diffusers install: commit={target_commit}')
         else:
-            log.info(f'Diffusers update: current={pkg.version} hash={cur} target={sha}')
+            log.info(f'Diffusers update: current={pkg.version} hash={current} target={target_commit}')
             pip('uninstall --yes diffusers', ignore=True, quiet=True, uv=False)
         if args.skip_git:
             log.warning('Git: marked as not available but required for diffusers installation')
-        pip(f'install --upgrade git+https://github.com/huggingface/diffusers@{sha}', ignore=False, quiet=True, uv=False)
+        pip(f'install --upgrade git+https://github.com/huggingface/diffusers@{target_commit}', ignore=False, quiet=True, uv=False)
         global diffusers_commit # pylint: disable=global-statement
-        diffusers_commit = sha
+        diffusers_commit = target_commit
     ts('diffusers', t_start)
 
 

@@ -129,6 +129,7 @@ const jsConfig = defineConfig([
       camelcase: 'off',
       'default-case': 'off',
       'max-classes-per-file': 'warn',
+      'guard-for-in': 'off',
       'no-await-in-loop': 'off',
       'no-bitwise': 'off',
       'no-continue': 'off',

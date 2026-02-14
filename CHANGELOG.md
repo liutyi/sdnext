@@ -1,7 +1,15 @@
 # Change Log for SD.Next
 
-## Update for 2026-02-12
+## Update for 2026-02-14
 
+### Highlights for 2026-02-14
+
+TBD
+
+### Details for 2026-02-14
+
+- **Models**
+  - TBD
 - **Image manipulation**
   - use high-quality [sharpfin](https://github.com/drhead/Sharpfin) accelerated library  
     when available (cuda-only), thanks @CalamitousFelicitousness  
@@ -18,6 +26,11 @@
     instead of being used implicitly via quantization, thanks @CalamitousFelicitousness  
   - removed: old `codeformer` and `gfpgan` face restorers, thanks @CalamitousFelicitousness  
 - **UI**
+  - ui: **localization** improved translation quality and new translations locales:  
+    *en, en1, en2, en3, en4, hr, es, it, fr, de, pt, ru, zh, ja, ko, hi, ar, bn, ur, id, vi, tr, sr, po, he, xx, yy, qq, tlh*  
+    yes, this now includes stuff like *latin, esperanto, arabic, hebrew, klingon* and a lot more!  
+    and also intruce some pseudo-locales such as: *techno-babbel*, *for-n00bs*  
+    *hint*: click on locale icon in bottom-left corner to cycle through available locales, or set default in *settings -> ui*  
   - ui: **themes** add *CTD-NT64Light*, *CTD-NT64Medium* and *CTD-NT64Dark*, thanks @resonantsky  
   - ui: **gallery** add option to auto-refresh gallery, thanks @awsr  
 - **Internal**
