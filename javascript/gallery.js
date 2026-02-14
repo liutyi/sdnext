@@ -8,7 +8,6 @@ let outstanding = 0;
 let lastSort = 0;
 let lastSortName = 'None';
 let gallerySelection = { files: [], index: -1 };
-const galleryHashes = new Set();
 let maintenanceController = new AbortController();
 const folderStylesheet = new CSSStyleSheet();
 const fileStylesheet = new CSSStyleSheet();
@@ -25,6 +24,17 @@ const el = {
 };
 
 const SUPPORTED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'tiff', 'jp2', 'jxl', 'gif', 'mp4', 'mkv', 'avi', 'mjpeg', 'mpg', 'avr'];
+
+async function getHash(str) {
+  let hex = '';
+  const strBuf = new TextEncoder().encode(str);
+  let hashBuf;
+  if (crypto?.subtle?.digest) hashBuf = await crypto.subtle.digest('SHA-256', strBuf);
+  else hashBuf = hash(strBuf).buffer; // from sha256.js
+  const view = new DataView(hashBuf);
+  for (let i = 0; i < hashBuf.byteLength; i += 4) hex += (`00000000${view.getUint32(i).toString(16)}`).slice(-8);
+  return hex;
+}
 
 function getVisibleGalleryFiles() {
   if (!el.files) return [];
@@ -100,7 +110,8 @@ async function awaitForOutstanding(num, signal) {
  * @param {AbortSignal} signal - AbortController signal
  */
 async function awaitForGallery(expectedSize, signal) {
-  while (galleryHashes.size < expectedSize && !signal.aborted) await new Promise((resolve) => { setTimeout(resolve, 500); }); // longer interval because it's a low priority check
+  // eslint-disable-next-line no-use-before-define
+  while (Math.max(galleryHashes.size, galleryHashes.fallback) < expectedSize && !signal.aborted) await new Promise((resolve) => { setTimeout(resolve, 500); }); // longer interval because it's a low priority check
   signal.throwIfAborted();
 }
 
@@ -174,6 +185,25 @@ function updateGalleryStyles() {
 
 // Classes
 
+class HashSet extends Set {
+  constructor(val) {
+    super(val);
+    this.fallback = 0;
+  }
+
+  add(value) {
+    ++this.fallback;
+    super.add(value);
+  }
+
+  clear() {
+    this.fallback = 0;
+    super.clear();
+  }
+}
+
+const galleryHashes = new HashSet();
+
 class SimpleProgressBar {
   #container = document.createElement('div');
   #progress = document.createElement('div');
@@ -183,7 +213,6 @@ class SimpleProgressBar {
   #hideTimeout = null;
   #interval = null;
   #max = 0;
-  #errorState = false;
   /** @type {Set} */
   #monitoredSet;
 
@@ -200,7 +229,6 @@ class SimpleProgressBar {
   }
 
   start(total) {
-    if (this.#errorState) return;
     this.clear();
     this.#max = total;
     this.#interval = setInterval(() => {
@@ -217,27 +245,12 @@ class SimpleProgressBar {
 
   clear() {
     this.#stop();
-    this.#errorState = false;
     clearTimeout(this.#hideTimeout);
     this.#hideTimeout = null;
     this.#container.style.display = 'none';
     this.#visible = false;
     this.#progress.style.width = '0';
     this.#text.textContent = '';
-  }
-
-  error(message) {
-    if (!this.#errorState) {
-      this.#errorState = true;
-      this.#stop();
-      this.#container.style.display = 'block';
-      this.#visible = true;
-      clearTimeout(this.#hideTimeout);
-      this.#text.textContent = message;
-      this.#hideTimeout = setTimeout(() => {
-        this.clear();
-      }, 2000);
-    }
   }
 
   #update(loaded, max) {
@@ -449,7 +462,11 @@ class GalleryFile extends HTMLElement {
       }
     }
 
-    this.hash = await getHash(`${this.src}/${this.size}/${this.mtime}`); // eslint-disable-line
+    this.hash = await getHash(`${this.src}/${this.size}/${this.mtime}`)
+      .catch((err) => {
+        error('getHash:', err);
+        return null;
+      });
     const cachedData = (this.hash && opts.browser_cache) ? await idbGet(this.hash).catch(() => undefined) : undefined;
     const img = document.createElement('img');
     img.className = 'gallery-file';
@@ -484,7 +501,7 @@ class GalleryFile extends HTMLElement {
           this.height = json.height;
           this.size = json.size;
           this.mtime = new Date(json.mtime);
-          if (opts.browser_cache) {
+          if (opts.browser_cache && this.hash) {
             await idbAdd({
               hash: this.hash,
               folder: this.fullFolder,
@@ -658,23 +675,6 @@ async function addSeparators() {
 // methods
 
 const gallerySendImage = (_images) => [currentImage]; // invoked by gradio button
-
-async function getHash(str) {
-  try {
-    let hex = '';
-    const strBuf = new TextEncoder().encode(str);
-    let hashBuf;
-    if (crypto?.subtle?.digest) hashBuf = await crypto.subtle.digest('SHA-256', strBuf);
-    else hashBuf = await hash(strBuf).buffer; // from sha256.js
-    const view = new DataView(hashBuf);
-    for (let i = 0; i < hashBuf.byteLength; i += 4) hex += (`00000000${view.getUint32(i).toString(16)}`).slice(-8);
-    return hex;
-  } catch (err) {
-    error('getHash:', err);
-    galleryProgressBar.error('File hash error');
-    return undefined;
-  }
-}
 
 /**
  * Helper function to update status with sort mode
