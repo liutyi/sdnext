@@ -188,7 +188,6 @@ function updateGalleryStyles() {
 class HashSet extends Set {
   constructor(val) {
     super(val);
-    // Using a variable to store a counter has sometimes been unreliable in the past
     this.fallback = 0;
   }
 
@@ -214,7 +213,6 @@ class SimpleProgressBar {
   #hideTimeout = null;
   #interval = null;
   #max = 0;
-  #errorState = false;
   /** @type {Set} */
   #monitoredSet;
 
@@ -231,7 +229,6 @@ class SimpleProgressBar {
   }
 
   start(total) {
-    if (this.#errorState) return;
     this.clear();
     this.#max = total;
     this.#interval = setInterval(() => {
@@ -248,27 +245,12 @@ class SimpleProgressBar {
 
   clear() {
     this.#stop();
-    this.#errorState = false;
     clearTimeout(this.#hideTimeout);
     this.#hideTimeout = null;
     this.#container.style.display = 'none';
     this.#visible = false;
     this.#progress.style.width = '0';
     this.#text.textContent = '';
-  }
-
-  error(message) {
-    if (!this.#errorState) {
-      this.#errorState = true;
-      this.#stop();
-      this.#container.style.display = 'block';
-      this.#visible = true;
-      clearTimeout(this.#hideTimeout);
-      this.#text.textContent = message;
-      this.#hideTimeout = setTimeout(() => {
-        this.clear();
-      }, 2000);
-    }
   }
 
   #update(loaded, max) {
@@ -483,7 +465,6 @@ class GalleryFile extends HTMLElement {
     this.hash = await getHash(`${this.src}/${this.size}/${this.mtime}`)
       .catch((err) => {
         error('getHash:', err);
-        galleryProgressBar.error('File hash error');
         return null;
       });
     const cachedData = (this.hash && opts.browser_cache) ? await idbGet(this.hash).catch(() => undefined) : undefined;
