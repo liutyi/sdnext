@@ -20,3 +20,6 @@
 [submodule "extensions-builtin/sdnext-kanvas"]
 	path = extensions-builtin/sdnext-kanvas
 	url = https://github.com/vladmandic/sdnext-kanvas
+[submodule "extensions-builtin/sdnext-scheduler"]
+	path = extensions-builtin/sdnext-scheduler
+	url = https://github.com/liutyi/sdnext-scheduler
