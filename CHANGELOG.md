@@ -1,15 +1,18 @@
 # Change Log for SD.Next
 
-## Update for 2026-02-14
+## Update for 2026-02-17
 
-### Highlights for 2026-02-14
+### Highlights for 2026-02-17
 
 TBD
 
-### Details for 2026-02-14
+### Details for 2026-02-17
 
 - **Models**
-  - TBD
+  - [FireRed Image Edit](https://huggingface.co/FireRedTeam/FireRed-Image-Edit-1.0)  
+    *Note*: FireRed is a fine-tune of Qwen-Image-Edit regardless of its claim as a new base-model  
+  - [Skyworks UniPic-3](https://huggingface.co/Skywork/Unipic3), *Consistency and DMD* variants to reference/community section  
+    *Note*: UniPic-3 is a fine-tune of Qwen-Image-Edit with new distillation regardless of its claim of major changes  
 - **Image manipulation**
   - use high-quality [sharpfin](https://github.com/drhead/Sharpfin) accelerated library  
     when available (cuda-only), thanks @CalamitousFelicitousness  
@@ -54,7 +57,8 @@ TBD
   - fix: `anima` model detection  
   - fix: lora unwanted unload  
   - fix: improve preview error handler  
-  - fix: gallery over remote/unsecure connections
+  - fix: gallery over remote/unsecure connections  
+  - fix: ltx2-i2v  
 
 ## Update for 2026-02-04
 
