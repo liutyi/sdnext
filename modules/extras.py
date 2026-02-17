@@ -30,6 +30,14 @@ def to_half(tensor, enable):
 
 
 def run_modelmerger(id_task, **kwargs):  # pylint: disable=unused-argument
+    from installer import install
+    install('tensordict', quiet=True)
+    try:
+        from tensordict import TensorDict
+    except Exception as e:
+        shared.log.error(f"Merge: {e}")
+        return [*[gr.update() for _ in range(4)], "tensordict not available"]
+
     jobid = shared.state.begin('Merge')
     t0 = time.time()
 

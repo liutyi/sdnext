@@ -133,6 +133,8 @@ except Exception as e:
 timer.startup.record("onnx")
 
 from fastapi import FastAPI # pylint: disable=W0611,C0411
+timer.startup.record("fastapi")
+
 import gradio # pylint: disable=W0611,C0411
 timer.startup.record("gradio")
 errors.install([gradio])

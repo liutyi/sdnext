@@ -36,6 +36,8 @@ def setup_color_correction(image):
 
 
 def apply_color_correction(correction, original_image):
+    from installer import install
+    install('scikit-image', quiet=True)
     from skimage import exposure
     shared.log.debug(f"Applying color correction: correction={correction.shape} image={original_image}")
     np_image = np.asarray(original_image)

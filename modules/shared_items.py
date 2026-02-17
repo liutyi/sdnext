@@ -68,21 +68,6 @@ pipelines = {
 }
 
 
-try:
-    from modules.onnx_impl import initialize_onnx
-    initialize_onnx()
-    onnx_pipelines = {
-        'ONNX Stable Diffusion': getattr(diffusers, 'OnnxStableDiffusionPipeline', None),
-        'ONNX Stable Diffusion Img2Img': getattr(diffusers, 'OnnxStableDiffusionImg2ImgPipeline', None),
-        'ONNX Stable Diffusion Inpaint': getattr(diffusers, 'OnnxStableDiffusionInpaintPipeline', None),
-        'ONNX Stable Diffusion Upscale': getattr(diffusers, 'OnnxStableDiffusionUpscalePipeline', None),
-    }
-except Exception as e:
-    from installer import log
-    log.error(f'ONNX initialization error: {e}')
-    onnx_pipelines = {}
-
-
 def postprocessing_scripts():
     import modules.scripts_manager
     return modules.scripts_manager.scripts_postproc.scripts
@@ -132,8 +117,22 @@ def list_crossattention():
         "Dynamic Attention BMM"
     ]
 
+
 def get_pipelines():
     if hasattr(diffusers, 'OnnxStableDiffusionPipeline') and 'ONNX Stable Diffusion' not in list(pipelines):
+        try:
+            from modules.onnx_impl import initialize_onnx
+            initialize_onnx()
+            onnx_pipelines = {
+                'ONNX Stable Diffusion': getattr(diffusers, 'OnnxStableDiffusionPipeline', None),
+                'ONNX Stable Diffusion Img2Img': getattr(diffusers, 'OnnxStableDiffusionImg2ImgPipeline', None),
+                'ONNX Stable Diffusion Inpaint': getattr(diffusers, 'OnnxStableDiffusionInpaintPipeline', None),
+                'ONNX Stable Diffusion Upscale': getattr(diffusers, 'OnnxStableDiffusionUpscalePipeline', None),
+            }
+        except Exception as e:
+            from installer import log
+            log.error(f'ONNX initialization error: {e}')
+            onnx_pipelines = {}
         pipelines.update(onnx_pipelines)
     for k, v in pipelines.items():
         if k != 'Autodetect' and v is None:

@@ -37,6 +37,9 @@ TBD
   - ui: **themes** add *CTD-NT64Light*, *CTD-NT64Medium* and *CTD-NT64Dark*, thanks @resonantsky  
   - ui: **gallery** add option to auto-refresh gallery, thanks @awsr  
 - **Internal**
+  - `python==3.14` initial support  
+    see [docs](https://vladmandic.github.io/sdnext-docs/Python/) for details  
+  - remove hard-dependnecies: `clip`, `numba`, `skimage`, `torchsde`  
   - refactor: to/from image/tensor logic, thanks @CalamitousFelicitousness  
   - refactor: switch to `pyproject.toml` for tool configs  
   - refactor: reorganize `cli` scripts  
@@ -91,7 +94,7 @@ Also here are updates to `torch` and additional GPU archs support for `ROCm` bac
   - add 13(!) new scheduler families
     not a port, but more of inspired-by [res4lyf](https://github.com/ClownsharkBatwing/RES4LYF) library  
     all schedulers should be compatible with both `epsilon` and `flow` prediction style!  
-    *note*: each family may have multiple actual schedulers, so the list total is 56(!) new schedulers     
+    *note*: each family may have multiple actual schedulers, so the list total is 56(!) new schedulers
     - core family: *RES*
     - exponential: *DEIS, ETD, Lawson, ABNorsett*
     - integrators: *Runge-Kutta, Linear-RK, Specialized-RK, Lobatto, Radau-IIA, Gauss-Legendre*
@@ -180,7 +183,7 @@ For full list of changes, see full changelog.
     available in both *original* and *sdnq-dynamic prequantized* variants  
     thanks @CalamitousFelicitousness  
     *note*: model requires pre-release versions of `transformers` package:  
-    > pip install --upgrade git+https://github.com/huggingface/transformers.git  
+    > pip install --upgrade git+<https://github.com/huggingface/transformers.git>  
     > ./webui.sh --experimental  
   - [Nunchaku Z-Image Turbo](https://huggingface.co/nunchaku-tech/nunchaku-z-image-turbo)  
     nunchaku optimized z-image turbo  
@@ -341,9 +344,9 @@ Plus a lot of internal improvements and fixes
     **Z-Image** is a powerful and highly efficient image generation model with 6B parameters and using Qwen-3 as text encoder  
     unlike most of new models that are far larger, Z-Image architecture allows it to run with good performance even on mid-range hardware  
     *note*: initial release is *Turbo* variant only with *Base* and *Edit* variants to follow  
-  - [Kandinsky 5.0 Lite]() is a new 6B model using Qwen-2.5 as text encoder  
+  - [Kandinsky 5.0 Lite](https://huggingface.co/kandinskylab/Kandinsky-5.0-I2V-Lite-5s-Diffusers) is a new 6B model using Qwen-2.5 as text encoder  
     it comes in text-to-image and image-edit variants  
-  - **Google Gemini Nano Banana** [2.5 Flash](https://blog.google/products/gemini/gemini-nano-banana-examples/) and [3.0 Pro](https://deepmind.google/models/gemini-image/pro/) 
+  - **Google Gemini Nano Banana** [2.5 Flash](https://blog.google/products/gemini/gemini-nano-banana-examples/) and [3.0 Pro](https://deepmind.google/models/gemini-image/pro/)
     first cloud-based model directly supported in SD.Next UI  
     *note*: need to set `GOOGLE_API_KEY` environment variable with your key to use this model  
   - [Photoroom PRX 1024 Beta](https://huggingface.co/Photoroom/prx-1024-t2i-beta)  
@@ -375,7 +378,7 @@ Plus a lot of internal improvements and fixes
   - ui indicator of model capabilities  
   - support for *prefill* style of prompting/answering  
   - support for *reasoning* mode for supported models  
-    with option to output answer-only or reasoning-process   
+    with option to output answer-only or reasoning-process
   - additional debug logging  
 - **Other Features**
   - **wildcards**: allow recursive inline wildcards using curly braces syntax  
@@ -699,7 +702,7 @@ Highlight are:
     requires qwen-image-edit-2509 or its variant as multi-image edits are not available in original qwen-image  
     in ui control tab: inputs -> separate init image  
     add image for *input media* and *control media*  
-    can be 
+    can be
   - [Cache-DiT](https://github.com/vipshop/cache-dit)  
     cache-dit is a unified, flexible and training-free cache acceleration framework  
     compatible with many dit-based models such as FLUX.1, Qwen, HunyuanImage, Wan2.2, Chroma, etc.  
@@ -914,7 +917,7 @@ And check out new **history** tab in the right panel, it now shows visualization
   - update openvino to `openvino==2025.3.0`  
   - add deprecation warning for `python==3.9`  
   - allow setting denoise strength to 0 in control/img2img  
-    this allows to run workflows which only refine or detail existing image without changing it   
+    this allows to run workflows which only refine or detail existing image without changing it
 - **Fixes**
   - normalize path hanlding when deleting images  
   - unified compile upscalers  
@@ -1000,7 +1003,7 @@ New release two weeks after the last one and its a big one with over 150 commits
 - Several new models: [Qwen-Image](https://qwenlm.github.io/blog/qwen-image/) (plus *Lightning* variant) and [FLUX.1-Krea-Dev](https://www.krea.ai/blog/flux-krea-open-source-release)  
 - Several updated models: [Chroma](https://huggingface.co/lodestones/Chroma), [SkyReels-V2](https://huggingface.co/Skywork/SkyReels-V2-DF-14B-720P-Diffusers), [Wan-VACE](https://huggingface.co/Wan-AI/Wan2.1-VACE-14B-diffusers), [HunyuanDiT](https://huggingface.co/Tencent-Hunyuan/HunyuanDiT-v1.2-Diffusers-Distilled)  
 - Plus continuing with major **UI** work with new embedded **Docs/Wiki** search, redesigned real-time **hints**, **wildcards** UI selector, built-in **GPU monitor**, **CivitAI** integration and more!  
-- On the compute side, new profiles for high-vram GPUs, offloading improvements, parallel-load for large models, support for new `torch` release and improved quality when using low-bit quantization!      
+- On the compute side, new profiles for high-vram GPUs, offloading improvements, parallel-load for large models, support for new `torch` release and improved quality when using low-bit quantization!
 - [SD.Next Model Samples Gallery](https://vladmandic.github.io/sd-samples/compare.html): pre-generated image gallery with 60 models (45 base and 15 finetunes) and 40 different styles resulting in 2,400 high resolution images!  
   gallery additionally includes model details such as typical load and inference times as well as sizes and types of each model component (*e.g. unet, transformer, text-encoder, vae*)  
 - And (*as always*) many bugfixes and improvements to existing features!  

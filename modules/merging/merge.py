@@ -4,7 +4,6 @@ from contextlib import contextmanager
 from typing import Dict, Optional, Tuple, Set
 import safetensors.torch
 import torch
-from tensordict import TensorDict
 import modules.memstats
 import modules.devices as devices
 from installer import log, console
@@ -78,6 +77,7 @@ def load_thetas(
     device: torch.device,
     precision: str,
 ) -> Dict:
+    from tensordict import TensorDict
     thetas = {k: TensorDict.from_dict(read_state_dict(m, "cpu")) for k, m in models.items()}
     if prune:
         keyset = set.intersection(*[set(m.keys()) for m in thetas.values() if len(m.keys())])
@@ -147,6 +147,7 @@ def un_prune_model(
         log.info("Merge restoring pruned keys")
         del thetas
         devices.torch_gc(force=False)
+        from tensordict import TensorDict
         original_a = TensorDict.from_dict(read_state_dict(models["model_a"], device))
         unpruned = 0
         for key in original_a.keys():
