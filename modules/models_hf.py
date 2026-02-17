@@ -47,7 +47,7 @@ def hf_check_cache():
     from modules.modelstats import stat
     if opts.hfcache_dir != prev_default:
         size, _mtime = stat(prev_default)
-        if size//1024//1024 > 0:
+        if size//1024//1024 > 16:
             log.warning(f'Cache location changed: previous="{prev_default}" size={size//1024//1024} MB')
     size, _mtime = stat(opts.hfcache_dir)
     log.debug(f'Huggingface: cache="{opts.hfcache_dir}" size={size//1024//1024} MB')
