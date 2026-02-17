@@ -149,9 +149,9 @@ def run_ltx(task_id,
             base_args["frame_rate"] = float(mp4_fps)
         if 'Condition' in shared.sd_model.__class__.__name__:
             base_args["image_cond_noise_scale"] = image_cond_noise_scale
+            if len(conditions) > 0:
+                base_args["conditions"] = conditions
         shared.log.debug(f'Video: cls={shared.sd_model.__class__.__name__} op=base {base_args}')
-        if len(conditions) > 0:
-            base_args["conditions"] = conditions
 
         if debug:
             shared.log.trace(f'LTX args: {base_args}')
