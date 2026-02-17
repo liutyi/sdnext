@@ -60,7 +60,8 @@ def init_api():
         if filename is None or len(filename) == 0:
             return JSONResponse({ "error": "no filename" }, status_code=400)
         if not os.path.exists(filename) or not os.path.isfile(filename):
-            return JSONResponse({ "error": f"file {filename}: not found" }, status_code=404)
+            return FileResponse('html/missing.png', headers={"Accept-Ranges": "bytes"})
+            # return JSONResponse({ "error": f"file {filename}: not found" }, status_code=404)
         if filename.startswith('html/') or filename.startswith('models/'):
             return FileResponse(filename, headers={"Accept-Ranges": "bytes"})
         if not any(Path(folder).absolute() in Path(filename).absolute().parents for folder in allowed_dirs):
