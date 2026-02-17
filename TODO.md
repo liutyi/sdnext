@@ -6,23 +6,24 @@
 - Deploy: Create executable for SD.Next
 - Deploy: Lite vs Expert mode
 - Engine: [mmgp](https://github.com/deepbeepmeep/mmgp)
-- Engine: [sharpfin](https://github.com/drhead/sharpfin) instead of `torchvision`
 - Engine: `TensorRT` acceleration
 - Feature: Auto handle scheduler `prediction_type`
 - Feature: Cache models in memory
-- Feature: Control tab add overrides handling
+- Validate: Control tab add overrides handling
 - Feature: Integrate natural language image search
   [ImageDB](https://github.com/vladmandic/imagedb)
-- Feature: LoRA add OMI format support for SD35/FLUX.1, on-hold
 - Feature: Multi-user support
-- Feature: Remote Text-Encoder support, sidelined for the moment
 - Feature: Settings profile manager
 - Feature: Video tab add full API support
 - Refactor: Unify *huggingface* and *diffusers* model folders
-- Refactor: Move `nunchaku` models to refernce instead of internal decision, owner @CalamitousFelicitousness
 - Refactor: [GGUF](https://huggingface.co/docs/diffusers/main/en/quantization/gguf)
-- Refactor: move sampler options to settings to config
+- Refactor: move sampler options from settings to config
 - Reimplement `llama` remover for Kanvas, pending end-to-end review of `Kanvas`
+
+## OnHold
+
+- Feature: LoRA add OMI format support for SD35/FLUX.1, on-hold
+- Feature: Remote Text-Encoder support, sidelined for the moment
 
 ## Modular
 
