@@ -157,8 +157,8 @@
     "skip": true
   },
   "Skywork/Unipic3-DMD": {
-    "path": "Skywork/Unipic3-DMD-Model",
-    "preview": "Skywork--Unipic3-DMD-Model.jpg",
+    "path": "Skywork/Unipic3-DMD",
+    "preview": "Skywork--Unipic3-DMD.jpg",
     "desc": "UniPic3-DMD-Model is a few-step image editing and multi-image composition model trained using Distribution Matching Distillation (DMD) and is a fine-tune of Qwen-Image-Edit.",
     "tags": "community",
     "date": "2026 February",
