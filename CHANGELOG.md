@@ -48,17 +48,18 @@ TBD
   - remove requirements: `clip`, `open-clip`  
   - update `requirements`  
 - **Fixes**
-  - fix: handle `clip` installer doing unwanted `setuptools` update  
-  - fix: cleanup for `uv` installer fallback  
-  - fix: add metadata restore to always-on scripts  
-  - fix: improve wildcard weights parsing, thanks @Tillerz  
-  - fix: ui gallery cache recursive cleanup, thanks @awsr  
-  - fix: main results pane sizing  
-  - fix: `anima` model detection  
-  - fix: lora unwanted unload  
-  - fix: improve preview error handler  
-  - fix: gallery over remote/unsecure connections  
-  - fix: ltx2-i2v  
+  - handle `clip` installer doing unwanted `setuptools` update  
+  - cleanup for `uv` installer fallback  
+  - add metadata restore to always-on scripts  
+  - improve wildcard weights parsing, thanks @Tillerz  
+  - ui gallery cache recursive cleanup, thanks @awsr  
+  - main results pane sizing  
+  - model detection for `anima`  
+  - lora unwanted unload  
+  - improve preview error handler  
+  - gallery over remote/unsecure connections  
+  - ltx2-i2v  
+  - handle missing preview image  
 
 ## Update for 2026-02-04
 
