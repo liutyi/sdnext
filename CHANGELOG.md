@@ -1,12 +1,12 @@
 # Change Log for SD.Next
 
-## Update for 2026-02-17
+## Update for 2026-02-18
 
-### Highlights for 2026-02-17
+### Highlights for 2026-02-18
 
 TBD
 
-### Details for 2026-02-17
+### Details for 2026-02-18
 
 - **Models**
   - [FireRed Image Edit](https://huggingface.co/FireRedTeam/FireRed-Image-Edit-1.0)  
@@ -28,6 +28,10 @@ TBD
   - **nunchaku** models are now listed in networks tab as reference models  
     instead of being used implicitly via quantization, thanks @CalamitousFelicitousness  
   - removed: old `codeformer` and `gfpgan` face restorers, thanks @CalamitousFelicitousness  
+- **Compute**
+  - **ROCm** support for additional AMD GPUs: `gfx103X`, thanks @crashingalexsan  
+  - **Cuda** `torch==2.10` removed support for `rtx1000` series, use following before first startup:  
+    > set TORCH_COMMAND='torch==2.9.1 torchvision==0.24.1 torchaudio==2.9.1 --index-url https://download.pytorch.org/whl/cu126'  
 - **UI**
   - ui: **localization** improved translation quality and new translations locales:  
     *en, en1, en2, en3, en4, hr, es, it, fr, de, pt, ru, zh, ja, ko, hi, ar, bn, ur, id, vi, tr, sr, po, he, xx, yy, qq, tlh*  
@@ -39,7 +43,10 @@ TBD
 - **Internal**
   - `python==3.14` initial support  
     see [docs](https://vladmandic.github.io/sdnext-docs/Python/) for details  
-  - remove hard-dependnecies: `clip`, `numba`, `skimage`, `torchsde`  
+  - remove hard-dependnecies:  
+    `clip, numba, skimage, torchsde, omegaconf, antlr, patch-ng, patch-ng, astunparse, addict, inflection, jsonmerge, kornia`,  
+    `resize-right, voluptuous, yapf, sqlalchemy, invisible-watermark, pi-heif, ftfy, blendmodes, PyWavelets`  
+    these are now installed on-demand when needed  
   - refactor: to/from image/tensor logic, thanks @CalamitousFelicitousness  
   - refactor: switch to `pyproject.toml` for tool configs  
   - refactor: reorganize `cli` scripts  

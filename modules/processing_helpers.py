@@ -7,7 +7,6 @@ import torch
 import numpy as np
 import cv2
 from PIL import Image
-from blendmodes.blend import blendLayers, BlendType
 from modules import shared, devices, images, sd_models, sd_samplers, sd_vae, sd_hijack_hypertile, processing_vae, timer
 from modules.api import helpers
 
@@ -38,7 +37,9 @@ def setup_color_correction(image):
 def apply_color_correction(correction, original_image):
     from installer import install
     install('scikit-image', quiet=True)
+    install('blendmodes', quiet=True)
     from skimage import exposure
+    from blendmodes.blend import blendLayers, BlendType
     shared.log.debug(f"Applying color correction: correction={correction.shape} image={original_image}")
     np_image = np.asarray(original_image)
     np_recolor = cv2.cvtColor(np_image, cv2.COLOR_RGB2LAB)

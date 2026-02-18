@@ -1,5 +1,4 @@
 import importlib
-import omegaconf
 from inspect import isfunction
 from random import shuffle
 
@@ -16,6 +15,9 @@ def get_obj_from_str(string, reload=False):
 
 
 def instantiate(obj):
+    from installer import install
+    install('omegaconf')
+    import omegaconf
     if isinstance(obj, omegaconf.DictConfig):
         obj = dict(**obj)
     if isinstance(obj, dict) and "class" in obj:

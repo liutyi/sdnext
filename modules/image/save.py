@@ -13,11 +13,6 @@ from modules.image.watermark import set_watermark
 
 debug = errors.log.trace if os.environ.get('SD_PATH_DEBUG', None) is not None else lambda *args, **kwargs: None
 debug_save = errors.log.trace if os.environ.get('SD_SAVE_DEBUG', None) is not None else lambda *args, **kwargs: None
-try:
-    from pi_heif import register_heif_opener
-    register_heif_opener()
-except Exception:
-    pass
 
 
 def sanitize_filename_part(text, replace_spaces=True):

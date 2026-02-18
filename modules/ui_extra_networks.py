@@ -437,7 +437,7 @@ class ExtraNetworksPage:
         files = list(files_cache.list_files(reference_path, ext_filter=exts, recursive=False))
         if shared.opts.diffusers_dir in path:
             path = os.path.relpath(path, shared.opts.diffusers_dir)
-            fn = os.path.join(reference_path, path.replace('models--', '').replace('\\', '/').split('/')[0])
+            fn = os.path.join(reference_path, path.replace('models--', '').replace('\\', '/').split('/')[0]) # pylint: disable=use-maxsplit-arg
         else:
             fn = os.path.splitext(path)[0]
             files += list(files_cache.list_files(os.path.dirname(path), ext_filter=exts, recursive=False))

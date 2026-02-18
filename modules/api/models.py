@@ -1,7 +1,7 @@
+import re
 import inspect
 from typing import Any, Optional, Dict, List, Type, Callable, Union
 from pydantic import BaseModel, Field, create_model # pylint: disable=no-name-in-module
-from inflection import underscore
 from modules.processing import StableDiffusionProcessingTxt2Img, StableDiffusionProcessingImg2Img
 import modules.shared as shared
 
@@ -28,6 +28,12 @@ class DummyConfig:
 if not hasattr(BaseModel, "__config__"):
     BaseModel.__config__ = DummyConfig
 
+
+def underscore(name: str) -> str: # Convert CamelCase or PascalCase string to underscore_case (snake_case).
+    # use instead of inflection.underscore
+    s1 = re.sub('([a-z0-9])([A-Z])', r'\1_\2', name)
+    s2 = re.sub('([A-Z]+)([A-Z][a-z])', r'\1_\2', s1)
+    return s2.lower()
 
 class PydanticModelGenerator:
     def __init__(

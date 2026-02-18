@@ -9,6 +9,8 @@ from modules import devices
 class UpscalerRealESRGAN(Upscaler):
     def __init__(self, dirname):
         from installer import install
+        install('addict')
+        install('yapf')
         install('--no-build-isolation git+https://github.com/Disty0/BasicSR@23c1fb6f5c559ef5ce7ad657f2fa56e41b121754', 'basicsr', ignore=True, quiet=True)
         from basicsr.archs.rrdbnet_arch import RRDBNet
         self.name = "RealESRGAN"

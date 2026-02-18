@@ -698,9 +698,9 @@ def check_diffusers():
     current = opts.get('diffusers_version', '') if minor > -1 else ''
     if (minor == -1) or ((current != target_commit) and (not args.experimental)):
         if minor == -1:
-            log.info(f'Diffusers install: commit={target_commit}')
+            log.info(f'Install: package="diffusers" commit={target_commit}')
         else:
-            log.info(f'Diffusers update: current={pkg.version} hash={current} target={target_commit}')
+            log.info(f'Update: package="diffusers" current={pkg.version} hash={current} target={target_commit}')
             pip('uninstall --yes diffusers', ignore=True, quiet=True, uv=False)
         if args.skip_git:
             log.warning('Git: marked as not available but required for diffusers installation')
@@ -728,9 +728,9 @@ def check_transformers():
         target_tokenizers = '0.22.2'
     if (pkg_transformers is None) or ((pkg_transformers.version != target_transformers) or (pkg_tokenizers is None) or ((pkg_tokenizers.version != target_tokenizers) and (not args.experimental))):
         if pkg_transformers is None:
-            log.info(f'Transformers install: version={target_transformers}')
+            log.info(f'Install: package="transformers" version={target_transformers}')
         else:
-            log.info(f'Transformers update: current={pkg_transformers.version} target={target_transformers}')
+            log.info(f'Update: package="transformers" current={pkg_transformers.version} target={target_transformers}')
         pip('uninstall --yes transformers', ignore=True, quiet=True, uv=False)
         pip(f'install --upgrade tokenizers=={target_tokenizers}', ignore=False, quiet=True, uv=False)
         pip(f'install --upgrade transformers=={target_transformers}', ignore=False, quiet=True, uv=False)
@@ -964,7 +964,7 @@ def check_cudnn():
 
 # check torch version
 def check_torch():
-    log.info('Verifying torch installation')
+    log.info('Torch: verifying installation')
     t_start = time.time()
     if args.skip_torch:
         log.info('Torch: skip tests')
@@ -1033,7 +1033,7 @@ def check_torch():
 
     if 'torch' in torch_command:
         if not installed('torch'):
-            log.info(f'Torch: download and install in progress... cmd="{torch_command}"')
+            log.info(f'Install: package="torch" download and install in progress... cmd="{torch_command}"')
             install('--upgrade pip', 'pip', reinstall=True) # pytorch rocm is too large for older pip
         install(torch_command, 'torch torchvision', quiet=True)
 
@@ -1369,6 +1369,9 @@ def install_insightface():
 def install_optional():
     t_start = time.time()
     log.info('Installing optional requirements...')
+    install('pi-heif')
+    install('addict')
+    install('yapf')
     install('--no-build-isolation git+https://github.com/Disty0/BasicSR@23c1fb6f5c559ef5ce7ad657f2fa56e41b121754', 'basicsr', ignore=True, quiet=True)
     install('av', ignore=True, quiet=True)
     install('beautifulsoup4', ignore=True, quiet=True)
