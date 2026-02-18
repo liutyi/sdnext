@@ -1,7 +1,7 @@
 String.prototype.format = function (args) { // eslint-disable-line no-extend-native, func-names
   let thisString = '';
   for (let charPos = 0; charPos < this.length; charPos++) thisString += this[charPos];
-  for (const key in args) { // eslint-disable-line guard-for-in
+  for (const key in args) {
     const stringKey = `{${key}}`;
     thisString = thisString.replace(new RegExp(stringKey, 'g'), args[key]);
   }

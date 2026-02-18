@@ -56,7 +56,7 @@ class GoogleNanoBananaPipeline():
         )
 
     def img2img(self, prompt, image):
-        from google import genai
+        from google import genai # pylint: disable=no-name-in-module
         image_bytes = io.BytesIO()
         image.save(image_bytes, format='JPEG')
         return self.client.models.generate_content(
@@ -109,7 +109,7 @@ class GoogleNanoBananaPipeline():
         return args
 
     def __call__(self, prompt: list[str], width: int, height: int, image: Image.Image = None):
-        from google import genai
+        from google import genai # pylint: disable=no-name-in-module
         if self.client is None:
             args = self.get_args()
             if args is None:

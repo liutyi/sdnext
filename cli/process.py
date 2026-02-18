@@ -6,7 +6,6 @@ import base64
 import numpy as np
 import mediapipe as mp
 from PIL import Image, ImageOps
-from pi_heif import register_heif_opener
 from skimage.metrics import structural_similarity as ssim
 from scipy.stats import beta
 
@@ -261,7 +260,6 @@ def file(filename: str, folder: str, tag = None, requested = []):
     res = Result(fn = filename, typ='unknown', tag=tag, requested = requested)
     # open image
     try:
-        register_heif_opener()
         res.image = Image.open(filename)
         if res.image.mode == 'RGBA':
             res.image = res.image.convert('RGB')

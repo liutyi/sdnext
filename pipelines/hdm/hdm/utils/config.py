@@ -1,9 +1,13 @@
 import os
-import toml
-import omegaconf
 
 
 def load_train_config(file):
+    from installer import install
+    install('omegaconf')
+    install('toml')
+    import omegaconf
+    import toml
+
     config = toml.load(file)
 
     model = config["model"]

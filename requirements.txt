@@ -3,35 +3,19 @@ setuptools==69.5.1
 wheel
 
 # standard
-patch-ng
 anyio
-addict
-astunparse
 filetype
 future
 GitPython
-httpcore
-inflection
-jsonmerge
-kornia
 lark
-omegaconf
 piexif
 mpmath
 psutil
 pyyaml
-resize-right
 toml
 voluptuous
-yapf
 fasteners
 orjson
-sqlalchemy
-invisible-watermark
-PyWavelets
-pi-heif
-ftfy
-blendmodes
 
 # versioned
 fastapi==0.124.4
@@ -40,13 +24,11 @@ safetensors==0.7.0
 peft==0.18.1
 httpx==0.28.1
 compel==2.2.1
-antlr4-python3-runtime==4.9.3
 requests==2.32.3
 tqdm==4.67.3
 accelerate==1.12.0
 einops==0.8.1
 huggingface_hub==0.36.2
-numexpr==2.11.0
 numpy==2.1.2
 pandas==2.3.1
 protobuf==4.25.3

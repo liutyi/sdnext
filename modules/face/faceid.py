@@ -70,7 +70,7 @@ def face_id(
         shared.prompt_styles.apply_styles_to_extra(p)
 
         if shared.opts.cuda_compile_backend == 'none':
-            token_merge.apply_token_merging(p.sd_model)
+            token_merge.apply_token_merging(shared.sd_model)
             sd_hijack_freeu.apply_freeu(p)
 
         script_callbacks.before_process_callback(p)
