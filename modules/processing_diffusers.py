@@ -75,7 +75,7 @@ def process_pre(p: processing.StableDiffusionProcessing):
         # apply-with-unapply
         sd_models_compile.check_deepcache(enable=True)
         ipadapter.apply(shared.sd_model, p)
-        token_merge.apply_token_merging(p.sd_model)
+        token_merge.apply_token_merging(shared.sd_model)
         hidiffusion.apply(p, shared.sd_model_type)
         ras.apply(shared.sd_model, p)
         pag.apply(p)
@@ -117,7 +117,7 @@ def process_post(p: processing.StableDiffusionProcessing):
     try:
         sd_models_compile.check_deepcache(enable=False)
         ipadapter.unapply(shared.sd_model, unload=getattr(p, 'ip_adapter_unload', False))
-        token_merge.remove_token_merging(p.sd_model)
+        token_merge.remove_token_merging(shared.sd_model)
         hidiffusion.unapply()
         ras.unapply(shared.sd_model)
         pag.unapply()

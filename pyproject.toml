@@ -81,6 +81,7 @@ ignore = [
   "B006",   # Do not use mutable data structures for argument defaults
   "B008",   # Do not perform function call in argument defaults
   "B905",   # Strict zip() usage
+  "ASYNC240", # Async functions should not use os.path methods
   "C420",   # Unnecessary dict comprehension for iterable; use `dict.fromkeys` instead
   "C408",   # Unnecessary `dict` call
   "I001",   # Import block is un-sorted or un-formatted
@@ -194,7 +195,7 @@ main.ignore-patterns=[
                 ".*_model_arch_v2.py$",
                 ]
 main.ignored-modules=""
-main.jobs=8
+main.jobs=4
 main.limit-inference-results=100
 main.load-plugins=""
 main.persistent=false
@@ -334,15 +335,15 @@ similarities.ignore-imports=true
 similarities.ignore-signatures=true
 similarities.min-similarity-lines=4
 spelling.max-spelling-suggestions=4
-# spelling.dict=""
-# spelling.ignore-comment-directives=["fmt: on","fmt: off","noqa:","noqa","nosec","isort:skip","mypy:"]
-# spelling.ignore-words=""
-# spelling.private-dict-file=""
-# spelling.store-unknown-words=false
 string.check-quote-consistency=false
 string.check-str-concat-over-line-jumps=false
 typecheck.contextmanager-decorators="contextlib.contextmanager"
-typecheck.generated-members=["numpy.*","logging.*","torch.*","cv2.*"]
+typecheck.generated-members=[
+        "numpy.*",
+        "logging.*",
+        "torch.*",
+        "cv2.*",
+        ]
 typecheck.ignore-none=true
 typecheck.ignore-on-opaque-inference=true
 typecheck.ignored-checks-for-mixins=["no-member","not-async-context-manager","not-context-manager","attribute-defined-outside-init"]
