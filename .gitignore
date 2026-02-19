@@ -13,7 +13,7 @@ __pycache__
 /data/extensions.json
 /data/cache.json
 /data/themes.json
-# /data/installer.json
+/data/installer.json
 config_states
 node_modules
 pnpm-lock.yaml
