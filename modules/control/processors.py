@@ -59,7 +59,6 @@ def delay_load_config():
     from modules.control.proc.leres import LeresDetector
     from modules.control.proc.midas import MidasDetector
     from modules.control.proc.mlsd import MLSDdetector
-    from modules.control.proc.normalbae import NormalBaeDetector
     from modules.control.proc.openpose import OpenposeDetector
     from modules.control.proc.dwpose import DWposeDetector
     from modules.control.proc.segment_anything import SamDetector
@@ -88,7 +87,6 @@ def delay_load_config():
         'Leres Depth': {'class': LeresDetector, 'checkpoint': True, 'params': {'boost': False, 'thr_a':0, 'thr_b':0}},
         'Zoe Depth': {'class': ZoeDetector, 'checkpoint': True, 'params': {'gamma_corrected': False}, 'load_config': {'pretrained_model_or_path': 'halffried/gyre_zoedepth', 'filename': 'ZoeD_M12_N.safetensors', 'model_type': "zoedepth"}},
         'Marigold Depth': {'class': MarigoldDetector, 'checkpoint': True, 'params': {'denoising_steps': 10, 'ensemble_size': 10, 'processing_res': 512, 'match_input_res': True, 'color_map': 'None'}, 'load_config': {'pretrained_model_or_path': 'Bingxin/Marigold'}},
-        'Normal Bae': {'class': NormalBaeDetector, 'checkpoint': True, 'params': {}},
         # segmentation models
         'SegmentAnything': {'class': SamDetector, 'checkpoint': True, 'model': 'Base', 'params': {}},
         # other models

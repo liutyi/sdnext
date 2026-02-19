@@ -276,13 +276,14 @@ def main():
             init_paths()
             installer.check_extensions()
         else:
-            logger.log.info('Startup: standard')
+            logger.log.info('Startup: full launch')
             installer.install_submodules()
             init_paths()
             installer.install_extensions()
             installer.install_requirements() # redo requirements since extensions may change them
             if len(installer.errors) == 0:
                 logger.log.debug(f'Setup complete without errors: {round(time.time())}')
+                installer.update_state()
             else:
                 logger.log.warning(f'Setup complete with errors: {installer.errors}')
                 logger.log.warning(f'See log file for more details: {logger.log_file}')

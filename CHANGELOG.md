@@ -62,6 +62,7 @@ TBD
   - refactor: entire logging into separate `modules/logger`  
   - update `lint` rules, thanks @awsr  
   - remove requirements: `clip`, `open-clip`  
+  - remove `normalbae` pre-processor  
   - update `requirements`  
 - **Fixes**
   - handle `clip` installer doing unwanted `setuptools` update  

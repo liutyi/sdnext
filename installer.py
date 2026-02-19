@@ -1,4 +1,5 @@
 from typing import overload
+from functools import lru_cache
 import os
 import sys
 import json
@@ -88,6 +89,7 @@ except Exception:
 # setup console and file logging is imported from modules.logger
 
 
+@lru_cache
 def get_logfile():
     log_size = os.path.getsize(log_file) if os.path.exists(log_file) else 0
     log.info(f'Logger: file="{os.path.abspath(log_file)}" level={logging.getLevelName(logging.DEBUG if args.debug else logging.INFO)} host="{hostname}" size={log_size} mode={"append" if not log_rolled else "create"}')
@@ -179,6 +181,7 @@ def installed(package, friendly: str = None, reload = False, quiet = False): # p
         log.error(f'Install: package="{pkgs}" {e}')
         ts('installed', t_start)
         return False
+
 
 def uninstall(package, quiet = False):
     t_start = time.time()
@@ -1492,6 +1495,69 @@ def run_deferred_tasks():
     log.debug(f'Deferred tasks complete: time={round(time.time() - t_start, 2)}')
 
 
+
+@lru_cache
+def get_state():
+    state = {
+        'version': version,
+        'torch': os.environ.get('TORCH_COMMAND', 'unknown'),
+        'python': sys.version,
+        'platform': sys.platform,
+        'requirements': 'unknown',
+        'extensions': {}
+    }
+    try:
+        import hashlib
+        if os.path.isfile('requirements.txt'):
+            with open('requirements.txt', 'rb') as f:
+                state['requirements'] = hashlib.sha256(f.read()).hexdigest()
+    except Exception:
+        pass
+    try:
+        from modules.paths import extensions_builtin_dir, extensions_dir
+        extension_folders = [extensions_builtin_dir] if args.safe else [extensions_builtin_dir, extensions_dir]
+        for folder in extension_folders:
+            if not os.path.isdir(folder):
+                continue
+            extensions = list_extensions_folder(folder, quiet=True)
+            for ext in extensions:
+                extension_dir = os.path.join(folder, ext)
+                try:
+                    res = subprocess.run('git rev-parse HEAD', capture_output=True, shell=True, check=False, cwd=extension_dir)
+                    commit = res.stdout.decode(encoding='utf8', errors='ignore').strip()
+                    state['extensions'][ext] = commit
+                except Exception:
+                    pass
+    except Exception:
+        pass
+    return state
+
+
+def check_state():
+    if not os.path.isfile('data/installer.json'):
+        return False
+    try:
+        with open('data/installer.json', 'r', encoding='utf8') as f:
+            saved_state = json.load(f)
+        unchanged = saved_state == get_state()
+        log.debug(f'State: changed={unchanged}')
+        return unchanged
+    except Exception:
+        return False
+
+
+def update_state():
+    try:
+        state = get_state()
+        if not os.path.exists('data'):
+            os.makedirs('data')
+        with open('data/installer.json', 'w', encoding='utf8') as f:
+            json.dump(state, f, indent=4)
+        log.debug(f'State: file="{os.path.abspath("data/installer.json")}"')
+    except Exception as e:
+        log.error(f'State save error: {e}')
+
+
 # check if we can run setup in quick mode
 def check_timestamp():
     if not quick_allowed or not os.path.isfile(log_file):
@@ -1500,35 +1566,7 @@ def check_timestamp():
         return True
     if args.skip_git:
         return True
-    ok = True
-    setup_time = -1
-    version_time = -1
-    with open(log_file, encoding='utf8') as f:
-        lines = f.readlines()
-        for line in lines:
-            if 'Setup complete without errors' in line:
-                setup_time = int(line.split(' ')[-1])
-    try:
-        version_time = git('log -1 --pretty=format:"%at"')
-        version_time = ''.join(filter(str.isdigit, version_time))
-        version_time = int(version_time) if len(version_time) > 0 else -1
-        log.debug(f'Timestamp repository update time: {time.ctime(version_time)}')
-    except Exception as e:
-        log.error(f'Timestamp local repository version: {e}')
-    if setup_time == -1:
-        return False
-    log.debug(f'Timestamp previous setup time: {time.ctime(setup_time)}')
-    if setup_time < version_time or version_time == -1:
-        ok = False
-    extension_time = check_extensions()
-    log.debug(f'Timestamp latest extensions time: {time.ctime(extension_time)}')
-    if setup_time < extension_time:
-        ok = False
-    log.debug(f'Timestamp: version:{version_time} setup:{setup_time} extension:{extension_time}')
-    if args.reinstall:
-        ok = False
-    return ok
-
+    return check_state()
 
 
 def add_args(parser):
