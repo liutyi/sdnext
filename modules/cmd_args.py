@@ -206,6 +206,3 @@ def settings_args(opts, args):
             opts.onchange(d, lambda d=d: setattr(args, d, getattr(opts, d)), call=False)
 
     return args
-
-
-

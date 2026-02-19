@@ -7,7 +7,7 @@ from safetensors.torch import save_file
 import gradio as gr
 from rich import progress as rp
 from modules import shared, devices
-from modules.logger import log
+from modules.logger import log, console
 from modules.ui_common import create_refresh_button
 from modules.call_queue import wrap_gradio_gpu_call
 
@@ -138,7 +138,7 @@ def make_lora(fn, maxrank, auto_rank, rank_ratio, modules, overwrite):
     log.debug(f'LoRA extract: modules={modules} maxrank={maxrank} auto={auto_rank} ratio={rank_ratio} fn="{fn}"')
     jobid = shared.state.begin('LoRA extract')
 
-    with rp.Progress(rp.TextColumn('[cyan]LoRA extract'), rp.BarColumn(), rp.TaskProgressColumn(), rp.TimeRemainingColumn(), rp.TimeElapsedColumn(), rp.TextColumn('[cyan]{task.description}'), console=logger.console) as progress:
+    with rp.Progress(rp.TextColumn('[cyan]LoRA extract'), rp.BarColumn(), rp.TaskProgressColumn(), rp.TimeRemainingColumn(), rp.TimeElapsedColumn(), rp.TextColumn('[cyan]{task.description}'), console=console) as progress:
 
         if 'te' in modules and getattr(shared.sd_model, 'text_encoder', None) is not None:
             modules = shared.sd_model.text_encoder.named_modules()

@@ -2,7 +2,7 @@ import time
 import torch
 import rich.progress as rp
 from modules import shared, errors ,devices, sd_models, timer, memstats
-from modules.logger import log
+from modules.logger import log, console
 from modules.framepack import framepack_vae # pylint: disable=wrong-import-order
 from modules.framepack import framepack_hijack # pylint: disable=wrong-import-order
 from modules.video_models.video_save import save_video # pylint: disable=wrong-import-order
@@ -79,7 +79,7 @@ def worker(
     image_encoder = shared.sd_model.image_processor
     transformer = shared.sd_model.transformer
     sd_models.apply_balanced_offload(shared.sd_model)
-    pbar = rp.Progress(rp.TextColumn('[cyan]Video'), rp.BarColumn(), rp.MofNCompleteColumn(), rp.TaskProgressColumn(), rp.TimeRemainingColumn(), rp.TimeElapsedColumn(), rp.TextColumn('[cyan]{task.description}'), console=logger.console)
+    pbar = rp.Progress(rp.TextColumn('[cyan]Video'), rp.BarColumn(), rp.MofNCompleteColumn(), rp.TaskProgressColumn(), rp.TimeRemainingColumn(), rp.TimeElapsedColumn(), rp.TextColumn('[cyan]{task.description}'), console=console)
     task = pbar.add_task('starting', total=steps * len(latent_paddings))
     t_last = time.time()
     if not is_f1:

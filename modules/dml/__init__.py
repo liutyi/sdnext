@@ -1,4 +1,3 @@
-from modules.logger import log
 import platform
 from typing import NamedTuple, Optional
 from collections.abc import Callable

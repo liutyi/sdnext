@@ -287,7 +287,7 @@ def main():
                 installer.update_state()
             else:
                 log.warning(f'Setup complete with errors: {installer.errors}')
-                log.warning(f'See log file for more details: {logger.log_file}')
+                log.warning(f'See log file for more details: {installer.log_file}')
     installer.extensions_preload(parser) # adds additional args from extensions
     args = installer.parse_args(parser)
     log.info(f'Installer time: {init_summary()}')

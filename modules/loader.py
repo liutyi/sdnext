@@ -10,19 +10,6 @@ from modules import timer, errors
 from modules.logger import log
 
 
-try:
-    import math
-    cores = os.cpu_count()
-    affinity = len(os.sched_getaffinity(0)) # pylint: disable=no-member
-    threads = torch.get_num_threads()
-    if threads < (affinity / 2):
-        torch.set_num_threads(math.floor(affinity / 2))
-        threads = torch.get_num_threads()
-    log.debug(f'System: cores={cores} affinity={affinity} threads={threads}')
-except Exception:
-    pass
-
-
 initialized = False
 errors.install()
 logging.getLogger("DeepSpeed").disabled = True
@@ -81,6 +68,17 @@ try:
 except Exception:
     log.warning('Loader: torch is not built with distributed support')
 
+try:
+    import math
+    cores = os.cpu_count()
+    affinity = len(os.sched_getaffinity(0)) # pylint: disable=no-member
+    threads = torch.get_num_threads()
+    if threads < (affinity / 2):
+        torch.set_num_threads(math.floor(affinity / 2))
+        threads = torch.get_num_threads()
+    log.debug(f'System: cores={cores} affinity={affinity} threads={threads}')
+except Exception:
+    pass
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 warnings.filterwarnings(action="ignore", category=UserWarning, module="torchvision")

@@ -1901,15 +1901,15 @@ class Script(scripts_manager.Script):
         if not enabled:
             return
         if shared.sd_model_type not in ['sdxl', 'sd', 'f1']:
-            sdnext_log.error(f'Differential-diffusion: incorrect base model: {shared.sd_model.__class__.__name__}')
+            log.error(f'Differential-diffusion: incorrect base model: {shared.sd_model.__class__.__name__}')
             return
         if not hasattr(p, 'init_images') or len(p.init_images) == 0:
-            sdnext_log.error('Differential-diffusion: no input images')
+            log.error('Differential-diffusion: no input images')
             return
 
         image_init, image_map, image_mask = self.depthmap(p.init_images[0], image, model, strength, invert)
         if image_map is None:
-            sdnext_log.error('Differential-diffusion: no image map')
+            log.error('Differential-diffusion: no image map')
             return
 
         orig_pipeline = shared.sd_model
@@ -1950,13 +1950,13 @@ class Script(scripts_manager.Script):
             if shared.sd_model_type == 'sdxl':
                 p.task_args['original_image'] = image_init
             if p.batch_size > 1:
-                sdnext_log.warning(f'Differential-diffusion: batch-size={p.batch_size} parallel processing not supported')
+                log.warning(f'Differential-diffusion: batch-size={p.batch_size} parallel processing not supported')
                 p.batch_size = 1
-            sdnext_log.debug(f'Differential-diffusion: pipeline={pipe.__class__.__name__} strength={strength} model={model} auto={image is None}')
+            log.debug(f'Differential-diffusion: pipeline={pipe.__class__.__name__} strength={strength} model={model} auto={image is None}')
             shared.sd_model = pipe
             sd_models.move_model(pipe.vae, devices.device, force=True)
         except Exception as e:
-            sdnext_log.error(f'Differential-diffusion: pipeline creation failed: {e}')
+            log.error(f'Differential-diffusion: pipeline creation failed: {e}')
             errors.display(e, 'Differential-diffusion: pipeline creation failed')
             shared.sd_model = orig_pipeline
 

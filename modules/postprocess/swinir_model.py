@@ -5,7 +5,7 @@ from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn, T
 from modules.postprocess.swinir_model_arch import SwinIR as net
 from modules.postprocess.swinir_model_arch_v2 import Swin2SR as net2
 from modules import devices, shared
-from modules.logger import log
+from modules.logger import log, console
 from modules.upscaler import Upscaler, compile_upscaler
 
 
@@ -123,7 +123,7 @@ def inference(img, model, tile, tile_overlap, window_size, scale):
     E = torch.zeros(b, c, h * sf, w * sf, dtype=devices.dtype, device=devices.device).type_as(img)
     W = torch.zeros_like(E, dtype=devices.dtype, device=devices.device)
 
-    with Progress(TextColumn('[cyan]{task.description}'), BarColumn(), TaskProgressColumn(), TimeRemainingColumn(), TimeElapsedColumn(), console=logger.console) as progress:
+    with Progress(TextColumn('[cyan]{task.description}'), BarColumn(), TaskProgressColumn(), TimeRemainingColumn(), TimeElapsedColumn(), console=console) as progress:
         task = progress.add_task(description="Upscaling Initializing", total=len(h_idx_list) * len(w_idx_list))
         for h_idx in h_idx_list:
             if shared.state.interrupted:

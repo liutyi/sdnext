@@ -1,7 +1,6 @@
 from functools import wraps
 import torch
 from modules import rocm
-from modules.logger import log
 from modules.errors import log
 from installer import install, installed
 

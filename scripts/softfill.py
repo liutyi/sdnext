@@ -1631,13 +1631,13 @@ class Script(scripts_manager.Script):
         if not enabled:
             return
         if shared.sd_model_type not in ['sdxl']:
-            sdnext_log.error(f'SoftFill: incorrect base model: {shared.sd_model.__class__.__name__}')
+            log.error(f'SoftFill: incorrect base model: {shared.sd_model.__class__.__name__}')
             return
         if not hasattr(p, 'init_images') or len(p.init_images) == 0:
-            sdnext_log.error('SoftFill: no input image')
+            log.error('SoftFill: no input image')
             return
         if not hasattr(p, 'mask') or p.mask is None:
-            sdnext_log.error('SoftFill: no input mask')
+            log.error('SoftFill: no input mask')
             return
 
         try:
@@ -1646,7 +1646,7 @@ class Script(scripts_manager.Script):
             import noise as noise_module
             pnoise2 = noise_module.pnoise2
         except Exception as e:
-            sdnext_log.error(f'SoftFill: {e}')
+            log.error(f'SoftFill: {e}')
             return
 
         self.orig_pipeline = shared.sd_model
@@ -1655,7 +1655,7 @@ class Script(scripts_manager.Script):
             if shared.sd_model.__class__.__name__ not in sd_models.pipe_switch_task_exclude:
                 sd_models.pipe_switch_task_exclude.append(shared.sd_model.__class__.__name__)
         except Exception as e:
-            sdnext_log.error(f'SoftFill: {e}')
+            log.error(f'SoftFill: {e}')
             shared.sd_model = self.orig_pipeline
             self.orig_pipeline = None
             return
@@ -1664,7 +1664,7 @@ class Script(scripts_manager.Script):
         p.task_args['strength'] = strength
         p.task_args['image'] = p.init_images[0]
         p.task_args['mask'] = p.mask
-        sdnext_log.info(f'SoftFill: cls={shared.sd_model.__class__.__name__} {p.task_args}')
+        log.info(f'SoftFill: cls={shared.sd_model.__class__.__name__} {p.task_args}')
 
     def after(self, p: processing.StableDiffusionProcessingImg2Img, *args, **kwargs): # pylint: disable=unused-argument
         if self.orig_pipeline is not None:

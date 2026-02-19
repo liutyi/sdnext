@@ -3,7 +3,7 @@ import rich.progress as rp
 import transformers
 import diffusers
 from modules import shared, devices, sd_models, model_quant, sd_hijack_te
-from modules.logger import log
+from modules.logger import log, console
 from pipelines import generic
 
 
@@ -34,7 +34,7 @@ class GLMTokenProgressProcessor(transformers.LogitsProcessor):
                 rp.MofNCompleteColumn(),
                 rp.TimeElapsedColumn(),
                 rp.TimeRemainingColumn(),
-                console=logger.console,
+                console=console,
             )
             self.pbar.start()
             self.pbar_task = self.pbar.add_task(description='', total=self.total_tokens, speed='')

@@ -9,7 +9,7 @@ from torch import nn
 from torch.nn import functional as F
 from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn, TimeElapsedColumn
 from modules import devices, shared
-from modules.logger import log
+from modules.logger import log, console
 from modules.upscaler import compile_upscaler
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -139,7 +139,7 @@ class RealESRGANer:
         tiles_y = math.ceil(height / self.tile_size)
 
         # loop over all tiles
-        with Progress(TextColumn('[cyan]{task.description}'), BarColumn(), TaskProgressColumn(), TimeRemainingColumn(), TimeElapsedColumn(), console=logger.console) as progress:
+        with Progress(TextColumn('[cyan]{task.description}'), BarColumn(), TaskProgressColumn(), TimeRemainingColumn(), TimeElapsedColumn(), console=console) as progress:
             task = progress.add_task(description="Upscaling", total=tiles_y * tiles_x)
             with torch.no_grad():
                 for y in range(tiles_y):

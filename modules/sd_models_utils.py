@@ -8,7 +8,7 @@ import torch
 import safetensors.torch
 
 from modules import paths, shared, errors
-from modules.logger import log
+from modules.logger import log, console
 from modules.sd_checkpoint import CheckpointInfo # pylint: disable=unused-import
 
 
@@ -68,7 +68,7 @@ def read_state_dict(checkpoint_file, map_location=None, what:str='model'): # pyl
         return None
     try:
         pl_sd = None
-        with progress.open(checkpoint_file, 'rb', description=f'[cyan]Load {what}: [yellow]{checkpoint_file}', auto_refresh=True, console=logger.console) as f:
+        with progress.open(checkpoint_file, 'rb', description=f'[cyan]Load {what}: [yellow]{checkpoint_file}', auto_refresh=True, console=console) as f:
             _, extension = os.path.splitext(checkpoint_file)
             if extension.lower() == ".ckpt" and shared.opts.sd_disable_ckpt:
                 log.warning(f"Checkpoint loading disabled: {checkpoint_file}")

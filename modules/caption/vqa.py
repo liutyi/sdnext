@@ -9,7 +9,7 @@ import transformers
 import transformers.dynamic_module_utils
 from PIL import Image
 from modules import shared, devices, errors, model_quant, sd_models, sd_models_compile, ui_symbols
-from modules.logger import log
+from modules.logger import log, console
 from modules.caption import vqa_detection
 
 
@@ -1530,7 +1530,7 @@ class VQA:
         shared.opts.caption_offload = False
         try:
             import rich.progress as rp
-            pbar = rp.Progress(rp.TextColumn('[cyan]Caption:'), rp.BarColumn(), rp.MofNCompleteColumn(), rp.TaskProgressColumn(), rp.TimeRemainingColumn(), rp.TimeElapsedColumn(), rp.TextColumn('[cyan]{task.description}'), console=logger.console)
+            pbar = rp.Progress(rp.TextColumn('[cyan]Caption:'), rp.BarColumn(), rp.MofNCompleteColumn(), rp.TaskProgressColumn(), rp.TimeRemainingColumn(), rp.TimeElapsedColumn(), rp.TextColumn('[cyan]{task.description}'), console=console)
             with pbar:
                 task = pbar.add_task(total=len(files), description='starting...')
                 for file in files:

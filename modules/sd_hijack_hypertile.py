@@ -2,8 +2,8 @@
 # based on: https://github.com/tfernd/HyperTile/tree/main/hyper_tile/utils.py + https://github.com/tfernd/HyperTile/tree/main/hyper_tile/hyper_tile.py
 
 from __future__ import annotations
+from typing import TYPE_CHECKING
 from modules.logger import log
-from collections.abc import Callable
 from functools import wraps, cache
 from contextlib import contextmanager, nullcontext
 import random
@@ -11,7 +11,8 @@ import math
 import torch
 import torch.nn as nn
 from einops import rearrange
-from modules.logger import log
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 # global variables to keep track of changing image size in multiple passes

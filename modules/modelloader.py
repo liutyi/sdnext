@@ -7,11 +7,10 @@ import contextlib
 from urllib.parse import urlparse
 import huggingface_hub as hf
 from installer import install
-from modules.logger import log
+from modules.logger import log, console
 from modules import shared, errors, files_cache
 from modules.upscaler import Upscaler
 from modules import paths
-from modules.logger import log
 
 
 loggedin = None
@@ -304,7 +303,7 @@ def download_url_to_file(url: str, dst: str):
         log.error(f'Error downloading: url={url} no usable temporary filename found')
         return
     try:
-        with Progress(TextColumn('[cyan]{task.description}'), BarColumn(), TaskProgressColumn(), TimeRemainingColumn(), TimeElapsedColumn(), console=logger.console) as progress:
+        with Progress(TextColumn('[cyan]{task.description}'), BarColumn(), TaskProgressColumn(), TimeRemainingColumn(), TimeElapsedColumn(), console=console) as progress:
             task = progress.add_task(description="Downloading", total=file_size)
             while True:
                 buffer = u.read(8192)

@@ -5,7 +5,7 @@ from modules.errorlimiter import limit_errors
 from modules.lora import lora_common as l
 from modules.lora.lora_apply import network_apply_weights, network_apply_direct, network_backup_weights, network_calc_weights
 from modules import shared, devices, sd_models
-from modules.logger import log
+from modules.logger import log, console
 
 
 applied_layers: list[str] = []
@@ -35,7 +35,7 @@ def network_activate(include=None, exclude=None):
                 modules[name] = list(component.named_modules())
         total = sum(len(x) for x in modules.values())
         if len(l.loaded_networks) > 0:
-            pbar = rp.Progress(rp.TextColumn('[cyan]Network: type=LoRA action=activate'), rp.BarColumn(), rp.TaskProgressColumn(), rp.TimeRemainingColumn(), rp.TimeElapsedColumn(), rp.TextColumn('[cyan]{task.description}'), console=logger.console)
+            pbar = rp.Progress(rp.TextColumn('[cyan]Network: type=LoRA action=activate'), rp.BarColumn(), rp.TaskProgressColumn(), rp.TimeRemainingColumn(), rp.TimeElapsedColumn(), rp.TextColumn('[cyan]{task.description}'), console=console)
             task = pbar.add_task(description='' , total=total)
         else:
             task = None
@@ -109,7 +109,7 @@ def network_deactivate(include=None, exclude=None):
                 active_components.append(name)
         total = sum(len(x) for x in modules.values())
         if len(l.previously_loaded_networks) > 0 and l.debug:
-            pbar = rp.Progress(rp.TextColumn('[cyan]Network: type=LoRA action=deactivate'), rp.BarColumn(), rp.TaskProgressColumn(), rp.TimeRemainingColumn(), rp.TimeElapsedColumn(), rp.TextColumn('[cyan]{task.description}'), console=logger.console)
+            pbar = rp.Progress(rp.TextColumn('[cyan]Network: type=LoRA action=deactivate'), rp.BarColumn(), rp.TaskProgressColumn(), rp.TimeRemainingColumn(), rp.TimeElapsedColumn(), rp.TextColumn('[cyan]{task.description}'), console=console)
             task = pbar.add_task(description='', total=total)
         else:
             task = None

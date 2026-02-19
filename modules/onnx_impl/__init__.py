@@ -4,7 +4,6 @@ import numpy as np
 import torch
 import diffusers
 from installer import installed, install
-from modules.logger import log
 
 
 initialized = False

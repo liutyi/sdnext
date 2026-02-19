@@ -3,7 +3,7 @@ import json
 import rich.progress as p
 from PIL import Image
 from modules import shared, errors, paths
-from modules.logger import log
+from modules.logger import log, console
 
 
 pbar = None
@@ -65,7 +65,7 @@ def download_civit_preview(model_path: str, preview_url: str):
     img = None
     jobid = shared.state.begin('Download CivitAI')
     if pbar is None:
-        pbar = p.Progress(p.TextColumn('[cyan]Download'), p.DownloadColumn(), p.BarColumn(), p.TaskProgressColumn(), p.TimeRemainingColumn(), p.TimeElapsedColumn(), p.TransferSpeedColumn(), p.TextColumn('[yellow]{task.description}'), console=logger.console)
+        pbar = p.Progress(p.TextColumn('[cyan]Download'), p.DownloadColumn(), p.BarColumn(), p.TaskProgressColumn(), p.TimeRemainingColumn(), p.TimeElapsedColumn(), p.TransferSpeedColumn(), p.TextColumn('[yellow]{task.description}'), console=console)
     try:
         with open(preview_file, 'wb') as f:
             with pbar:
@@ -146,7 +146,7 @@ def download_civit_model_thread(model_name: str, model_url: str, model_path: str
     written = starting_pos
     global pbar # pylint: disable=global-statement
     if pbar is None:
-        pbar = p.Progress(p.TextColumn('[cyan]{task.description}'), p.DownloadColumn(), p.BarColumn(), p.TaskProgressColumn(), p.TimeRemainingColumn(), p.TimeElapsedColumn(), p.TransferSpeedColumn(), p.TextColumn('[cyan]{task.fields[name]}'), console=logger.console)
+        pbar = p.Progress(p.TextColumn('[cyan]{task.description}'), p.DownloadColumn(), p.BarColumn(), p.TaskProgressColumn(), p.TimeRemainingColumn(), p.TimeElapsedColumn(), p.TransferSpeedColumn(), p.TextColumn('[cyan]{task.fields[name]}'), console=console)
     with pbar:
         task = pbar.add_task(description="Download starting", total=starting_pos+total_size, name=model_name)
         try:

@@ -6,7 +6,7 @@ import re
 import gradio as gr
 from PIL import Image
 from modules import devices, shared, errors
-from modules.logger import log
+from modules.logger import log, console
 
 
 debug_enabled = os.environ.get('SD_CAPTION_DEBUG', None) is not None
@@ -293,7 +293,7 @@ def caption_batch(batch_files, batch_folder, batch_str, clip_model, blip_model, 
         writer = BatchWriter(os.path.dirname(files[0]), mode=file_mode)
         debug_log(f'CLIP batch: writing to "{os.path.dirname(files[0])}" mode="{file_mode}"')
     import rich.progress as rp
-    pbar = rp.Progress(rp.TextColumn('[cyan]Caption:'), rp.BarColumn(), rp.MofNCompleteColumn(), rp.TaskProgressColumn(), rp.TimeRemainingColumn(), rp.TimeElapsedColumn(), rp.TextColumn('[cyan]{task.description}'), console=logger.console)
+    pbar = rp.Progress(rp.TextColumn('[cyan]Caption:'), rp.BarColumn(), rp.MofNCompleteColumn(), rp.TaskProgressColumn(), rp.TimeRemainingColumn(), rp.TimeElapsedColumn(), rp.TextColumn('[cyan]{task.description}'), console=console)
     with pbar:
         task = pbar.add_task(total=len(files), description='starting...')
         for file in files:

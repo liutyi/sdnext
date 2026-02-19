@@ -4,7 +4,7 @@ from PIL import Image
 from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn, TimeElapsedColumn
 import modules.postprocess.esrgan_model_arch as arch
 from modules import images, devices, shared
-from modules.logger import log
+from modules.logger import log, console
 from modules.upscaler import Upscaler, UpscalerData, compile_upscaler
 
 
@@ -197,7 +197,7 @@ def esrgan_upscale(model, img):
     newtiles = []
     scale_factor = 1
 
-    with Progress(TextColumn('[cyan]{task.description}'), BarColumn(), TaskProgressColumn(), TimeRemainingColumn(), TimeElapsedColumn(), console=logger.console) as progress:
+    with Progress(TextColumn('[cyan]{task.description}'), BarColumn(), TaskProgressColumn(), TimeRemainingColumn(), TimeElapsedColumn(), console=console) as progress:
         total = 0
         for _y, _h, row in grid.tiles:
             total += len(row)

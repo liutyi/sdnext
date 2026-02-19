@@ -8,7 +8,6 @@ import accelerate.hooks
 import accelerate.utils.modeling
 from modules.logger import log
 from modules import shared, devices, errors, model_quant, sd_models
-from modules.logger import log
 from modules.timer import process as process_timer
 
 

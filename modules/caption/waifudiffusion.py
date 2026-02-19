@@ -8,7 +8,7 @@ import threading
 import numpy as np
 from PIL import Image
 from modules import shared, devices, errors
-from modules.logger import log
+from modules.logger import log, console
 
 
 # Debug logging - enable with SD_CAPTION_DEBUG environment variable
@@ -492,7 +492,7 @@ def batch(
 
     # Progress bar
     import rich.progress as rp
-    pbar = rp.Progress(rp.TextColumn('[cyan]WaifuDiffusion:'), rp.BarColumn(), rp.MofNCompleteColumn(), rp.TaskProgressColumn(), rp.TimeRemainingColumn(), rp.TimeElapsedColumn(), rp.TextColumn('[cyan]{task.description}'), console=logger.console)
+    pbar = rp.Progress(rp.TextColumn('[cyan]WaifuDiffusion:'), rp.BarColumn(), rp.MofNCompleteColumn(), rp.TaskProgressColumn(), rp.TimeRemainingColumn(), rp.TimeElapsedColumn(), rp.TextColumn('[cyan]{task.description}'), console=console)
 
     with pbar:
         task = pbar.add_task(total=len(image_files), description='starting...')

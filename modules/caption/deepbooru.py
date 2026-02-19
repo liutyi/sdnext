@@ -5,7 +5,7 @@ import torch
 import numpy as np
 from PIL import Image
 from modules import modelloader, devices, shared, paths
-from modules.logger import log
+from modules.logger import log, console
 
 re_special = re.compile(r'([\\()])')
 load_lock = threading.Lock()
@@ -276,7 +276,7 @@ def batch(
     model.start()
 
     # Progress bar
-    pbar = rp.Progress(rp.TextColumn('[cyan]DeepBooru:'), rp.BarColumn(), rp.MofNCompleteColumn(), rp.TaskProgressColumn(), rp.TimeRemainingColumn(), rp.TimeElapsedColumn(), rp.TextColumn('[cyan]{task.description}'), console=logger.console)
+    pbar = rp.Progress(rp.TextColumn('[cyan]DeepBooru:'), rp.BarColumn(), rp.MofNCompleteColumn(), rp.TaskProgressColumn(), rp.TimeRemainingColumn(), rp.TimeElapsedColumn(), rp.TextColumn('[cyan]{task.description}'), console=console)
 
     with pbar:
         task = pbar.add_task(total=len(image_files), description='starting...')
