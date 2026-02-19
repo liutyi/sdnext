@@ -16,6 +16,7 @@ toml
 voluptuous
 fasteners
 orjson
+websockets
 
 # versioned
 fastapi==0.124.4
