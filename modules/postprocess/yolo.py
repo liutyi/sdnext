@@ -7,7 +7,7 @@ import numpy as np
 import gradio as gr
 from PIL import Image, ImageDraw
 from modules import shared, processing, devices, processing_class, ui_common, ui_components, ui_symbols, images, extra_networks, sd_models
-from modules import logger
+from modules.logger import log
 from modules.detailer import Detailer
 
 
@@ -71,7 +71,7 @@ class YoloRestorer(Detailer):
                     name = os.path.splitext(os.path.basename(f))[0]
                     if name not in files:
                         self.list[name] = os.path.join(shared.opts.yolo_dir, f)
-        logger.log.info(f'Available Detailer: path="{shared.opts.yolo_dir}" items={len(list(self.list))} downloaded={downloaded}')
+        log.info(f'Available Detailer: path="{shared.opts.yolo_dir}" items={len(list(self.list))} downloaded={downloaded}')
         return list(self.list)
 
     def dependencies(self):
@@ -127,7 +127,7 @@ class YoloRestorer(Detailer):
             if offload:
                 model.to('cpu')
         except Exception as e:
-            logger.log.error(f'Detailer predict: {e}')
+            log.error(f'Detailer predict: {e}')
             return result
 
         desired = shared.opts.detailer_classes.split(',')
@@ -193,14 +193,14 @@ class YoloRestorer(Detailer):
             else:
                 model_url = self.list.get(model_name, None)
                 if model_url is None:
-                    logger.log.error(f'Load: type=Detailer name="{model_name}" error="model not found"')
+                    log.error(f'Load: type=Detailer name="{model_name}" error="model not found"')
                     return None, None
                 file_name = os.path.basename(model_url)
                 model_file = None
                 try:
                     model_file = modelloader.load_file_from_url(url=model_url, model_dir=shared.opts.yolo_dir, file_name=file_name)
                     if model_file is None:
-                        logger.log.error(f'Load: type=Detailer name="{model_name}" url="{model_url}" error="failed to fetch model"')
+                        log.error(f'Load: type=Detailer name="{model_name}" url="{model_url}" error="failed to fetch model"')
                     elif model_file.endswith('.onnx'):
                         import onnxruntime as ort
                         options = ort.SessionOptions()
@@ -213,11 +213,11 @@ class YoloRestorer(Detailer):
                         import ultralytics
                         model = ultralytics.YOLO(model_file)
                         classes = list(model.names.values())
-                        logger.log.info(f'Load: type=Detailer name="{model_name}" model="{model_file}" ultralytics={ultralytics.__version__} classes={classes}')
+                        log.info(f'Load: type=Detailer name="{model_name}" model="{model_file}" ultralytics={ultralytics.__version__} classes={classes}')
                         self.models[model_name] = model
                         return model_name, model
                 except Exception as e:
-                    logger.log.error(f'Load: type=Detailer name="{model_name}" error="{e}"')
+                    log.error(f'Load: type=Detailer name="{model_name}" error="{e}"')
         return None, None
 
     def merge(self, items: list[YoloResult]) -> list[YoloResult]:
@@ -246,7 +246,7 @@ class YoloRestorer(Detailer):
         size = min(image.width, image.height) // 32
         font = images.get_font(size)
         color = (0, 190, 190)
-        logger.log.debug(f'Detailer: draw={items}')
+        log.debug(f'Detailer: draw={items}')
         for i, item in enumerate(items):
             if shared.opts.detailer_seg and item.mask is not None:
                 mask = item.mask.convert('L')
@@ -277,7 +277,7 @@ class YoloRestorer(Detailer):
 
         shared.sd_model = sd_models.set_diffuser_pipe(shared.sd_model, sd_models.DiffusersTaskType.INPAINTING)
         if (sd_models.get_diffusers_task(shared.sd_model) != sd_models.DiffusersTaskType.INPAINTING) and (shared.sd_model.__class__.__name__ not in sd_models.pipe_switch_task_exclude):
-            logger.log.error(f'Detailer: model="{shared.sd_model.__class__.__name__}" not compatible')
+            log.error(f'Detailer: model="{shared.sd_model.__class__.__name__}" not compatible')
             return np_image
 
         models = []
@@ -287,9 +287,9 @@ class YoloRestorer(Detailer):
         if len(models) == 0:
             models = shared.opts.detailer_models
         if len(models) == 0:
-            logger.log.warning('Detailer: model=None')
+            log.warning('Detailer: model=None')
             return np_image
-        logger.log.debug(f'Detailer: models={models}')
+        log.debug(f'Detailer: models={models}')
 
         # create backups
         orig_apply_overlay = shared.opts.mask_apply_overlay
@@ -310,7 +310,7 @@ class YoloRestorer(Detailer):
 
             name, model = self.load(model_name)
             if model is None:
-                logger.log.warning(f'Detailer: model="{name}" not loaded')
+                log.warning(f'Detailer: model="{name}" not loaded')
                 continue
 
             if image is None:
@@ -318,11 +318,11 @@ class YoloRestorer(Detailer):
             items = self.predict(model, image)
 
             if len(items) == 0:
-                logger.log.info(f'Detailer: model="{name}" no items detected')
+                log.info(f'Detailer: model="{name}" no items detected')
                 continue
 
             if shared.opts.detailer_merge and len(items) > 1:
-                logger.log.debug(f'Detailer: model="{name}" items={len(items)} merge')
+                log.debug(f'Detailer: model="{name}" items={len(items)} merge')
                 items = self.merge(items)
 
             shared.opts.data['mask_apply_overlay'] = True
@@ -363,7 +363,7 @@ class YoloRestorer(Detailer):
             }
             args.update(model_args)
             if args['denoising_strength'] == 0:
-                logger.log.debug(f'Detailer: model="{name}" strength=0 skip')
+                log.debug(f'Detailer: model="{name}" strength=0 skip')
                 return np_image
             control_pipeline = None
             orig_class = shared.sd_model.__class__
@@ -381,7 +381,7 @@ class YoloRestorer(Detailer):
                 p.steps = orig_p.get('steps', 0)
 
             # report = [{'label': i.label, 'score': i.score, 'size': f'{i.width}x{i.height}' } for i in items]
-            # logger.log.info(f'Detailer: model="{name}" items={report} args={args}')
+            # log.info(f'Detailer: model="{name}" items={report} args={args}')
             models_used.append(name)
 
             mask_all = []
@@ -410,7 +410,7 @@ class YoloRestorer(Detailer):
                 pc.negative_prompts = [pc.negative_prompt]
                 pc.prompts, pc.network_data = extra_networks.parse_prompts(pc.prompts)
                 extra_networks.activate(pc, pc.network_data)
-                logger.log.debug(f'Detail: model="{i+1}:{name}" item={j+1}/{len(items)} box={item.box} label="{item.label}" score={item.score:.2f} seg={shared.opts.detailer_seg} prompt="{pc.prompt}"')
+                log.debug(f'Detail: model="{i+1}:{name}" item={j+1}/{len(items)} box={item.box} label="{item.label}" score={item.score:.2f} seg={shared.opts.detailer_seg} prompt="{pc.prompt}"')
                 pc.init_images = [image]
                 pc.image_mask = [item.mask]
                 pc.overlay_images = []
@@ -489,9 +489,9 @@ class YoloRestorer(Detailer):
             shared.opts.detailer_seg = seg
             # shared.opts.detailer_resolution = resolution
             shared.opts.save(silent=True)
-            logger.log.debug(f'Detailer settings: models={detailers} classes={classes} strength={strength} conf={min_confidence} max={max_detected} iou={iou} size={min_size}-{max_size} padding={padding} steps={steps} resolution={resolution} save={save} sort={sort} seg={seg}')
+            log.debug(f'Detailer settings: models={detailers} classes={classes} strength={strength} conf={min_confidence} max={max_detected} iou={iou} size={min_size}-{max_size} padding={padding} steps={steps} resolution={resolution} save={save} sort={sort} seg={seg}')
             if not self.ui_mode:
-                logger.log.debug(f'Detailer expert: {text}')
+                log.debug(f'Detailer expert: {text}')
 
         with gr.Accordion(open=False, label="Detailer", elem_id=f"{tab}_detailer_accordion", elem_classes=["small-accordion"]):
             with gr.Row():

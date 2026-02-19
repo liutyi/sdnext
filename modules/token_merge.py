@@ -1,4 +1,4 @@
-from modules import logger
+from modules.logger import log
 from modules import shared
 
 
@@ -10,7 +10,7 @@ def apply_token_merging(sd_model):
         if current_tome == shared.opts.tome_ratio:
             return
         if shared.opts.hypertile_unet_enabled and not shared.cmd_opts.experimental:
-            logger.log.warning('Token merging not supported with HyperTile for UNet')
+            log.warning('Token merging not supported with HyperTile for UNet')
             return
         try:
             import installer
@@ -24,10 +24,10 @@ def apply_token_merging(sd_model):
                 merge_crossattn=False,
                 merge_mlp=False
             )
-            logger.log.info(f'Applying ToMe: ratio={shared.opts.tome_ratio}')
+            log.info(f'Applying ToMe: ratio={shared.opts.tome_ratio}')
             sd_model.applied_tome = shared.opts.tome_ratio
         except Exception:
-            logger.log.warning(f'Token merging not supported: pipeline={sd_model.__class__.__name__}')
+            log.warning(f'Token merging not supported: pipeline={sd_model.__class__.__name__}')
     else:
         sd_model.applied_tome = 0
 
@@ -35,7 +35,7 @@ def apply_token_merging(sd_model):
         if current_todo == shared.opts.todo_ratio:
             return
         if shared.opts.hypertile_unet_enabled and not shared.cmd_opts.experimental:
-            logger.log.warning('Token merging not supported with HyperTile for UNet')
+            log.warning('Token merging not supported with HyperTile for UNet')
             return
         try:
             from modules.todo.todo_utils import patch_attention_proc
@@ -51,10 +51,10 @@ def apply_token_merging(sd_model):
                         "ratio_level_2": 0.0,
                         }
             patch_attention_proc(sd_model.unet, token_merge_args=token_merge_args)
-            logger.log.info(f'Applying ToDo: ratio={shared.opts.todo_ratio}')
+            log.info(f'Applying ToDo: ratio={shared.opts.todo_ratio}')
             sd_model.applied_todo = shared.opts.todo_ratio
         except Exception:
-            logger.log.warning(f'Token merging not supported: pipeline={sd_model.__class__.__name__}')
+            log.warning(f'Token merging not supported: pipeline={sd_model.__class__.__name__}')
     else:
         sd_model.applied_todo = 0
 

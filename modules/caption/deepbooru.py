@@ -5,7 +5,7 @@ import torch
 import numpy as np
 from PIL import Image
 from modules import modelloader, devices, shared, paths
-from modules import logger
+from modules.logger import log
 
 re_special = re.compile(r'([\\()])')
 load_lock = threading.Lock()
@@ -20,7 +20,7 @@ class DeepDanbooru:
             if self.model is not None:
                 return
             model_path = os.path.join(paths.models_path, "DeepDanbooru")
-            logger.log.debug(f'Caption load: module=DeepDanbooru folder="{model_path}"')
+            log.debug(f'Caption load: module=DeepDanbooru folder="{model_path}"')
             files = modelloader.load_models(
                 model_path=model_path,
                 model_url='https://github.com/AUTOMATIC1111/TorchDeepDanbooru/releases/download/v1/model-resnet_custom_v3.pt',
@@ -140,14 +140,14 @@ def load_model(model_name: str = None) -> bool: # pylint: disable=unused-argumen
         model.load()
         return model.model is not None
     except Exception as e:
-        logger.log.error(f'DeepBooru load: {e}')
+        log.error(f'DeepBooru load: {e}')
         return False
 
 
 def unload_model():
     """Unload the DeepBooru model and free memory."""
     if model.model is not None:
-        logger.log.debug('DeepBooru unload')
+        log.debug('DeepBooru unload')
         model.model.to(devices.cpu)
         model.model = None
         devices.torch_gc(force=True)
@@ -167,14 +167,14 @@ def tag(image, **kwargs) -> str:
     import time
     t0 = time.time()
     jobid = shared.state.begin('DeepBooru Tag')
-    logger.log.info(f'DeepBooru: image_size={image.size if image else None}')
+    log.info(f'DeepBooru: image_size={image.size if image else None}')
 
     try:
         result = model.tag(image, **kwargs)
-        logger.log.debug(f'DeepBooru: complete time={time.time()-t0:.2f} tags={len(result.split(", ")) if result else 0}')
+        log.debug(f'DeepBooru: complete time={time.time()-t0:.2f} tags={len(result.split(", ")) if result else 0}')
     except Exception as e:
         result = f"Exception {type(e)}"
-        logger.log.error(f'DeepBooru: {e}')
+        log.error(f'DeepBooru: {e}')
 
     shared.state.end(jobid)
     return result
@@ -265,12 +265,12 @@ def batch(
     image_files = unique_files
 
     if not image_files:
-        logger.log.warning('DeepBooru batch: no images found')
+        log.warning('DeepBooru batch: no images found')
         return ''
 
     t0 = time.time()
     jobid = shared.state.begin('DeepBooru Batch')
-    logger.log.info(f'DeepBooru batch: images={len(image_files)} write={save_output} append={save_append} recursive={recursive}')
+    log.info(f'DeepBooru batch: images={len(image_files)} write={save_output} append={save_append} recursive={recursive}')
 
     results = []
     model.start()
@@ -284,7 +284,7 @@ def batch(
             pbar.update(task, advance=1, description=str(img_path.name))
             try:
                 if shared.state.interrupted:
-                    logger.log.info('DeepBooru batch: interrupted')
+                    log.info('DeepBooru batch: interrupted')
                     break
 
                 image = Image.open(img_path)
@@ -297,12 +297,12 @@ def batch(
                 results.append(f'{img_path.name}: {tags_str[:100]}...' if len(tags_str) > 100 else f'{img_path.name}: {tags_str}')
 
             except Exception as e:
-                logger.log.error(f'DeepBooru batch: file="{img_path}" error={e}')
+                log.error(f'DeepBooru batch: file="{img_path}" error={e}')
                 results.append(f'{img_path.name}: ERROR - {e}')
 
     model.stop()
     elapsed = time.time() - t0
-    logger.log.info(f'DeepBooru batch: complete images={len(results)} time={elapsed:.1f}s')
+    log.info(f'DeepBooru batch: complete images={len(results)} time={elapsed:.1f}s')
     shared.state.end(jobid)
 
     return '\n'.join(results)

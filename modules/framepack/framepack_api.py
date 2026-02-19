@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field # pylint: disable=no-name-in-module
 from fastapi.exceptions import HTTPException
 from modules import shared
-from modules import logger
+from modules.logger import log
 
 
 class ReqFramepack(BaseModel):
@@ -61,7 +61,7 @@ def framepack_post(request: ReqFramepack):
         else:
             init_image = None
     except Exception as e:
-        logger.log.error(f"API FramePack: id={task_id} cannot decode init image: {e}")
+        log.error(f"API FramePack: id={task_id} cannot decode init image: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
     try:
@@ -70,12 +70,12 @@ def framepack_post(request: ReqFramepack):
         else:
             end_image = None
     except Exception as e:
-        logger.log.error(f"API FramePack: id={task_id} cannot decode end image: {e}")
+        log.error(f"API FramePack: id={task_id} cannot decode end image: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
     del request.init_image
     del request.end_image
-    logger.log.trace(f"API FramePack: id={task_id} init={init_image.shape} end={end_image.shape if end_image else None} {request}")
+    log.trace(f"API FramePack: id={task_id} init={init_image.shape} end={end_image.shape if end_image else None} {request}")
 
     generator = run_framepack(
         _ui_state=None,

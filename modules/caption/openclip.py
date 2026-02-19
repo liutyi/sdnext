@@ -6,11 +6,11 @@ import re
 import gradio as gr
 from PIL import Image
 from modules import devices, shared, errors
-from modules import logger
+from modules.logger import log
 
 
 debug_enabled = os.environ.get('SD_CAPTION_DEBUG', None) is not None
-debug_log = logger.log.trace if debug_enabled else lambda *args, **kwargs: None
+debug_log = log.trace if debug_enabled else lambda *args, **kwargs: None
 
 # Per-request overrides for API calls
 _clip_overrides = None
@@ -108,7 +108,7 @@ def refresh_clip_models():
     global clip_models # pylint: disable=global-statement
     import open_clip
     models = sorted(open_clip.list_pretrained())
-    logger.log.debug(f'Caption: pkg=openclip version={open_clip.__version__} models={len(models)}')
+    log.debug(f'Caption: pkg=openclip version={open_clip.__version__} models={len(models)}')
     clip_models = ['/'.join(x) for x in models]
     return clip_models
 
@@ -142,7 +142,7 @@ def load_captioner(clip_model, blip_model):
         t0 = time.time()
         device = devices.get_optimal_device()
         cache_path = shared.opts.clip_models_path
-        logger.log.info(f'CLIP load: clip="{clip_model}" blip="{blip_model}" device={device}')
+        log.info(f'CLIP load: clip="{clip_model}" blip="{blip_model}" device={device}')
         debug_log(f'CLIP load: cache_path="{cache_path}" max_length={shared.opts.caption_openclip_max_length} chunk_size={shared.opts.caption_openclip_chunk_size} flavor_count={shared.opts.caption_openclip_flavor_count} offload={shared.opts.caption_offload}')
         caption_model, caption_processor = _load_blip_model(blip_model, device)
         captioner_config = clip_interrogator.Config(
@@ -164,18 +164,18 @@ def load_captioner(clip_model, blip_model):
 
         if blip_model.startswith('blip2-'):
             _apply_blip2_fix(ci.caption_model, ci.caption_processor)
-        logger.log.debug(f'CLIP load: time={time.time()-t0:.2f}')
+        log.debug(f'CLIP load: time={time.time()-t0:.2f}')
     elif clip_model != ci.config.clip_model_name or blip_model != ci.config.caption_model_name:
         t0 = time.time()
         if clip_model != ci.config.clip_model_name:
-            logger.log.info(f'CLIP load: clip="{clip_model}" reloading')
+            log.info(f'CLIP load: clip="{clip_model}" reloading')
             debug_log(f'CLIP load: previous clip="{ci.config.clip_model_name}"')
             ci.config.clip_model_name = clip_model
             ci.config.clip_model = None
             ci.load_clip_model()
             ci.clip_offloaded = True  # Reset flag so _prepare_clip() will move model to device
         if blip_model != ci.config.caption_model_name:
-            logger.log.info(f'CLIP load: blip="{blip_model}" reloading')
+            log.info(f'CLIP load: blip="{blip_model}" reloading')
             debug_log(f'CLIP load: previous blip="{ci.config.caption_model_name}"')
             ci.config.caption_model_name = blip_model
             caption_model, caption_processor = _load_blip_model(blip_model, ci.device)
@@ -184,14 +184,14 @@ def load_captioner(clip_model, blip_model):
             ci.caption_offloaded = True  # Reset flag so _prepare_caption() will move model to device
             if blip_model.startswith('blip2-'):
                 _apply_blip2_fix(ci.caption_model, ci.caption_processor)
-        logger.log.debug(f'CLIP load: time={time.time()-t0:.2f}')
+        log.debug(f'CLIP load: time={time.time()-t0:.2f}')
     else:
         debug_log(f'CLIP: models already loaded clip="{clip_model}" blip="{blip_model}"')
 
 
 def unload_clip_model():
     if ci is not None and shared.opts.caption_offload:
-        logger.log.debug('CLIP unload: offloading models to CPU')
+        log.debug('CLIP unload: offloading models to CPU')
         # Direct .to() instead of sd_models.move_model — models are from clip_interrogator, not transformers
         if ci.caption_model is not None and hasattr(ci.caption_model, 'to'):
             ci.caption_model.to(devices.cpu)
@@ -238,7 +238,7 @@ def caption_image(image, clip_model, blip_model, mode, overrides=None):
     global _clip_overrides  # pylint: disable=global-statement
     jobid = shared.state.begin('Caption CLiP')
     t0 = time.time()
-    logger.log.info(f'CLIP: mode="{mode}" clip="{clip_model}" blip="{blip_model}" image_size={image.size if image else None}')
+    log.info(f'CLIP: mode="{mode}" clip="{clip_model}" blip="{blip_model}" image_size={image.size if image else None}')
     if overrides:
         debug_log(f'CLIP: overrides={overrides}')
     try:
@@ -256,10 +256,10 @@ def caption_image(image, clip_model, blip_model, mode, overrides=None):
         if shared.opts.caption_offload:
             unload_clip_model()
         devices.torch_gc()
-        logger.log.debug(f'CLIP: complete time={time.time()-t0:.2f}')
+        log.debug(f'CLIP: complete time={time.time()-t0:.2f}')
     except Exception as e:
         prompt = f"Exception {type(e)}"
-        logger.log.error(f'CLIP: {e}')
+        log.error(f'CLIP: {e}')
         errors.display(e, 'Caption')
     finally:
         # Clear per-request overrides
@@ -279,10 +279,10 @@ def caption_batch(batch_files, batch_folder, batch_str, clip_model, blip_model, 
         from modules.files_cache import list_files
         files += list(list_files(batch_str, ext_filter=['.png', '.jpg', '.jpeg', '.webp', '.jxl'], recursive=recursive))
     if len(files) == 0:
-        logger.log.warning('CLIP batch: no images found')
+        log.warning('CLIP batch: no images found')
         return ''
     t0 = time.time()
-    logger.log.info(f'CLIP batch: mode="{mode}" images={len(files)} clip="{clip_model}" blip="{blip_model}" write={write} append={append}')
+    log.info(f'CLIP batch: mode="{mode}" images={len(files)} clip="{clip_model}" blip="{blip_model}" write={write} append={append}')
     debug_log(f'CLIP batch: recursive={recursive} files={files[:5]}{"..." if len(files) > 5 else ""}')
     jobid = shared.state.begin('Caption batch')
     prompts = []
@@ -300,7 +300,7 @@ def caption_batch(batch_files, batch_folder, batch_str, clip_model, blip_model, 
             pbar.update(task, advance=1, description=file)
             try:
                 if shared.state.interrupted:
-                    logger.log.info('CLIP batch: interrupted')
+                    log.info('CLIP batch: interrupted')
                     break
                 image = Image.open(file).convert('RGB')
                 prompt = caption(image, mode)
@@ -308,20 +308,20 @@ def caption_batch(batch_files, batch_folder, batch_str, clip_model, blip_model, 
                 if write:
                     writer.add(file, prompt)
             except OSError as e:
-                logger.log.error(f'CLIP batch: file="{file}" error={e}')
+                log.error(f'CLIP batch: file="{file}" error={e}')
     if write:
         writer.close()
     ci.config.quiet = False
     unload_clip_model()
     shared.state.end(jobid)
-    logger.log.info(f'CLIP batch: complete images={len(prompts)} time={time.time()-t0:.2f}')
+    log.info(f'CLIP batch: complete images={len(prompts)} time={time.time()-t0:.2f}')
     return '\n\n'.join(prompts)
 
 
 
 def analyze_image(image, clip_model, blip_model):
     t0 = time.time()
-    logger.log.info(f'CLIP analyze: clip="{clip_model}" blip="{blip_model}" image_size={image.size if image else None}')
+    log.info(f'CLIP analyze: clip="{clip_model}" blip="{blip_model}" image_size={image.size if image else None}')
     load_captioner(clip_model, blip_model)
     image = image.convert('RGB')
     image_features = ci.image_to_features(image)
@@ -336,7 +336,7 @@ def analyze_image(image, clip_model, blip_model):
     movement_ranks = dict(sorted(zip(top_movements, ci.similarities(image_features, top_movements), strict=False), key=lambda x: x[1], reverse=True))
     trending_ranks = dict(sorted(zip(top_trendings, ci.similarities(image_features, top_trendings), strict=False), key=lambda x: x[1], reverse=True))
     flavor_ranks = dict(sorted(zip(top_flavors, ci.similarities(image_features, top_flavors), strict=False), key=lambda x: x[1], reverse=True))
-    logger.log.debug(f'CLIP analyze: complete time={time.time()-t0:.2f}')
+    log.debug(f'CLIP analyze: complete time={time.time()-t0:.2f}')
 
     # Format labels as text
     def format_category(name, ranks):

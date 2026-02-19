@@ -2,7 +2,7 @@ import os
 import json
 import concurrent
 from modules import shared, ui_extra_networks, modelstats
-from modules import logger
+from modules.logger import log
 from modules.lora import lora_load
 
 
@@ -73,7 +73,7 @@ class ExtraNetworksPageLora(ui_extra_networks.ExtraNetworksPage):
     def create_item(self, name):
         l = lora_load.available_networks.get(name)
         if l is None:
-            logger.log.warning(f'Networks: type=lora registered={len(list(lora_load.available_networks))} file="{name}" not registered')
+            log.warning(f'Networks: type=lora registered={len(list(lora_load.available_networks))} file="{name}" not registered')
             return None
         try:
             # path, _ext = os.path.splitext(l.filename)
@@ -98,7 +98,7 @@ class ExtraNetworksPageLora(ui_extra_networks.ExtraNetworksPage):
             }
             return item
         except Exception as e:
-            logger.log.error(f'Networks: type=lora file="{name}" {e}')
+            log.error(f'Networks: type=lora file="{name}" {e}')
             if debug:
                 from modules import errors
                 errors.display(e, 'Lora')

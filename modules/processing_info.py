@@ -1,13 +1,13 @@
 import os
 from installer import git_commit
 from modules import shared, sd_samplers_common, sd_vae, generation_parameters_copypaste
-from modules import logger
+from modules.logger import log
 from modules.processing_class import StableDiffusionProcessing
 
 
 args = {} # maintain history
 infotext = '' # maintain history
-debug = logger.log.trace if os.environ.get('SD_PROCESS_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug = log.trace if os.environ.get('SD_PROCESS_DEBUG', None) is not None else lambda *args, **kwargs: None
 
 
 def get_last_args():
@@ -17,7 +17,7 @@ def get_last_args():
 def create_infotext(p: StableDiffusionProcessing, all_prompts=None, all_seeds=None, all_subseeds=None, comments=None, iteration=0, position_in_batch=0, index=None, all_negative_prompts=None, grid=None):
     global args, infotext # pylint: disable=global-statement
     if p is None:
-        logger.log.warning('Processing info: no data')
+        log.warning('Processing info: no data')
         return ''
     if not hasattr(shared.sd_model, 'sd_checkpoint_info'):
         return ''

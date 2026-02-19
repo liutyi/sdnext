@@ -1,4 +1,4 @@
-from modules import logger
+from modules.logger import log
 from modules import shared, devices
 
 
@@ -24,9 +24,9 @@ def load_flux_nunchaku(repo_id):
     elif 'shuttle' in repo_id.lower():
         nunchaku_repo = f"nunchaku-ai/nunchaku-shuttle-jaguar/svdq-{nunchaku_precision}-shuttle-jaguar.safetensors"
     else:
-        logger.log.error(f'Load module: quant=Nunchaku module=transformer repo="{repo_id}" unsupported')
+        log.error(f'Load module: quant=Nunchaku module=transformer repo="{repo_id}" unsupported')
     if nunchaku_repo is not None:
-        logger.log.debug(f'Load module: quant=Nunchaku module=transformer repo="{nunchaku_repo}" precision={nunchaku_precision} offload={shared.opts.nunchaku_offload} attention={shared.opts.nunchaku_attention}')
+        log.debug(f'Load module: quant=Nunchaku module=transformer repo="{nunchaku_repo}" precision={nunchaku_precision} offload={shared.opts.nunchaku_offload} attention={shared.opts.nunchaku_attention}')
         transformer = nunchaku.NunchakuFluxTransformer2dModel.from_pretrained(
             nunchaku_repo,
             offload=shared.opts.nunchaku_offload,

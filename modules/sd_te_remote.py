@@ -4,7 +4,7 @@ import json
 import torch
 import requests
 from modules import devices, errors
-from modules import logger
+from modules.logger import log
 
 
 def get_t5_prompt_embeds(
@@ -18,7 +18,7 @@ def get_t5_prompt_embeds(
     dtype = dtype or devices.dtype
     url = os.environ.get('SD_REMOTE_T5', None)
     if url is None:
-        logger.log.error('Remote-TE: url is not set')
+        log.error('Remote-TE: url is not set')
         return None
     try:
         t0 = time.time()
@@ -32,9 +32,9 @@ def get_t5_prompt_embeds(
         shape = json.loads(response.headers["shape"])
         buffer = bytearray(response.content)
         tensor = torch.frombuffer(buffer, dtype=dtype).reshape(shape)
-        logger.log.debug(f'Remote-TE: url="{url}" prompt="{prompt}" shape={shape} time={t1-t0:.3f}')
+        log.debug(f'Remote-TE: url="{url}" prompt="{prompt}" shape={shape} time={t1-t0:.3f}')
         return tensor.to(device=device, dtype=dtype)
     except Exception as e:
-        logger.log.error(f'Remote-TE: {e}')
+        log.error(f'Remote-TE: {e}')
         errors.display(e, 'remote-te')
         return None

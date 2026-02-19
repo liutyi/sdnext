@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 import torch
 from modules import shared, sd_models
-from modules import logger
+from modules.logger import log
 
 
 def walk(folder: str):
@@ -108,5 +108,5 @@ def analyze():
         component = getattr(shared.sd_model, k, None)
         module = Module(k, component)
         model.modules.append(module)
-    logger.log.debug(f'Analyzed: {model}')
+    log.debug(f'Analyzed: {model}')
     return model

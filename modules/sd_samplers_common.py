@@ -4,7 +4,7 @@ from collections import namedtuple
 import torch
 from PIL import Image
 from modules import shared, devices, processing, images, sd_samplers, timer
-from modules import logger
+from modules.logger import log
 from modules.vae import sd_vae_approx, sd_vae_taesd, sd_vae_stablecascade
 from modules.image import convert
 
@@ -19,7 +19,7 @@ queue_lock = threading.Lock()
 def warn_once(message):
     global warned # pylint: disable=global-statement
     if not warned:
-        logger.log.warning(f'VAE: {message}')
+        log.warning(f'VAE: {message}')
         warned = True
 
 

@@ -2,7 +2,7 @@ from typing import Optional
 from threading import Lock
 from pydantic import BaseModel, Field # pylint: disable=no-name-in-module
 from modules import errors, shared, processing_helpers
-from modules import logger
+from modules.logger import log
 from modules.api import models, helpers
 from modules.control import run
 
@@ -157,7 +157,7 @@ class APIControl:
         if req.unit_type is None:
             req.unit_type = 'controlnet'
         if req.unit_type not in unit_types:
-            logger.log.error(f'Control uknown unit type: type={req.unit_type} available={unit_types}')
+            log.error(f'Control uknown unit type: type={req.unit_type} available={unit_types}')
             return
         for i in range(len(req.control)):
             u = req.control[i]

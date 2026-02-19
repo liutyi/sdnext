@@ -91,6 +91,8 @@ parser._optionals = parser.add_argument_group('Other options') # pylint: disable
 def parse_args():
     global parsed # pylint: disable=global-statement
     if parsed is None:
+        main_args()
+        compatibility_args()
         parsed, _ = parser.parse_known_args()
     return parsed
 
@@ -206,5 +208,4 @@ def settings_args(opts, args):
     return args
 
 
-main_args()
-compatibility_args()
+

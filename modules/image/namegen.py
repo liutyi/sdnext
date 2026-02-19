@@ -8,11 +8,11 @@ import hashlib
 import datetime
 from pathlib import Path
 from modules import shared, errors
-from modules import logger
+from modules.logger import log
 
 
 debug= os.environ.get('SD_NAMEGEN_DEBUG', None) is not None
-debug_log = logger.log.trace if debug else lambda *args, **kwargs: None
+debug_log = log.trace if debug else lambda *args, **kwargs: None
 re_nonletters = re.compile(r'[\s' + string.punctuation + ']+')
 re_pattern = re.compile(r"(.*?)(?:\[([^\[\]]+)\]|$)")
 re_pattern_arg = re.compile(r"(.*)<([^>]*)>$")
@@ -242,7 +242,7 @@ class FilenameGenerator:
                     fn = self.replacements.get(k, None)
                     debug_log(f'Namegen: key={k} value={fn(self)}')
                 except Exception as e:
-                    logger.log.error(f'Namegen: key={k} {e}')
+                    log.error(f'Namegen: key={k} {e}')
                     errors.display(e, 'namegen')
         for m in re_pattern.finditer(x):
             text, pattern = m.groups()
@@ -271,7 +271,7 @@ class FilenameGenerator:
                 except Exception as e:
                     replacement = None
                     errors.display(e, 'namegen')
-                    logger.log.error(f'Filename apply pattern: {x} {e}')
+                    log.error(f'Filename apply pattern: {x} {e}')
                 if replacement == NOTHING:
                     continue
                 if replacement is not None:

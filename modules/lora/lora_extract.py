@@ -7,7 +7,7 @@ from safetensors.torch import save_file
 import gradio as gr
 from rich import progress as rp
 from modules import shared, devices
-from modules import logger
+from modules.logger import log
 from modules.ui_common import create_refresh_button
 from modules.call_queue import wrap_gradio_gpu_call
 
@@ -119,23 +119,23 @@ def make_meta(fn, maxrank, rank_ratio):
 def make_lora(fn, maxrank, auto_rank, rank_ratio, modules, overwrite):
     if not shared.sd_loaded:
         msg = "LoRA extract: model not loaded"
-        logger.log.warning(msg)
+        log.warning(msg)
         yield msg
         return
     if loaded_lora() == "":
         msg = "LoRA extract: no LoRA detected"
-        logger.log.warning(msg)
+        log.warning(msg)
         yield msg
         return
     if not fn:
         msg = "LoRA extract: target filename required"
-        logger.log.warning(msg)
+        log.warning(msg)
         yield msg
         return
     t0 = time.time()
     maxrank = int(maxrank)
     rank_ratio = 1 if not auto_rank else rank_ratio
-    logger.log.debug(f'LoRA extract: modules={modules} maxrank={maxrank} auto={auto_rank} ratio={rank_ratio} fn="{fn}"')
+    log.debug(f'LoRA extract: modules={modules} maxrank={maxrank} auto={auto_rank} ratio={rank_ratio} fn="{fn}"')
     jobid = shared.state.begin('LoRA extract')
 
     with rp.Progress(rp.TextColumn('[cyan]LoRA extract'), rp.BarColumn(), rp.TaskProgressColumn(), rp.TimeRemainingColumn(), rp.TimeElapsedColumn(), rp.TextColumn('[cyan]{task.description}'), console=logger.console) as progress:
@@ -223,25 +223,25 @@ def make_lora(fn, maxrank, auto_rank, rank_ratio, modules, overwrite):
             os.remove(fn)
         else:
             msg = f'LoRA extract: fn="{fn}" file exists'
-            logger.log.warning(msg)
+            log.warning(msg)
             yield msg
             return
 
     shared.state.end(jobid)
     meta = make_meta(fn, maxrank, rank_ratio)
-    logger.log.debug(f'LoRA metadata: {meta}')
+    log.debug(f'LoRA metadata: {meta}')
     try:
         save_file(tensors=lora_state_dict, metadata=meta, filename=fn)
     except Exception as e:
         msg = f'LoRA extract error: fn="{fn}" {e}'
-        logger.log.error(msg)
+        log.error(msg)
         yield msg
         return
     t5 = time.time()
-    logger.log.debug(f'LoRA extract: time={t5-t0:.2f} te1={t1-t0:.2f} te2={t2-t1:.2f} unet={t3-t2:.2f} save={t5-t4:.2f}')
+    log.debug(f'LoRA extract: time={t5-t0:.2f} te1={t1-t0:.2f} te2={t2-t1:.2f} unet={t3-t2:.2f} save={t5-t4:.2f}')
     keys = list(lora_state_dict.keys())
     msg = f'LoRA extract: fn="{fn}" keys={len(keys)}'
-    logger.log.info(msg)
+    log.info(msg)
     yield msg
 
 

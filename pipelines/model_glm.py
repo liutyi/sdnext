@@ -3,7 +3,7 @@ import rich.progress as rp
 import transformers
 import diffusers
 from modules import shared, devices, sd_models, model_quant, sd_hijack_te
-from modules import logger
+from modules.logger import log
 from pipelines import generic
 
 
@@ -88,11 +88,11 @@ def load_glm_image(checkpoint_info, diffusers_load_config=None):
     sd_models.hf_auth_check(checkpoint_info)
 
     if not hasattr(transformers, 'GlmImageForConditionalGeneration'):
-        logger.log.error(f'Load model: type=GLM-Image repo="{repo_id}" transformers={transformers.__version__} not supported')
+        log.error(f'Load model: type=GLM-Image repo="{repo_id}" transformers={transformers.__version__} not supported')
         return None
 
     load_args, _quant_args = model_quant.get_dit_args(diffusers_load_config, allow_quant=False)
-    logger.log.debug(f'Load model: type=GLM-Image repo="{repo_id}" offload={shared.opts.diffusers_offload_mode} dtype={devices.dtype} args={load_args}')
+    log.debug(f'Load model: type=GLM-Image repo="{repo_id}" offload={shared.opts.diffusers_offload_mode} dtype={devices.dtype} args={load_args}')
 
     # Load transformer (DiT decoder - 7B) with quantization support
     transformer = generic.load_transformer(

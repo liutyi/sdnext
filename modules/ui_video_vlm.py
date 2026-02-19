@@ -1,7 +1,7 @@
 import gradio as gr
 from PIL import Image
 from modules import shared
-from modules import logger
+from modules.logger import log
 
 
 models = [
@@ -46,9 +46,9 @@ def enhance_prompt(enable:bool, model:str=None, image=None, prompt:str='', syste
         system_prompt = f"{system_prompts['prefix']} {core_prompt} {system_prompts['desc']}' "
         system_prompt += system_prompts['nsfw_ok'] if nsfw else system_prompts['nsfw_no']
         system_prompt += f" {system_prompts['suffix']} {system_prompts['example']}"
-    logger.log.debug(f'Video prompt enhance: model="{model}" image={image} nsfw={nsfw} prompt="{prompt}"')
+    log.debug(f'Video prompt enhance: model="{model}" image={image} nsfw={nsfw} prompt="{prompt}"')
     answer = vqa.caption(question='', prompt=prompt, system_prompt=system_prompt, image=image, model_name=model, quiet=False)
-    logger.log.debug(f'Video prompt enhance: answer="{answer}"')
+    log.debug(f'Video prompt enhance: answer="{answer}"')
     return answer
 
 

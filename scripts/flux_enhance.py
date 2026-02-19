@@ -6,7 +6,7 @@ import threading
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import gradio as gr
 from modules import shared, scripts_manager, devices, processing
-from modules import logger
+from modules.logger import log
 
 
 repo_id = "gokaygokay/Flux-Prompt-Enhance"
@@ -38,7 +38,7 @@ class Script(scripts_manager.Script):
             if self.tokenizer is None:
                 self.tokenizer = AutoTokenizer.from_pretrained('gokaygokay/Flux-Prompt-Enhance', cache_dir=shared.opts.hfcache_dir)
             if self.model is None:
-                logger.log.info(f'Prompt enhance: model="{repo_id}"')
+                log.info(f'Prompt enhance: model="{repo_id}"')
                 self.model = AutoModelForSeq2SeqLM.from_pretrained('gokaygokay/Flux-Prompt-Enhance', cache_dir=shared.opts.hfcache_dir).to(device=devices.cpu, dtype=devices.dtype)
 
     def enhance(self, prompt, auto_apply: bool = False, temperature: float = 0.7, repetition_penalty: float = 1.2, max_length: int = 128):
@@ -57,18 +57,18 @@ class Script(scripts_manager.Script):
         try:
             outputs = self.model.generate(input_ids, **kwargs)
         except Exception as e:
-            logger.log.error(f'Prompt enhance: error="{e}"')
+            log.error(f'Prompt enhance: error="{e}"')
             return [['']]
         self.model = self.model.to(devices.cpu)
         prompts = self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
         prompts = [[p] for p in prompts]
         t1 = time.time()
-        logger.log.info(f'Prompt enhance: temperature={temperature} repetition={repetition_penalty} length={max_length} sequences={num_return_sequences} apply={auto_apply} time={t1-t0:.2f}s')
+        log.info(f'Prompt enhance: temperature={temperature} repetition={repetition_penalty} length={max_length} sequences={num_return_sequences} apply={auto_apply} time={t1-t0:.2f}s')
         return prompts
 
     def select(self, cell: gr.SelectData, _table):
         prompt = cell.value if hasattr(cell, 'value') else cell
-        logger.log.info(f'Prompt enhance: prompt="{prompt}"')
+        log.info(f'Prompt enhance: prompt="{prompt}"')
         return prompt
 
     def ui(self, _is_img2img):
@@ -93,10 +93,10 @@ class Script(scripts_manager.Script):
             p.negative_prompt = shared.prompt_styles.apply_negative_styles_to_prompt(p.negative_prompt, p.styles)
             shared.prompt_styles.apply_styles_to_extra(p)
             p.styles = []
-            logger.log.debug(f'Prompt enhance: source="{p.prompt}"')
+            log.debug(f'Prompt enhance: source="{p.prompt}"')
             prompts = self.enhance(p.prompt, auto_apply, temperature, repetition_penalty, max_length)
             p.prompt = random.choice(prompts)[0]
-            logger.log.debug(f'Prompt enhance: prompt="{p.prompt}"')
+            log.debug(f'Prompt enhance: prompt="{p.prompt}"')
 
     def after_component(self, component, **kwargs): # searching for actual ui prompt components
         if getattr(component, 'elem_id', '') in ['txt2img_prompt', 'img2img_prompt', 'control_prompt', 'video_prompt']:

@@ -1,12 +1,12 @@
 import os
 from modules import shared, processing, scripts_manager
-from modules import logger
+from modules.logger import log
 from modules.generation_parameters_copypaste import create_override_settings_dict
 from modules.ui_common import plaintext_to_html
 from modules.paths import resolve_output_path
 
 
-debug = logger.log.trace if os.environ.get('SD_PROCESS_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug = log.trace if os.environ.get('SD_PROCESS_DEBUG', None) is not None else lambda *args, **kwargs: None
 debug('Trace: PROCESS')
 
 
@@ -31,12 +31,12 @@ def txt2img(id_task, state,
     debug(f'txt2img: {id_task}')
 
     if shared.sd_model is None:
-        logger.log.warning('Aborted: op=txt model not loaded')
+        log.warning('Aborted: op=txt model not loaded')
         return [], '', '', 'Error: model not loaded'
 
     override_settings = create_override_settings_dict(override_settings_texts)
     if sampler_index is None:
-        logger.log.warning('Sampler: invalid')
+        log.warning('Sampler: invalid')
         sampler_index = 0
     if hr_sampler_index is None:
         hr_sampler_index = sampler_index

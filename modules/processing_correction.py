@@ -6,12 +6,12 @@ https://huggingface.co/blog/TimothyAlexisVass/explaining-the-sdxl-latent-space
 import os
 import torch
 from modules import shared, devices
-from modules import logger
+from modules.logger import log
 from modules.vae import sd_vae_taesd
 
 
 debug_enabled = os.environ.get('SD_HDR_DEBUG', None) is not None
-debug = logger.log.trace if debug_enabled else lambda *args, **kwargs: None
+debug = log.trace if debug_enabled else lambda *args, **kwargs: None
 debug('Trace: HDR')
 skip_correction = False
 warned = False
@@ -20,7 +20,7 @@ warned = False
 def warn_once(message):
     global warned # pylint: disable=global-statement
     if not warned:
-        logger.log.warning(f'VAE: {message}')
+        log.warning(f'VAE: {message}')
         warned = True
 
 

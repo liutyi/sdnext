@@ -4,14 +4,14 @@ import numpy as np
 import filetype
 from PIL import Image, ImageOps, ImageFilter, ImageEnhance, ImageChops, UnidentifiedImageError
 from modules import scripts_manager, shared, processing, images, errors
-from modules import logger
+from modules.logger import log
 from modules.generation_parameters_copypaste import create_override_settings_dict
 from modules.ui_common import plaintext_to_html
 from modules.memstats import memory_stats
 from modules.paths import resolve_output_path
 
 
-debug = logger.log.trace if os.environ.get('SD_PROCESS_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug = log.trace if os.environ.get('SD_PROCESS_DEBUG', None) is not None else lambda *args, **kwargs: None
 debug('Trace: PROCESS')
 
 
@@ -21,45 +21,45 @@ def validate_inputs(inputs):
         if filetype.is_image(image):
             outputs.append(image)
         else:
-            logger.log.warning(f'Input skip: file="{image}" filetype={filetype.guess(image)}')
+            log.warning(f'Input skip: file="{image}" filetype={filetype.guess(image)}')
     return outputs
 
 
 def process_batch(p, input_files, input_dir, output_dir, inpaint_mask_dir, args):
-    # logger.log.debug(f'batch: {input_files}|{input_dir}|{output_dir}|{inpaint_mask_dir}')
+    # log.debug(f'batch: {input_files}|{input_dir}|{output_dir}|{inpaint_mask_dir}')
     processing.fix_seed(p)
     image_files = []
     if input_files is not None and len(input_files) > 0:
         image_files = [f.name for f in input_files]
         image_files = validate_inputs(image_files)
-        logger.log.info(f'Process batch: input images={len(image_files)}')
+        log.info(f'Process batch: input images={len(image_files)}')
     elif os.path.isdir(input_dir):
         image_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir)]
         image_files = validate_inputs(image_files)
-        logger.log.info(f'Process batch: input folder="{input_dir}" images={len(image_files)}')
+        log.info(f'Process batch: input folder="{input_dir}" images={len(image_files)}')
     is_inpaint_batch = False
     if inpaint_mask_dir and os.path.isdir(inpaint_mask_dir):
         inpaint_masks = [os.path.join(inpaint_mask_dir, f) for f in os.listdir(inpaint_mask_dir)]
         inpaint_masks = validate_inputs(inpaint_masks)
         is_inpaint_batch = len(inpaint_masks) > 0
-        logger.log.info(f'Process batch: mask folder="{input_dir}" images={len(inpaint_masks)}')
+        log.info(f'Process batch: mask folder="{input_dir}" images={len(inpaint_masks)}')
     p.do_not_save_grid = True
     p.do_not_save_samples = True
     p.default_prompt = p.prompt
     if p.n_iter > 1:
         p.n_iter = 1
-        logger.log.warning(f'Process batch: batch_count={p.n_iter} forced to 1')
+        log.warning(f'Process batch: batch_count={p.n_iter} forced to 1')
     shared.state.job_count = len(image_files) * p.n_iter
     if shared.opts.batch_frame_mode: # SBM Frame mode is on, process each image in batch with same seed
         window_size = p.batch_size
         btcrept = 1
         p.seed = [p.seed] * window_size # SBM MONKEYPATCH: Need to change processing to support a fixed seed value.
         p.subseed = [p.subseed] * window_size # SBM MONKEYPATCH
-        logger.log.info(f"Process batch: inputs={len(image_files)} outputs={p.n_iter}x{len(image_files)} parallel={window_size}")
+        log.info(f"Process batch: inputs={len(image_files)} outputs={p.n_iter}x{len(image_files)} parallel={window_size}")
     else: # SBM Frame mode is off, standard operation of repeating same images with sequential seed.
         window_size = 1
         btcrept = p.batch_size
-        logger.log.info(f"Process batch: inputs={len(image_files)} outputs={p.n_iter*p.batch_size}x{len(image_files)}")
+        log.info(f"Process batch: inputs={len(image_files)} outputs={p.n_iter*p.batch_size}x{len(image_files)}")
     for i in range(0, len(image_files), window_size):
         if shared.state.skipped:
             shared.state.skipped = False
@@ -87,11 +87,11 @@ def process_batch(p, input_files, input_dir, output_dir, inpaint_mask_dir, args)
                 p.all_negative_prompts = None
                 p.all_seeds = None
                 p.all_subseeds = None
-                logger.log.debug(f'Process batch: image="{image_file}" prompt={prompt_type} i={i+1}/{len(image_files)}')
+                log.debug(f'Process batch: image="{image_file}" prompt={prompt_type} i={i+1}/{len(image_files)}')
             except UnidentifiedImageError as e:
-                logger.log.error(f'Process batch: image="{image_file}" {e}')
+                log.error(f'Process batch: image="{image_file}" {e}')
         if len(batch_images) == 0:
-            logger.log.warning("Process batch: no images found in batch")
+            log.warning("Process batch: no images found in batch")
             continue
         batch_images = batch_images * btcrept # Standard mode sends the same image per batchsize.
         p.init_images = batch_images
@@ -116,12 +116,12 @@ def process_batch(p, input_files, input_dir, output_dir, inpaint_mask_dir, args)
             if processed is None:
                 processed = processing.process_images(p)
         except Exception as e:
-            logger.log.error(f'Process batch: {e}')
+            log.error(f'Process batch: {e}')
             errors.display(e, 'batch')
             processed = None
 
         if processed is None or len(processed.images) == 0:
-            logger.log.warning(f'Process batch: i={i+1}/{len(image_files)} no images processed')
+            log.warning(f'Process batch: i={i+1}/{len(image_files)} no images processed')
             continue
 
         for n, (image, image_file) in enumerate(itertools.zip_longest(processed.images, batch_image_files)):
@@ -145,7 +145,7 @@ def process_batch(p, input_files, input_dir, output_dir, inpaint_mask_dir, args)
                 image.info[k] = v
             images.save_image(image, path=output_dir, basename=basename, seed=None, prompt=None, extension=ext, info=info, grid=False, pnginfo_section_name="extras", existing_info=image.info, forced_filename=forced_filename)
         processed = scripts_manager.scripts_img2img.after(p, processed, *args)
-        logger.log.debug(f'Processed: images={len(batch_image_files)} memory={memory_stats()} batch')
+        log.debug(f'Processed: images={len(batch_image_files)} memory={memory_stats()} batch')
 
 
 def img2img(id_task: str, state: str, mode: int,
@@ -184,11 +184,11 @@ def img2img(id_task: str, state: str, mode: int,
     debug(f'img2img: {id_task}')
 
     if shared.sd_model is None:
-        logger.log.warning('Aborted: op=img model not loaded')
+        log.warning('Aborted: op=img model not loaded')
         return [], '', '', 'Error: model not loaded'
 
     if sampler_index is None:
-        logger.log.warning('Sampler: invalid')
+        log.warning('Sampler: invalid')
         sampler_index = 0
 
     mode = int(mode)
@@ -231,7 +231,7 @@ def img2img(id_task: str, state: str, mode: int,
     elif mode == 5: # process batch
         pass # handled later
     else:
-        logger.log.error(f'Image processing unknown mode: {mode}')
+        log.error(f'Image processing unknown mode: {mode}')
 
     if image is not None:
         image = ImageOps.exif_transpose(image)

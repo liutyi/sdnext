@@ -1,4 +1,4 @@
-from modules import logger
+from modules.logger import log
 from typing import Any, Dict, Optional
 import numpy as np
 import torch
@@ -163,12 +163,12 @@ def check_parameters_changed(p, refiner_enabled: bool):
     shared.compiled_model_state.height != compile_height
     or shared.compiled_model_state.width != compile_width
     or shared.compiled_model_state.batch_size != p.batch_size):
-        logger.log.info("Olive: Parameter change detected")
-        logger.log.info("Olive: Recompiling base model")
+        log.info("Olive: Parameter change detected")
+        log.info("Olive: Recompiling base model")
         sd_models.unload_model_weights(op='model')
         sd_models.reload_model_weights(op='model')
         if refiner_enabled:
-            logger.log.info("Olive: Recompiling refiner")
+            log.info("Olive: Recompiling refiner")
             sd_models.unload_model_weights(op='refiner')
             sd_models.reload_model_weights(op='refiner')
     shared.compiled_model_state.height = compile_height
@@ -180,7 +180,7 @@ def check_parameters_changed(p, refiner_enabled: bool):
 def preprocess_pipeline(p):
     from modules import shared, sd_models
     if "ONNX" not in shared.opts.diffusers_pipeline:
-        logger.log.warning(f"Unsupported pipeline for 'olive-ai' compile backend: {shared.opts.diffusers_pipeline}. You should select one of the ONNX pipelines.")
+        log.warning(f"Unsupported pipeline for 'olive-ai' compile backend: {shared.opts.diffusers_pipeline}. You should select one of the ONNX pipelines.")
         return shared.sd_model
     if hasattr(shared.sd_model, "preprocess"):
         shared.sd_model = shared.sd_model.preprocess(p)

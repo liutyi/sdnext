@@ -1,7 +1,7 @@
 import gradio as gr
 from diffusers.pipelines import StableDiffusionPipeline, StableDiffusionXLPipeline # pylint: disable=unused-import
 from modules import shared, scripts_manager, processing, sd_models, devices
-from modules import logger
+from modules.logger import log
 
 """
 This is a simpler template for script for SD.Next that implements a custom pipeline
@@ -89,7 +89,7 @@ class Script(scripts_manager.Script):
         # prepare pipeline
         c = shared.sd_model.__class__.__name__ if shared.sd_loaded else ''
         if c != pipeline_base:
-            logger.log.warning(f'{title}: pipeline={c} required={pipeline_base}')
+            log.warning(f'{title}: pipeline={c} required={pipeline_base}')
             return None
         orig_pipeline = shared.sd_model # backup current pipeline definition
         shared.sd_model = pipeline_class( # create new pipeline using currently loaded model which is always in `shared.sd_model`
@@ -124,7 +124,7 @@ class Script(scripts_manager.Script):
 
         if not latent:
             p.task_args['output_type'] = 'np'
-        logger.log.debug(f'{c}: args={p.task_args}')
+        log.debug(f'{c}: args={p.task_args}')
 
         # if you need to run any preprocessing, this is the place to do it
 

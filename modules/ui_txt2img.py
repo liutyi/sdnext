@@ -1,11 +1,11 @@
 import gradio as gr
 from modules import timer, shared, call_queue, generation_parameters_copypaste, processing_vae, images
 from modules import ui_common, ui_sections, ui_guidance
-from modules import logger
+from modules.logger import log
 
 
 def create_ui():
-    logger.log.debug('UI initialize: tab=txt2img')
+    log.debug('UI initialize: tab=txt2img')
     import modules.txt2img # pylint: disable=redefined-outer-name
     modules.scripts_manager.scripts_current = modules.scripts_manager.scripts_txt2img
     modules.scripts_manager.scripts_txt2img.initialize_scripts(is_img2img=False, is_control=False)

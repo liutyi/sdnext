@@ -5,7 +5,7 @@ from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn, T
 from modules.postprocess.swinir_model_arch import SwinIR as net
 from modules.postprocess.swinir_model_arch_v2 import Swin2SR as net2
 from modules import devices, shared
-from modules import logger
+from modules.logger import log
 from modules.upscaler import Upscaler, compile_upscaler
 
 
@@ -22,7 +22,7 @@ class UpscalerSwinIR(Upscaler):
         if info is None:
             return
         if self.models.get(info.local_data_path, None) is not None:
-            logger.log.debug(f"Upscaler cached: type={self.name} model={info.local_data_path}")
+            log.debug(f"Upscaler cached: type={self.name} model={info.local_data_path}")
             return self.models[info.local_data_path]
         pretrained_model = torch.load(info.local_data_path)
         model_v2 = net2(
@@ -58,12 +58,12 @@ class UpscalerSwinIR(Upscaler):
                         model.load_state_dict(pretrained_model[param], strict=True)
                     else:
                         model.load_state_dict(pretrained_model, strict=True)
-                    logger.log.info(f"Upscaler loaded: type={self.name} model={info.local_data_path} param={param}")
+                    log.info(f"Upscaler loaded: type={self.name} model={info.local_data_path} param={param}")
                     model = compile_upscaler(model)
                     self.models[info.local_data_path] = model
                     return model
                 except Exception as e:
-                    logger.log.error(f'Upscaler invalid parameters: type={self.name} model={info.local_data_path} {e}')
+                    log.error(f'Upscaler invalid parameters: type={self.name} model={info.local_data_path} {e}')
         return model
 
     def do_upscale(self, img, selected_model):
@@ -74,7 +74,7 @@ class UpscalerSwinIR(Upscaler):
         img = upscale(img, model)
         if shared.opts.upscaler_unload and selected_model in self.models:
             del self.models[selected_model]
-            logger.log.debug(f"Upscaler unloaded: type={self.name} model={selected_model}")
+            log.debug(f"Upscaler unloaded: type={self.name} model={selected_model}")
             devices.torch_gc(force=True)
         return img
 

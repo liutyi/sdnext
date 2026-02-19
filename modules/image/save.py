@@ -6,14 +6,14 @@ import threading
 import piexif.helper
 from PIL import Image, PngImagePlugin
 from modules import shared, script_callbacks, errors, paths
-from modules import logger
+from modules.logger import log
 from modules.image.grid import check_grid_size
 from modules.image.namegen import FilenameGenerator
 from modules.image.watermark import set_watermark
 
 
-debug = logger.log.trace if os.environ.get('SD_PATH_DEBUG', None) is not None else lambda *args, **kwargs: None
-debug_save = logger.log.trace if os.environ.get('SD_SAVE_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug = log.trace if os.environ.get('SD_PATH_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug_save = log.trace if os.environ.get('SD_SAVE_DEBUG', None) is not None else lambda *args, **kwargs: None
 
 
 def sanitize_filename_part(text, replace_spaces=True):
@@ -47,7 +47,7 @@ def atomically_save_image():
         try:
             image_format = Image.registered_extensions()[extension]
         except Exception:
-            logger.log.warning(f'Save: unknown image format: {extension}')
+            log.warning(f'Save: unknown image format: {extension}')
             image_format = 'JPEG'
         exifinfo = (exifinfo or "") if shared.opts.image_metadata else ""
         # additional metadata saved in files
@@ -55,9 +55,9 @@ def atomically_save_image():
             try:
                 with open(filename_txt, "w", encoding="utf8") as file:
                     file.write(f"{exifinfo}\n")
-                logger.log.info(f'Save: text="{filename_txt}" len={len(exifinfo)}')
+                log.info(f'Save: text="{filename_txt}" len={len(exifinfo)}')
             except Exception as e:
-                logger.log.warning(f'Save failed: description={filename_txt} {e}')
+                log.warning(f'Save failed: description={filename_txt} {e}')
 
         # actual save
         if image_format == 'PNG':
@@ -68,7 +68,7 @@ def atomically_save_image():
             save_args = { 'compress_level': 6, 'pnginfo': pnginfo_data if shared.opts.image_metadata else None }
         elif image_format == 'JPEG':
             if image.mode == 'RGBA':
-                logger.log.warning('Save: removing alpha channel')
+                log.warning('Save: removing alpha channel')
                 image = image.convert("RGB")
             elif image.mode == 'I;16':
                 image = image.point(lambda p: p * 0.0038910505836576).convert("L")
@@ -98,11 +98,11 @@ def atomically_save_image():
             debug_save(f'Save args: {save_args}')
             image.save(fn, format=image_format, **save_args)
         except Exception as e:
-            logger.log.error(f'Save failed: file="{fn}" format={image_format} args={save_args} {e}')
+            log.error(f'Save failed: file="{fn}" format={image_format} args={save_args} {e}')
             errors.display(e, 'Image save')
         size = os.path.getsize(fn) if os.path.exists(fn) else 0
         what = 'grid' if is_grid else 'image'
-        logger.log.info(f'Save: {what}="{fn}" type={image_format} width={image.width} height={image.height} size={size}')
+        log.info(f'Save: {what}="{fn}" type={image_format} width={image.width} height={image.height} size={size}')
 
         if shared.opts.save_log_fn != '' and len(exifinfo) > 0:
             fn = os.path.join(paths.data_path, shared.opts.save_log_fn)
@@ -115,7 +115,7 @@ def atomically_save_image():
             entry = { 'id': idx, 'filename': filename, 'time': datetime.datetime.now().isoformat(), 'info': exifinfo }
             entries.append(entry)
             shared.writefile(entries, fn, mode='w', silent=True)
-            logger.log.info(f'Save: json="{fn}" records={len(entries)}')
+            log.info(f'Save: json="{fn}" records={len(entries)}')
         shared.state.outputs(filename)
         shared.state.end(jobid)
         save_queue.task_done()
@@ -144,11 +144,11 @@ def save_image(image,
     fn = f'{sys._getframe(2).f_code.co_name}:{sys._getframe(1).f_code.co_name}' # pylint: disable=protected-access
     debug_save(f'Save: fn={fn}') # pylint: disable=protected-access
     if image is None:
-        logger.log.warning('Image is none')
+        log.warning('Image is none')
         return None, None, None
     if isinstance(image, list):
         if len(image) > 1:
-            logger.log.warning(f'Save: images={image} multiple images provided only the first one will be saved')
+            log.warning(f'Save: images={image} multiple images provided only the first one will be saved')
         image = image[0]
     if not check_grid_size([image]):
         return None, None, None

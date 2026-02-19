@@ -1,7 +1,7 @@
 import torch
 import diffusers
 from modules import shared, devices, sd_models, sd_hijack_te
-from modules import logger
+from modules.logger import log
 
 
 def load_kolors(checkpoint_info, diffusers_load_config=None):
@@ -14,7 +14,7 @@ def load_kolors(checkpoint_info, diffusers_load_config=None):
     if 'torch_dtype' not in diffusers_load_config:
         diffusers_load_config['torch_dtype'] = torch.float16
 
-    logger.log.debug(f'Load model: type=Kolors repo="{repo_id}" config={diffusers_load_config} offload={shared.opts.diffusers_offload_mode} dtype={devices.dtype} args={diffusers_load_config}')
+    log.debug(f'Load model: type=Kolors repo="{repo_id}" config={diffusers_load_config} offload={shared.opts.diffusers_offload_mode} dtype={devices.dtype} args={diffusers_load_config}')
     pipe = diffusers.KolorsPipeline.from_pretrained(
         repo_id,
         cache_dir = shared.opts.diffusers_dir,

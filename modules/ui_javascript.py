@@ -4,7 +4,7 @@ import gradio.utils
 from modules import shared, theme
 from modules.paths import script_path, data_path
 import modules.scripts_manager
-from modules import logger
+from modules.logger import log
 
 
 def webpath(fn):
@@ -82,17 +82,17 @@ def html_css(css: list[str]):
         themecss = os.path.join(script_path, "javascript", f"{modules.shared.opts.gradio_theme}.css")
         if os.path.exists(themecss):
             head += stylesheet(themecss)
-            modules.logger.log.debug(f'UI theme: css="{themecss}" base="{css}" user="{usercss}"')
+            modules.log.debug(f'UI theme: css="{themecss}" base="{css}" user="{usercss}"')
         else:
-            modules.logger.log.error(f'UI theme: css="{themecss}" not found')
+            modules.log.error(f'UI theme: css="{themecss}" not found')
     elif modules.shared.opts.theme_type == 'Modern':
         theme_folder = next((e.path for e in modules.extensions.extensions if e.name == 'sdnext-modernui'), None)
         themecss = os.path.join(theme_folder or '', 'themes', f'{modules.shared.opts.gradio_theme}.css')
         if os.path.exists(themecss):
             head += stylesheet(themecss)
-            modules.logger.log.debug(f'UI theme: css="{themecss}" base="{css}" user="{usercss}"')
+            modules.log.debug(f'UI theme: css="{themecss}" base="{css}" user="{usercss}"')
         else:
-            modules.logger.log.error(f'UI theme: css="{themecss}" not found')
+            modules.log.error(f'UI theme: css="{themecss}" not found')
     if usercss is not None:
         head += stylesheet(usercss)
     return head

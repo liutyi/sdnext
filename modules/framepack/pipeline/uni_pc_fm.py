@@ -4,7 +4,7 @@
 # Attribution-ShareAlike 4.0 International Licence
 
 
-from modules import logger
+from modules.logger import log
 import torch
 import numpy as np
 from tqdm.auto import trange
@@ -25,7 +25,7 @@ def test_solver():
         _x = torch.linalg.solve(a, b)
         return True
     except Exception as e:
-        logger.log.debug(f'FramePack: solver=cpu {e}')
+        log.debug(f'FramePack: solver=cpu {e}')
         return False
 
 

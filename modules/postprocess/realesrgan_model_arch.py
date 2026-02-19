@@ -9,7 +9,7 @@ from torch import nn
 from torch.nn import functional as F
 from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn, TimeElapsedColumn
 from modules import devices, shared
-from modules import logger
+from modules.logger import log
 from modules.upscaler import compile_upscaler
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -67,7 +67,7 @@ class RealESRGANer:
                 from modules.modelloader import load_file_from_url
                 model_path = load_file_from_url(url=model_path, model_dir=os.path.join(ROOT_DIR, 'weights'), progress=True, file_name=None)
             loadnet = torch.load(model_path, map_location=torch.device('cpu'))
-            logger.log.info(f"Upscaler loaded: type={self.name} model={model_path}")
+            log.info(f"Upscaler loaded: type={self.name} model={model_path}")
 
         # prefer to use params_ema
         if 'params_ema' in loadnet:
@@ -173,7 +173,7 @@ class RealESRGANer:
                         try:
                             output_tile = self.model(input_tile)
                         except Exception as e:
-                            logger.log.error(f'Upscale error: type=R-ESRGAN {e}')
+                            log.error(f'Upscale error: type=R-ESRGAN {e}')
 
                         # output tile area on total image
                         output_start_x = input_start_x * self.scale

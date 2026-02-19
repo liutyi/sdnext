@@ -1,4 +1,4 @@
-from modules import logger
+from modules.logger import log
 import hashlib
 import os.path
 from rich import progress, errors

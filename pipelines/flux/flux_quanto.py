@@ -6,10 +6,10 @@ import transformers
 from safetensors.torch import load_file
 from huggingface_hub import hf_hub_download
 from modules import shared, errors, devices, sd_models, model_quant
-from modules import logger
+from modules.logger import log
 
 
-debug = logger.log.trace if os.environ.get('SD_LOAD_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug = log.trace if os.environ.get('SD_LOAD_DEBUG', None) is not None else lambda *args, **kwargs: None
 
 
 def load_flux_quanto(checkpoint_info):
@@ -39,9 +39,9 @@ def load_flux_quanto(checkpoint_info):
             try:
                 transformer = transformer.to(dtype=devices.dtype)
             except Exception:
-                logger.log.error(f"Load model: type=FLUX Failed to cast transformer to {devices.dtype}, set dtype to {transformer_dtype}")
+                log.error(f"Load model: type=FLUX Failed to cast transformer to {devices.dtype}, set dtype to {transformer_dtype}")
     except Exception as e:
-        logger.log.error(f"Load model: type=FLUX failed to load Quanto transformer: {e}")
+        log.error(f"Load model: type=FLUX failed to load Quanto transformer: {e}")
         if debug:
             errors.display(e, 'FLUX Quanto:')
 
@@ -65,9 +65,9 @@ def load_flux_quanto(checkpoint_info):
             try:
                 text_encoder_2 = text_encoder_2.to(dtype=devices.dtype)
             except Exception:
-                logger.log.error(f"Load model: type=FLUX Failed to cast text encoder to {devices.dtype}, set dtype to {text_encoder_2_dtype}")
+                log.error(f"Load model: type=FLUX Failed to cast text encoder to {devices.dtype}, set dtype to {text_encoder_2_dtype}")
     except Exception as e:
-        logger.log.error(f"Load model: type=FLUX failed to load Quanto text encoder: {e}")
+        log.error(f"Load model: type=FLUX failed to load Quanto text encoder: {e}")
         if debug:
             errors.display(e, 'FLUX Quanto:')
 

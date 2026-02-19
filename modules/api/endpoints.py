@@ -1,4 +1,4 @@
-from modules import logger
+from modules.logger import log
 from modules import shared
 from modules.api import models, helpers
 
@@ -91,7 +91,7 @@ def get_schedulers():
     from modules.sd_samplers import list_samplers
     all_schedulers = list_samplers()
     for s in all_schedulers:
-        logger.log.critical(s)
+        log.critical(s)
     return all_schedulers
 
 def post_unload_checkpoint():

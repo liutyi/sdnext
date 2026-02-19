@@ -2,7 +2,7 @@ import time
 import torch
 import rich.progress as rp
 from modules import shared, errors ,devices, sd_models, timer, memstats
-from modules import logger
+from modules.logger import log
 from modules.framepack import framepack_vae # pylint: disable=wrong-import-order
 from modules.framepack import framepack_hijack # pylint: disable=wrong-import-order
 from modules.video_models.video_save import save_video # pylint: disable=wrong-import-order
@@ -51,7 +51,7 @@ def worker(
     timer.process.reset()
     memstats.reset_stats()
     if stream is None or shared.state.interrupted or shared.state.skipped:
-        logger.log.error('FramePack: stream is None')
+        log.error('FramePack: stream is None')
         stream.output_queue.push(('end', None))
         return
 
@@ -90,7 +90,7 @@ def worker(
         pbar.update(task, description=f'text encode section={i}')
         t0 = time.time()
         torch.manual_seed(seed)
-        # logger.log.debug(f'FramePack: section={i} prompt="{prompt}"')
+        # log.debug(f'FramePack: section={i} prompt="{prompt}"')
         shared.state.textinfo = 'Text encode'
         stream.output_queue.push(('progress', (None, 'Text encoding...')))
         sd_models.apply_balanced_offload(shared.sd_model)
@@ -111,7 +111,7 @@ def worker(
     def latents_encode(input_image, end_image):
         jobid = shared.state.begin('VAE Encode')
         pbar.update(task, description='image encode')
-        # logger.log.debug(f'FramePack: image encode init={input_image.shape} end={end_image.shape if end_image is not None else None}')
+        # log.debug(f'FramePack: image encode init={input_image.shape} end={end_image.shape if end_image is not None else None}')
         t0 = time.time()
         torch.manual_seed(seed)
         stream.output_queue.push(('progress', (None, 'VAE encoding...')))
@@ -136,7 +136,7 @@ def worker(
 
     def vision_encode(input_image, end_image):
         pbar.update(task, description='vision encode')
-        # logger.log.debug(f'FramePack: vision encode init={input_image.shape} end={end_image.shape if end_image is not None else None}')
+        # log.debug(f'FramePack: vision encode init={input_image.shape} end={end_image.shape if end_image is not None else None}')
         t0 = time.time()
         shared.state.textinfo = 'Vision encode'
         stream.output_queue.push(('progress', (None, 'Vision encoding...')))
@@ -166,7 +166,7 @@ def worker(
             stream.output_queue.push(('end', None))
             raise AssertionError('Interrupted...')
         if shared.state.paused:
-            logger.log.debug('Sampling paused')
+            log.debug('Sampling paused')
             while shared.state.paused:
                 if shared.state.interrupted or shared.state.skipped:
                     raise AssertionError('Interrupted...')
@@ -216,7 +216,7 @@ def worker(
 
                 sammplejob = shared.state.begin('Sample')
                 lattent_padding_loop += 1
-                # logger.log.trace(f'FramePack: op=sample section={lattent_padding_loop}/{len(latent_paddings)} frames={total_generated_frames}/{num_frames*len(latent_paddings)} window={latent_window_size} size={num_frames}')
+                # log.trace(f'FramePack: op=sample section={lattent_padding_loop}/{len(latent_paddings)} frames={total_generated_frames}/{num_frames*len(latent_paddings)} window={latent_window_size} size={num_frames}')
                 if is_f1:
                     is_first_section, is_last_section = False, False
                 else:
@@ -330,7 +330,7 @@ def worker(
             )
 
     except AssertionError:
-        logger.log.info('FramePack: interrupted')
+        log.info('FramePack: interrupted')
         if shared.opts.keep_incomplete:
             save_video(
                 p=None,
@@ -350,11 +350,11 @@ def worker(
                 metadata=metadata,
             )
     except Exception as e:
-        logger.log.error(f'FramePack: {e}')
+        log.error(f'FramePack: {e}')
         errors.display(e, 'FramePack')
 
     sd_models.apply_balanced_offload(shared.sd_model)
     stream.output_queue.push(('end', None))
     t1 = time.time()
-    logger.log.info(f'Processed: frames={total_generated_frames} fps={total_generated_frames/(t1-t0):.2f} its={(shared.state.sampling_step)/(t1-t0):.2f} time={t1-t0:.2f} timers={timer.process.dct()} memory={memstats.memory_stats()}')
+    log.info(f'Processed: frames={total_generated_frames} fps={total_generated_frames/(t1-t0):.2f} its={(shared.state.sampling_step)/(t1-t0):.2f} time={t1-t0:.2f} timers={timer.process.dct()} memory={memstats.memory_stats()}')
     shared.state.end(videojob)

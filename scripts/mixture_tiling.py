@@ -1,7 +1,7 @@
 import gradio as gr
 import torch
 from modules import shared, devices, scripts_manager, processing, sd_models
-from modules import logger
+from modules.logger import log
 
 
 checked_ok = False
@@ -21,7 +21,7 @@ def check_dependencies():
         checked_ok = True
         return True
     except Exception as e:
-        logger.log.error(f'Mixture tiling: {e}')
+        log.error(f'Mixture tiling: {e}')
         return False
 
 
@@ -51,7 +51,7 @@ class Script(scripts_manager.Script):
                 return None
         prompts = p.prompt.splitlines()
         if len(prompts) != x_size * y_size:
-            logger.log.error(f'Mixture tiling prompt count mismatch: prompts={len(prompts)} required={x_size * y_size}')
+            log.error(f'Mixture tiling prompt count mismatch: prompts={len(prompts)} required={x_size * y_size}')
             return None
         # backup pipeline and params
         orig_pipeline = shared.sd_model
@@ -59,11 +59,11 @@ class Script(scripts_manager.Script):
         orig_prompt_attention = shared.opts.prompt_attention
         # create pipeline
         if shared.sd_model_type != 'sd':
-            logger.log.error(f'Mixture tiling: incorrect base model: {shared.sd_model.__class__.__name__}')
+            log.error(f'Mixture tiling: incorrect base model: {shared.sd_model.__class__.__name__}')
             return None
         shared.sd_model = sd_models.switch_pipe('mixture_tiling', shared.sd_model)
         if shared.sd_model.__class__.__name__ != 'StableDiffusionTilingPipeline': # switch failed
-            logger.log.error(f'Mixture tiling: not a tiling pipeline: {shared.sd_model.__class__.__name__}')
+            log.error(f'Mixture tiling: not a tiling pipeline: {shared.sd_model.__class__.__name__}')
             shared.sd_model = orig_pipeline
             return None
         sd_models.set_diffuser_options(shared.sd_model)
@@ -85,7 +85,7 @@ class Script(scripts_manager.Script):
         p.task_args['tile_row_overlap'] = int(p.width * y_overlap)
         p.task_args['output_type'] = 'np'
         # run pipeline
-        logger.log.debug(f'Tiling: args={p.task_args}')
+        log.debug(f'Tiling: args={p.task_args}')
         processed: processing.Processed = processing.process_images(p) # runs processing using main loop
         # restore pipeline and params
         shared.opts.data['prompt_attention'] = orig_prompt_attention

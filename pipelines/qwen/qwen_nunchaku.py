@@ -1,4 +1,4 @@
-from modules import logger
+from modules.logger import log
 from modules import shared, devices
 
 
@@ -11,7 +11,7 @@ def load_qwen_nunchaku(repo_id, subfolder=None):
     try:
         from nunchaku.models.transformers.transformer_qwenimage import NunchakuQwenImageTransformer2DModel
     except Exception:
-        logger.log.error(f'Load module: quant=Nunchaku module=transformer repo="{repo_id}" low nunchaku version')
+        log.error(f'Load module: quant=Nunchaku module=transformer repo="{repo_id}" low nunchaku version')
         return None
     if 'pruning' in repo_id.lower() or 'distill' in repo_id.lower():
         return None
@@ -32,9 +32,9 @@ def load_qwen_nunchaku(repo_id, subfolder=None):
         else:
             nunchaku_repo = f"nunchaku-ai/nunchaku-qwen-image-edit/svdq-{nunchaku_precision}_r128-qwen-image-edit-lightningv1.0-8steps.safetensors"
     else:
-        logger.log.error(f'Load module: quant=Nunchaku module=transformer repo="{repo_id}" unsupported')
+        log.error(f'Load module: quant=Nunchaku module=transformer repo="{repo_id}" unsupported')
     if nunchaku_repo is not None:
-        logger.log.debug(f'Load module: quant=Nunchaku module=transformer repo="{nunchaku_repo}" precision={nunchaku_precision} offload={shared.opts.nunchaku_offload} attention={shared.opts.nunchaku_attention}')
+        log.debug(f'Load module: quant=Nunchaku module=transformer repo="{nunchaku_repo}" precision={nunchaku_precision} offload={shared.opts.nunchaku_offload} attention={shared.opts.nunchaku_attention}')
         transformer = NunchakuQwenImageTransformer2DModel.from_pretrained(
             nunchaku_repo,
             offload=shared.opts.nunchaku_offload,

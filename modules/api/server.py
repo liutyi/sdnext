@@ -5,12 +5,12 @@ from fastapi import Request, Depends
 from fastapi.exceptions import HTTPException
 from fastapi.responses import FileResponse
 from modules import shared
-from modules import logger
+from modules.logger import log
 from modules.api import models, helpers
 
 
 def post_shutdown():
-    logger.log.info('Shutdown request received')
+    log.info('Shutdown request received')
     import sys
     sys.exit(0)
 
@@ -22,7 +22,7 @@ def get_js(request: Request):
     if ext not in ['js', 'css', 'map', 'html', 'wasm', 'ttf', 'mjs', 'json']:
         raise HTTPException(status_code=400, detail=f"invalid file extension: {ext}")
     if not os.path.exists(file):
-        logger.log.error(f"API: file not found: {file}")
+        log.error(f"API: file not found: {file}")
         raise HTTPException(status_code=404, detail=f"file not found: {file}")
     if ext in ['js', 'mjs']:
         media_type = 'application/javascript'
@@ -51,12 +51,12 @@ def get_motd():
             res = requests.get('https://vladmandic.github.io/sdnext/motd', timeout=3)
             if res.status_code == 200:
                 msg = (res.text or '').strip()
-                logger.log.info(f'MOTD: {msg if len(msg) > 0 else "N/A"}')
+                log.info(f'MOTD: {msg if len(msg) > 0 else "N/A"}')
                 motd += res.text
             else:
-                logger.log.error(f'MOTD: {res.status_code}')
+                log.error(f'MOTD: {res.status_code}')
         except Exception as err:
-            logger.log.error(f'MOTD: {err}')
+            log.error(f'MOTD: {err}')
     return motd
 
 def get_version():
@@ -68,18 +68,18 @@ def get_platform():
     return { **installer_get_platform(), **loader_get_packages() }
 
 def get_log(req: models.ReqGetLog = Depends()):
-    lines = logger.log.buffer[:req.lines] if req.lines > 0 else logger.log.buffer.copy()
+    lines = log.buffer[:req.lines] if req.lines > 0 else log.buffer.copy()
     if req.clear:
-        logger.log.buffer.clear()
+        log.buffer.clear()
     return lines
 
 def post_log(req: models.ReqPostLog):
     if req.message is not None:
-        logger.log.info(f'UI: {req.message}')
+        log.info(f'UI: {req.message}')
     if req.debug is not None:
-        logger.log.debug(f'UI: {req.debug}')
+        log.debug(f'UI: {req.debug}')
     if req.error is not None:
-        logger.log.error(f'UI: {req.error}')
+        log.error(f'UI: {req.error}')
     return {}
 
 
@@ -133,8 +133,8 @@ def get_progress(req: models.ReqProgress = Depends()):
     progress = min((current / total) if current > 0 and total > 0 else 0, 1)
     time_since_start = time.time() - shared.state.time_start
     eta_relative = (time_since_start / progress) - time_since_start if progress > 0 else 0
-    # logger.log.critical(f'get_progress: batch {batch_x}/{batch_y} step {step_x}/{step_y} current {current}/{total} time={time_since_start} eta={eta_relative}')
-    # logger.log.critical(shared.state)
+    # log.critical(f'get_progress: batch {batch_x}/{batch_y} step {step_x}/{step_y} current {current}/{total} time={time_since_start} eta={eta_relative}')
+    # log.critical(shared.state)
     res = models.ResProgress(id=shared.state.id, progress=round(progress, 2), eta_relative=round(eta_relative, 2), current_image=current_image, textinfo=shared.state.textinfo, state=shared.state.dict(), )
     return res
 

@@ -4,7 +4,7 @@ import torch
 from PIL import Image
 
 from modules import shared, errors, timer, memstats, progress, processing, sd_models, sd_samplers, extra_networks, call_queue
-from modules import logger
+from modules.logger import log
 from modules.video_models.video_vae import set_vae_params
 from modules.video_models.video_save import save_video
 from modules.video_models.video_utils import check_av
@@ -12,7 +12,7 @@ from modules.processing_callbacks import diffusers_callback
 from modules.ltx.ltx_util import get_bucket, get_frames, load_model, load_upsample, get_conditions, get_generator, get_prompts, vae_decode
 
 
-debug = logger.log.trace if os.environ.get('SD_VIDEO_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug = log.trace if os.environ.get('SD_VIDEO_DEBUG', None) is not None else lambda *args, **kwargs: None
 # engine, model = 'LTX Video', 'LTXVideo 0.9.7 13B'
 upsample_repo_id = "a-r-r-o-w/LTX-Video-0.9.7-Latent-Spatial-Upsampler-diffusers"
 upsample_pipe = None
@@ -57,9 +57,9 @@ def run_ltx(task_id,
 
     def abort(e, ok:bool=False, p=None):
         if ok:
-            logger.log.info(e)
+            log.info(e)
         else:
-            logger.log.error(f'Video: cls={shared.sd_model.__class__.__name__} op=base {e}')
+            log.error(f'Video: cls={shared.sd_model.__class__.__name__} op=base {e}')
             errors.display(e, 'LTX')
         if p is not None:
             extra_networks.deactivate(p)
@@ -122,7 +122,7 @@ def run_ltx(task_id,
         prompt, negative, networks = get_prompts(prompt, negative, styles)
         sampler_name = processing.get_sampler_name(sampler_index)
         sd_samplers.create_sampler(sampler_name, shared.sd_model)
-        logger.log.debug(f'Video: cls={shared.sd_model.__class__.__name__} op=init styles={styles} networks={networks} sampler={shared.sd_model.scheduler.__class__.__name__}')
+        log.debug(f'Video: cls={shared.sd_model.__class__.__name__} op=init styles={styles} networks={networks} sampler={shared.sd_model.scheduler.__class__.__name__}')
 
         extra_networks.activate(p, networks)
         framewise = 'LTX2' not in shared.sd_model.__class__.__name__
@@ -152,10 +152,10 @@ def run_ltx(task_id,
             base_args["image_cond_noise_scale"] = image_cond_noise_scale
             if len(conditions) > 0:
                 base_args["conditions"] = conditions
-        logger.log.debug(f'Video: cls={shared.sd_model.__class__.__name__} op=base {base_args}')
+        log.debug(f'Video: cls={shared.sd_model.__class__.__name__} op=base {base_args}')
 
         if debug:
-            logger.log.trace(f'LTX args: {base_args}')
+            log.trace(f'LTX args: {base_args}')
         yield None, 'LTX: Generate in progress...'
         samplejob = shared.state.begin('Sample')
         try:
@@ -173,7 +173,7 @@ def run_ltx(task_id,
             audio = None
         try:
             if debug:
-                logger.log.trace(f'LTX result frames={latents.shape if latents is not None else None} audio={audio.shape if audio is not None else None}')
+                log.trace(f'LTX result frames={latents.shape if latents is not None else None} audio={audio.shape if audio is not None else None}')
         except Exception:
             pass
 
@@ -199,7 +199,7 @@ def run_ltx(task_id,
             }
             if latents.ndim == 4:
                 latents = latents.unsqueeze(0) # add batch dimension
-            logger.log.debug(f'Video: cls={shared.sd_model.__class__.__name__} op=upsample latents={latents.shape} {upscale_args}')
+            log.debug(f'Video: cls={shared.sd_model.__class__.__name__} op=upsample latents={latents.shape} {upscale_args}')
             yield None, 'LTX: Upsample in progress...'
             try:
                 upsampled_latents = upsample_pipe(latents=latents, **upscale_args).frames[0]
@@ -237,7 +237,7 @@ def run_ltx(task_id,
             if latents.ndim == 4:
                 latents = latents.unsqueeze(0) # add batch dimension
 
-            logger.log.debug(f'Video: cls={shared.sd_model.__class__.__name__} op=refine latents={latents.shape} {refine_args}')
+            log.debug(f'Video: cls={shared.sd_model.__class__.__name__} op=refine latents={latents.shape} {refine_args}')
             if len(conditions) > 0:
                 refine_args["conditions"] = conditions
             yield None, 'LTX: Refine in progress...'
@@ -317,5 +317,5 @@ def run_ltx(task_id,
         shared.state.end(videojob)
         progress.finish_task(task_id)
 
-        logger.log.info(f'Processed: fn="{video_file}" frames={num_frames} fps={fps} its={its} resolution={resolution} time={t_end-t0:.2f} timers={timer.process.dct()} memory={memstats.memory_stats()}')
+        log.info(f'Processed: fn="{video_file}" frames={num_frames} fps={fps} its={its} resolution={resolution} time={t_end-t0:.2f} timers={timer.process.dct()} memory={memstats.memory_stats()}')
         yield video_file, f'LTX: Generation completed | File {video_file} | Frames {len(frames)} | Resolution {resolution} | f/s {fps} | it/s {its} '+ f"<div class='performance'><p>{summary} {memory}</p></div>"

@@ -5,7 +5,7 @@
 import gradio as gr
 from PIL import Image
 from modules import scripts_manager, processing, shared, sd_models, devices
-from modules import logger
+from modules.logger import log
 
 
 prefix = 'InfiniteYou'
@@ -74,10 +74,10 @@ class Script(scripts_manager.Script):
         if model is None or model not in model_versions:
             return None
         if id_image is None:
-            logger.log.error(f'{prefix}: no init_images')
+            log.error(f'{prefix}: no init_images')
             return None
         if shared.sd_model_type != 'f1':
-            logger.log.error(f'{prefix}: invalid model type: {shared.sd_model_type}')
+            log.error(f'{prefix}: invalid model type: {shared.sd_model_type}')
             return None
         if scale <= 0:
             return None
@@ -88,7 +88,7 @@ class Script(scripts_manager.Script):
             verify_insightface()
             load_infiniteyou(model)
             devices.torch_gc()
-            logger.log.info(f'{prefix}: cls={shared.sd_model.__class__.__name__} loaded')
+            log.info(f'{prefix}: cls={shared.sd_model.__class__.__name__} loaded')
 
         processing.fix_seed(p)
         p.task_args['id_image'] = id_image
@@ -104,7 +104,7 @@ class Script(scripts_manager.Script):
         p.extra_generation_params['IY guidance'] = f'{scale:.1f}/{start:.1f}/{end:.1f}'
         orig_prompt_attention = shared.opts.prompt_attention
         shared.opts.data['prompt_attention'] = 'fixed'
-        logger.log.debug(f'{prefix}: args={p.task_args}')
+        log.debug(f'{prefix}: args={p.task_args}')
 
         processed = processing.process_images(p)
         return processed
@@ -117,6 +117,6 @@ class Script(scripts_manager.Script):
             shared.opts.data['prompt_attention'] = orig_prompt_attention
             orig_prompt_attention = None
         if restore and orig_pipeline is not None:
-            logger.log.info(f'{prefix}: restoring pipeline')
+            log.info(f'{prefix}: restoring pipeline')
             shared.sd_model = orig_pipeline
             orig_pipeline = None

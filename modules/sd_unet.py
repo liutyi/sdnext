@@ -1,6 +1,6 @@
 import os
 from modules import shared, devices, files_cache, sd_models, model_quant
-from modules import logger
+from modules.logger import log
 
 
 unet_dict = {}
@@ -16,7 +16,7 @@ def load_unet_sdxl_nunchaku(repo_id):
     try:
         from nunchaku.models.unets.unet_sdxl import NunchakuSDXLUNet2DConditionModel
     except Exception:
-        logger.log.error(f'Load module: quant=Nunchaku module=unet repo="{repo_id}" low nunchaku version')
+        log.error(f'Load module: quant=Nunchaku module=unet repo="{repo_id}" low nunchaku version')
         return None
     if 'turbo' in repo_id.lower():
         nunchaku_repo = 'nunchaku-ai/nunchaku-sdxl-turbo/svdq-int4_r32-sdxl-turbo.safetensors'
@@ -24,8 +24,8 @@ def load_unet_sdxl_nunchaku(repo_id):
         nunchaku_repo = 'nunchaku-ai/nunchaku-sdxl/svdq-int4_r32-sdxl.safetensors'
 
     if shared.opts.nunchaku_offload:
-        logger.log.warning('Load module: quant=Nunchaku module=unet offload not supported for SDXL, ignoring')
-    logger.log.debug(f'Load module: quant=Nunchaku module=unet repo="{nunchaku_repo}"')
+        log.warning('Load module: quant=Nunchaku module=unet offload not supported for SDXL, ignoring')
+    log.debug(f'Load module: quant=Nunchaku module=unet repo="{nunchaku_repo}"')
     unet = NunchakuSDXLUNet2DConditionModel.from_pretrained(
         nunchaku_repo,
         torch_dtype=devices.dtype,
@@ -49,7 +49,7 @@ def load_unet(model, repo_id:str=None):
         return
 
     if shared.opts.sd_unet not in list(unet_dict):
-        logger.log.error(f'Load module: type=UNet not found: {shared.opts.sd_unet}')
+        log.error(f'Load module: type=UNet not found: {shared.opts.sd_unet}')
         return
 
     config_file = os.path.splitext(unet_dict[shared.opts.sd_unet])[0] + '.json'
@@ -77,9 +77,9 @@ def load_unet(model, repo_id:str=None):
             sd_models.load_diffuser() # TODO model load: force-reloading entire model as loading transformers only leads to massive memory usage
         else:
             if not hasattr(model, 'unet') or model.unet is None:
-                logger.log.error('Load module: type=UNET not found in current model')
+                log.error('Load module: type=UNET not found in current model')
                 return
-            logger.log.info(f'Load module: type=UNet name="{shared.opts.sd_unet}" file="{unet_dict[shared.opts.sd_unet]}" config="{config_file}"')
+            log.info(f'Load module: type=UNet name="{shared.opts.sd_unet}" file="{unet_dict[shared.opts.sd_unet]}" config="{config_file}"')
             from diffusers import UNet2DConditionModel
             from safetensors.torch import load_file
             unet = UNet2DConditionModel.from_config(model.unet.config if config is None else config).to(devices.device, devices.dtype)
@@ -87,7 +87,7 @@ def load_unet(model, repo_id:str=None):
             unet.load_state_dict(state_dict)
             model.unet = unet.to(devices.device, devices.dtype_unet)
     except Exception as e:
-        logger.log.error(f'Failed to load UNet model: {e}')
+        log.error(f'Failed to load UNet model: {e}')
         if debug:
             from modules import errors
             errors.display(e, 'UNet load:')
@@ -101,4 +101,4 @@ def refresh_unet_list():
         basename = os.path.basename(file)
         name = os.path.splitext(basename)[0] if ".safetensors" in basename else basename
         unet_dict[name] = file
-    logger.log.info(f'Available UNets: path="{shared.opts.unet_dir}" items={len(unet_dict)}')
+    log.info(f'Available UNets: path="{shared.opts.unet_dir}" items={len(unet_dict)}')

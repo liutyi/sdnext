@@ -151,3 +151,7 @@ def get_repo(model):
         return 'black-forest-labs/FLUX.1-dev'
     else:
         return None
+
+
+sdnq_quant_modes = ["int8", "int7", "int6", "uint5", "uint4", "uint3", "uint2", "float8_e4m3fn", "float7_e3m3fn", "float6_e3m2fn", "float5_e2m2fn", "float4_e2m1fn", "float3_e1m1fn", "float2_e1m0fn"]
+sdnq_matmul_modes = ["auto", "int8", "float8_e4m3fn", "float16"]

@@ -2,24 +2,24 @@ import time
 import json
 import html
 from modules import shared, ui_extra_networks
-from modules import logger
+from modules.logger import log
 
 
 class ExtraNetworksPageHistory(ui_extra_networks.ExtraNetworksPage):
     def __init__(self):
-        # logger.log.trace('History init')
+        # log.trace('History init')
         super().__init__('History')
         self.last_refresh = 0
 
     def refresh(self):
-        # logger.log.trace('History refresh')
+        # log.trace('History refresh')
         self.last_refresh = time.time()
         self.html = '<h1>buttons</h1>'
         for ts in shared.history.list:
             self.html += '<p>' + str(ts) + '</p>'
 
     def list_items(self):
-        # logger.log.trace('History list')
+        # log.trace('History list')
         for item in shared.history.latents:
             title = ', '.join(list(set(item.ops))) + '<br>' + item.name
             yield {

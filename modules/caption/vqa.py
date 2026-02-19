@@ -9,7 +9,7 @@ import transformers
 import transformers.dynamic_module_utils
 from PIL import Image
 from modules import shared, devices, errors, model_quant, sd_models, sd_models_compile, ui_symbols
-from modules import logger
+from modules.logger import log
 from modules.caption import vqa_detection
 
 
@@ -18,7 +18,7 @@ debug_enabled = os.environ.get('SD_CAPTION_DEBUG', None) is not None
 
 def debug(*args, **kwargs):
     if debug_enabled:
-        logger.log.trace(*args, **kwargs)
+        log.trace(*args, **kwargs)
 
 vlm_default = "Alibaba Qwen 2.5 VL 3B"
 vlm_models = {
@@ -456,15 +456,15 @@ class VQA:
         """Release VLM model from GPU/memory, including external handlers."""
         if self.model is not None:
             model_name = self.loaded
-            logger.log.debug(f'VQA unload: unloading model="{model_name}"')
+            log.debug(f'VQA unload: unloading model="{model_name}"')
             sd_models.move_model(self.model, devices.cpu, force=True)
             self.model = None
             self.processor = None
             self.loaded = None
             devices.torch_gc(force=True, reason='vqa unload')
-            logger.log.debug(f'VQA unload: model="{model_name}" unloaded')
+            log.debug(f'VQA unload: model="{model_name}" unloaded')
         else:
-            logger.log.debug('VQA unload: no internal model loaded')
+            log.debug('VQA unload: no internal model loaded')
         # External handlers manage their own module-level globals and are not covered by self.model
         from modules.caption import moondream3, joycaption, joytag, deepseek
         moondream3.unload()
@@ -476,14 +476,14 @@ class VQA:
         """Load VLM model into memory for the specified model name."""
         model_name = model_name or shared.opts.caption_vlm_model
         if not model_name:
-            logger.log.warning('VQA load: no model specified')
+            log.warning('VQA load: no model specified')
             return
         repo = vlm_models.get(model_name)
         if repo is None:
-            logger.log.error(f'VQA load: unknown model="{model_name}"')
+            log.error(f'VQA load: unknown model="{model_name}"')
             return
 
-        logger.log.debug(f'VQA load: pre-loading model="{model_name}" repo="{repo}"')
+        log.debug(f'VQA load: pre-loading model="{model_name}" repo="{repo}"')
 
         # Dispatch to appropriate loader (same logic as caption)
         repo_lower = repo.lower()
@@ -516,34 +516,34 @@ class VQA:
         elif 'moondream3' in repo_lower:
             from modules.caption import moondream3
             moondream3.load_model(repo)
-            logger.log.info(f'VQA load: model="{model_name}" loaded (external handler)')
+            log.info(f'VQA load: model="{model_name}" loaded (external handler)')
             return
         elif 'joytag' in repo_lower:
             from modules.caption import joytag
             joytag.load()
-            logger.log.info(f'VQA load: model="{model_name}" loaded (external handler)')
+            log.info(f'VQA load: model="{model_name}" loaded (external handler)')
             return
         elif 'joycaption' in repo_lower:
             from modules.caption import joycaption
             joycaption.load(repo)
-            logger.log.info(f'VQA load: model="{model_name}" loaded (external handler)')
+            log.info(f'VQA load: model="{model_name}" loaded (external handler)')
             return
         elif 'deepseek' in repo_lower:
             from modules.caption import deepseek
             deepseek.load(repo)
-            logger.log.info(f'VQA load: model="{model_name}" loaded (external handler)')
+            log.info(f'VQA load: model="{model_name}" loaded (external handler)')
             return
         else:
-            logger.log.warning(f'VQA load: no pre-loader for model="{model_name}"')
+            log.warning(f'VQA load: no pre-loader for model="{model_name}"')
             return
 
         sd_models.move_model(self.model, devices.device)
-        logger.log.info(f'VQA load: model="{model_name}" loaded')
+        log.info(f'VQA load: model="{model_name}" loaded')
 
     def _load_fastvlm(self, repo: str):
         """Load FastVLM model and tokenizer."""
         if self.model is None or self.loaded != repo:
-            logger.log.debug(f'Caption load: vlm="{repo}"')
+            log.debug(f'Caption load: vlm="{repo}"')
             quant_args = model_quant.create_config(module='LLM')
             self.model = None
             self.processor = transformers.AutoTokenizer.from_pretrained(repo, trust_remote_code=True, cache_dir=shared.opts.hfcache_dir)
@@ -597,7 +597,7 @@ class VQA:
     def _load_qwen(self, repo: str):
         """Load Qwen VL model and processor."""
         if self.model is None or self.loaded != repo:
-            logger.log.debug(f'Caption load: vlm="{repo}"')
+            log.debug(f'Caption load: vlm="{repo}"')
             self.model = None
             if 'Qwen3-VL' in repo or 'Qwen3VL' in repo:
                 cls_name = transformers.Qwen3VLForConditionalGeneration
@@ -721,7 +721,7 @@ class VQA:
     def _load_gemma(self, repo: str):
         """Load Gemma 3 model and processor."""
         if self.model is None or self.loaded != repo:
-            logger.log.debug(f'Caption load: vlm="{repo}"')
+            log.debug(f'Caption load: vlm="{repo}"')
             self.model = None
             if '3n' in repo:
                 cls = transformers.Gemma3nForConditionalGeneration  # pylint: disable=no-member
@@ -835,7 +835,7 @@ class VQA:
     def _load_paligemma(self, repo: str):
         """Load PaliGemma model and processor."""
         if self.model is None or self.loaded != repo:
-            logger.log.debug(f'Caption load: vlm="{repo}"')
+            log.debug(f'Caption load: vlm="{repo}"')
             self.processor = transformers.PaliGemmaProcessor.from_pretrained(repo, cache_dir=shared.opts.hfcache_dir)
             self.model = None
             self.model = transformers.PaliGemmaForConditionalGeneration.from_pretrained(
@@ -865,7 +865,7 @@ class VQA:
     def _load_ovis(self, repo: str):
         """Load Ovis model (requires flash-attn)."""
         if self.model is None or self.loaded != repo:
-            logger.log.debug(f'Caption load: vlm="{repo}"')
+            log.debug(f'Caption load: vlm="{repo}"')
             self.model = None
             # Ovis remote code calls AutoConfig.register("aimv2", ...) at module scope
             # without exist_ok=True, which fails on reload or when the type is already
@@ -890,7 +890,7 @@ class VQA:
         try:
             pass  # pylint: disable=unused-import
         except Exception:
-            logger.log.error(f'Caption: vlm="{repo}" flash-attn is not available')
+            log.error(f'Caption: vlm="{repo}" flash-attn is not available')
             return ''
         self._load_ovis(repo)
         sd_models.move_model(self.model, devices.device)
@@ -922,7 +922,7 @@ class VQA:
     def _load_smol(self, repo: str):
         """Load SmolVLM model and processor."""
         if self.model is None or self.loaded != repo:
-            logger.log.debug(f'Caption load: vlm="{repo}"')
+            log.debug(f'Caption load: vlm="{repo}"')
             self.model = None
             quant_args = model_quant.create_config(module='LLM')
             self.model = transformers.AutoModelForVision2Seq.from_pretrained(
@@ -1017,7 +1017,7 @@ class VQA:
     def _load_git(self, repo: str):
         """Load Microsoft GIT model and processor."""
         if self.model is None or self.loaded != repo:
-            logger.log.debug(f'Caption load: vlm="{repo}"')
+            log.debug(f'Caption load: vlm="{repo}"')
             self.model = None
             self.model = transformers.GitForCausalLM.from_pretrained(
                 repo,
@@ -1048,7 +1048,7 @@ class VQA:
     def _load_blip(self, repo: str):
         """Load Salesforce BLIP model and processor."""
         if self.model is None or self.loaded != repo:
-            logger.log.debug(f'Caption load: vlm="{repo}"')
+            log.debug(f'Caption load: vlm="{repo}"')
             self.model = None
             self.model = transformers.BlipForQuestionAnswering.from_pretrained(
                 repo,
@@ -1073,7 +1073,7 @@ class VQA:
     def _load_vilt(self, repo: str):
         """Load ViLT model and processor."""
         if self.model is None or self.loaded != repo:
-            logger.log.debug(f'Caption load: vlm="{repo}"')
+            log.debug(f'Caption load: vlm="{repo}"')
             self.model = None
             self.model = transformers.ViltForQuestionAnswering.from_pretrained(
                 repo,
@@ -1100,7 +1100,7 @@ class VQA:
     def _load_pix(self, repo: str):
         """Load Pix2Struct model and processor."""
         if self.model is None or self.loaded != repo:
-            logger.log.debug(f'Caption load: vlm="{repo}"')
+            log.debug(f'Caption load: vlm="{repo}"')
             self.model = None
             self.model = transformers.Pix2StructForConditionalGeneration.from_pretrained(
                 repo,
@@ -1128,7 +1128,7 @@ class VQA:
     def _load_moondream(self, repo: str):
         """Load Moondream 2 model and tokenizer."""
         if self.model is None or self.loaded != repo:
-            logger.log.debug(f'Caption load: vlm="{repo}"')
+            log.debug(f'Caption load: vlm="{repo}"')
             self.model = None
             self.model = transformers.AutoModelForCausalLM.from_pretrained(
                 repo,
@@ -1226,7 +1226,7 @@ class VQA:
             effective_revision = revision_from_repo
 
         if self.model is None or self.loaded != cache_key:
-            logger.log.debug(f'Caption load: vlm="{repo_name}" revision="{effective_revision}" path="{shared.opts.hfcache_dir}"')
+            log.debug(f'Caption load: vlm="{repo_name}" revision="{effective_revision}" path="{shared.opts.hfcache_dir}"')
             transformers.dynamic_module_utils.get_imports = get_imports
             self.model = None
             quant_args = model_quant.create_config(module='LLM')
@@ -1355,7 +1355,7 @@ class VQA:
             if image.mode != 'RGB':
                 image = image.convert('RGB')
         if image is None:
-            logger.log.error(f'VQA caption: model="{model_name}" error="No input image provided"')
+            log.error(f'VQA caption: model="{model_name}" error="No input image provided"')
             self._generation_overrides = None
             shared.state.end(jobid)
             return 'Error: No input image provided. Please upload or select an image.'
@@ -1364,7 +1364,7 @@ class VQA:
         if question == "Use Prompt":
             # Use content from Prompt field directly - requires user input
             if not prompt or len(prompt.strip()) < 2:
-                logger.log.error(f'VQA caption: model="{model_name}" error="Please enter a prompt"')
+                log.error(f'VQA caption: model="{model_name}" error="Please enter a prompt"')
                 self._generation_overrides = None
                 shared.state.end(jobid)
                 return 'Error: Please enter a question or instruction in the Prompt field.'
@@ -1375,7 +1375,7 @@ class VQA:
             if raw_mapping in ("POINT_MODE", "DETECT_MODE"):
                 # These modes require user input in the prompt field
                 if not prompt or len(prompt.strip()) < 2:
-                    logger.log.error(f'VQA caption: model="{model_name}" error="Please specify what to find in the prompt field"')
+                    log.error(f'VQA caption: model="{model_name}" error="Please specify what to find in the prompt field"')
                     self._generation_overrides = None
                     shared.state.end(jobid)
                     return 'Error: Please specify what to find in the prompt field (e.g., "the red car" or "faces").'
@@ -1388,12 +1388,12 @@ class VQA:
 
         try:
             if model_name is None:
-                logger.log.error(f'Caption: type=vlm model="{model_name}" no model selected')
+                log.error(f'Caption: type=vlm model="{model_name}" no model selected')
                 shared.state.end(jobid)
                 return ''
             vqa_model = vlm_models.get(model_name, None)
             if vqa_model is None:
-                logger.log.error(f'Caption: type=vlm model="{model_name}" unknown')
+                log.error(f'Caption: type=vlm model="{model_name}" unknown')
                 shared.state.end(jobid)
                 return ''
 
@@ -1485,7 +1485,7 @@ class VQA:
         debug(f'VQA caption: handler={handler} response_after_clean="{answer}" has_annotation={self.last_annotated_image is not None}')
         t1 = time.time()
         if not quiet:
-            logger.log.debug(f'Caption: type=vlm model="{model_name}" repo="{vqa_model}" args={get_kwargs()} time={t1-t0:.2f}')
+            log.debug(f'Caption: type=vlm model="{model_name}" repo="{vqa_model}" args={get_kwargs()} time={t1-t0:.2f}')
         self._generation_overrides = None  # Clear per-request overrides
         shared.state.end(jobid)
         return answer
@@ -1519,7 +1519,7 @@ class VQA:
             from modules.files_cache import list_files
             files += list(list_files(batch_str, ext_filter=['.png', '.jpg', '.jpeg', '.webp', '.jxl'], recursive=recursive))
         if len(files) == 0:
-            logger.log.warning('Caption batch: type=vlm no images')
+            log.warning('Caption batch: type=vlm no images')
             return ''
         jobid = shared.state.begin('Caption batch')
         prompts = []
@@ -1548,7 +1548,7 @@ class VQA:
                         if write:
                             writer.add(file, result)
                     except Exception as e:
-                        logger.log.error(f'Caption batch: {e}')
+                        log.error(f'Caption batch: {e}')
             if write:
                 writer.close()
         finally:

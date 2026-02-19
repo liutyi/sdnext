@@ -2,7 +2,7 @@ from copy import deepcopy
 from PIL import Image
 import gradio as gr
 from modules import scripts_manager, processing, shared, devices
-from modules import logger
+from modules.logger import log
 
 
 birefnet = None
@@ -77,7 +77,7 @@ class Script(scripts_manager.Script):
     def run(self, p: processing.StableDiffusionProcessing, lbm_method, lbm_composite, lbm_steps, bg_image): # pylint: disable=arguments-differ, unused-argument
         fg_image = getattr(p, 'init_images', None)
         if fg_image is None or len(fg_image) == 0 or bg_image is None:
-            logger.log.error('LBM: no init images')
+            log.error('LBM: no init images')
             return None
         else:
             fg_image = fg_image[0]
@@ -93,7 +93,7 @@ class Script(scripts_manager.Script):
         closest_ar_bg = min(ASPECT_RATIOS, key=lambda x: abs(float(x) - ar_bg))
         dimensions_bg = ASPECT_RATIOS[closest_ar_bg]
 
-        logger.log.info(f'LBM: method={lbm_method} steps={lbm_steps} size={dimensions_bg[0]}x{dimensions_bg[1]}')
+        log.info(f'LBM: method={lbm_method} steps={lbm_steps} size={dimensions_bg[0]}x{dimensions_bg[1]}')
         self.load(lbm_method)
 
         if birefnet:

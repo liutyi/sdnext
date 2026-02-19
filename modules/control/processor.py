@@ -5,14 +5,14 @@ import numpy as np
 from PIL import Image
 from modules.processing_class import StableDiffusionProcessingControl
 from modules import shared, images, masking, sd_models
-from modules import logger
+from modules.logger import log
 from modules.timer import process as process_timer
 from modules.control import util
 from modules.control import processors as control_processors
 
 
 debug = os.environ.get('SD_CONTROL_DEBUG', None) is not None
-debug_log = logger.log.trace if debug else lambda *args, **kwargs: None
+debug_log = log.trace if debug else lambda *args, **kwargs: None
 processors = [
     'None',
     'OpenPose',
@@ -138,7 +138,7 @@ def preprocess_image(
         except Exception:
             pass
         if any(img is None for img in processed_images):
-            logger.log.error('Control: one or more processed images are None')
+            log.error('Control: one or more processed images are None')
             processed_images = [img for img in processed_images if img is not None]
         if len(processed_images) > 1 and len(active_process) != len(active_model):
             processed_image = [np.array(i) for i in processed_images]
@@ -156,7 +156,7 @@ def preprocess_image(
             debug_log(f'Control: inputs match: input={len(processed_images)} models={len(selected_models)}')
             p.init_images = processed_images
         elif isinstance(selected_models, list) and len(processed_images) != len(selected_models):
-            logger.log.error(f'Control: number of inputs does not match: input={len(processed_images)} models={len(selected_models)}')
+            log.error(f'Control: number of inputs does not match: input={len(processed_images)} models={len(selected_models)}')
         elif selected_models is not None:
             p.init_images = processed_image
     else:
@@ -171,7 +171,7 @@ def preprocess_image(
         p.task_args['ref_image'] = p.ref_image
         debug_log(f'Control: process=None image={p.ref_image}')
         if p.ref_image is None:
-            logger.log.error('Control: reference mode without image')
+            log.error('Control: reference mode without image')
     elif unit_type == 'controlnet' and has_models:
         if input_type == 0: # Control only
             if 'control_image' in possible:
@@ -199,7 +199,7 @@ def preprocess_image(
                 p.task_args['strength'] = p.denoising_strength
         elif input_type == 2: # Separate init image
             if init_image is None:
-                logger.log.warning('Control: separate init image not provided')
+                log.warning('Control: separate init image not provided')
                 init_image = input_image
             if 'inpaint_image' in possible: # flex
                 p.task_args['inpaint_image'] = p.init_images[0] if isinstance(p.init_images, list) else p.init_images
@@ -255,7 +255,7 @@ def preprocess_image(
                 p.init_images = [input_image]
             elif input_type == 2:
                 if init_image is None:
-                    logger.log.warning('Control: separate init image not provided')
+                    log.warning('Control: separate init image not provided')
                     init_image = input_image
                 p.init_images = [init_image]
 

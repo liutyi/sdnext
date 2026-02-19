@@ -6,7 +6,7 @@ from diffusers.models.autoencoders.vae import EncoderOutput, DecoderOutput
 from diffusers.configuration_utils import ConfigMixin, register_to_config
 
 from modules import shared, devices
-from modules import logger
+from modules.logger import log
 
 
 repo_id = "fal/FLUX.2-Tiny-AutoEncoder"
@@ -30,7 +30,7 @@ def load_fal_vae():
     if prev_vae is None:
         prev_vae = shared.sd_model.vae
     shared.sd_model.vae = tiny_vae
-    logger.log.info(f'VAE load: cls={tiny_vae.__class__.__name__} repo_id={repo_id}')
+    log.info(f'VAE load: cls={tiny_vae.__class__.__name__} repo_id={repo_id}')
 
 
 def unload_fal_vae():
@@ -40,7 +40,7 @@ def unload_fal_vae():
     if prev_vae is not None:
         shared.sd_model.vae = prev_vae
         prev_vae = None
-        logger.log.info(f'VAE restore: cls={prev_vae.__class__.__name__}')
+        log.info(f'VAE restore: cls={prev_vae.__class__.__name__}')
 
 
 class Flux2TinyAutoEncoder(ModelMixin, ConfigMixin):

@@ -1,11 +1,11 @@
 import os
 import torch
 from modules import shared, errors, timer, prompt_parser_diffusers
-from modules import logger
+from modules.logger import log
 
 
 debug_enabled = os.environ.get('SD_PROMPT_DEBUG', None) is not None
-debug_log = logger.log.trace if debug_enabled else lambda *args, **kwargs: None
+debug_log = log.trace if debug_enabled else lambda *args, **kwargs: None
 
 
 def fix_prompt_batch(p, prompts, negative_prompts, prompts_2, negative_prompts_2):
@@ -95,7 +95,7 @@ def set_prompt(p,
             prompt_parser_diffusers.embedder = prompt_parser_diffusers.PromptEmbedder(prompts, negative_prompts, steps, clip_skip, p)
         except Exception as e:
             prompt_parser_diffusers.embedder = None
-            logger.log.error(f'Prompt parser encode: {e}')
+            log.error(f'Prompt parser encode: {e}')
             if debug_enabled:
                 errors.display(e, 'Prompt parser encode')
         timer.process.record('prompt', reset=False)
@@ -115,12 +115,12 @@ def set_prompt(p,
             prompt_attention_masks = prompt_parser_diffusers.embedder('prompt_attention_masks')
 
             if prompt_embeds is None:
-                logger.log.warning('Prompt parser encode: empty prompt embeds')
+                log.warning('Prompt parser encode: empty prompt embeds')
                 prompt_parser_diffusers.embedder = None
                 args = set_fallback_prompt(args, possible, prompts=prompts, negative_prompts=None, prompts_2=None, negative_prompts_2=None)
                 prompt_attention = 'fixed'
             elif prompt_embeds.device == torch.device('meta'):
-                logger.log.warning('Prompt parser encode: embeds on meta device')
+                log.warning('Prompt parser encode: embeds on meta device')
                 prompt_parser_diffusers.embedder = None
                 args = set_fallback_prompt(args, possible, prompts=prompts, negative_prompts=None, prompts_2=None, negative_prompts_2=None)
                 prompt_attention = 'fixed'
@@ -146,12 +146,12 @@ def set_prompt(p,
             negative_attention_masks = prompt_parser_diffusers.embedder('negative_prompt_attention_masks')
 
             if negative_embeds is None:
-                logger.log.warning('Prompt parser encode: empty negative prompt embeds')
+                log.warning('Prompt parser encode: empty negative prompt embeds')
                 prompt_parser_diffusers.embedder = None
                 args = set_fallback_prompt(args, possible, prompts=None, negative_prompts=negative_prompts, prompts_2=None, negative_prompts_2=None)
                 prompt_attention = 'fixed'
             elif negative_embeds.device == torch.device('meta'):
-                logger.log.warning('Prompt parser encode: negative embeds on meta device')
+                log.warning('Prompt parser encode: negative embeds on meta device')
                 prompt_parser_diffusers.embedder = None
                 args = set_fallback_prompt(args, possible, prompts=None, negative_prompts=negative_prompts, prompts_2=None, negative_prompts_2=None)
                 prompt_attention = 'fixed'

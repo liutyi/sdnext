@@ -61,6 +61,7 @@ TBD
   - refactor: improve `pydantic==2.x` compatibility  
   - refactor: entire logging into separate `modules/logger`  
   - refactor: replace `timestamp` based startup checks with state caching  
+  - refactor: split monolithic `shared` module and introduce `ui_definitions`
   - update `lint` rules, thanks @awsr  
   - remove requirements: `clip`, `open-clip`  
   - remove `normalbae` pre-processor  

@@ -2,7 +2,7 @@
 # based on: https://github.com/tfernd/HyperTile/tree/main/hyper_tile/utils.py + https://github.com/tfernd/HyperTile/tree/main/hyper_tile/hyper_tile.py
 
 from __future__ import annotations
-from modules import logger
+from modules.logger import log
 from collections.abc import Callable
 from functools import wraps, cache
 from contextlib import contextmanager, nullcontext
@@ -180,7 +180,7 @@ def context_hypertile_vae(p):
     if p.sd_model is None or not shared.opts.hypertile_vae_enabled:
         return nullcontext()
     if shared.opts.cross_attention_optimization == 'Sub-quadratic':
-        logger.log.warning('Hypertile UNet is not compatible with Sub-quadratic cross-attention optimization')
+        log.warning('Hypertile UNet is not compatible with Sub-quadratic cross-attention optimization')
         return nullcontext()
     global max_h, max_w, error_reported # pylint: disable=global-statement
     error_reported = False
@@ -199,7 +199,7 @@ def context_hypertile_vae(p):
     else:
         tile_size = shared.opts.hypertile_vae_tile if shared.opts.hypertile_vae_tile > 0 else max(128, 64 * min(p.width // 128, p.height // 128))
         min_tile_size = shared.opts.hypertile_unet_min_tile if shared.opts.hypertile_unet_min_tile > 0 else 128
-        logger.log.info(f'Applying HyperTile: vae={min_tile_size}/{tile_size}')
+        log.info(f'Applying HyperTile: vae={min_tile_size}/{tile_size}')
         p.extra_generation_params['Hypertile VAE'] = tile_size
         return split_attention(vae, tile_size=tile_size, min_tile_size=min_tile_size, swap_size=shared.opts.hypertile_vae_swap_size)
 
@@ -209,7 +209,7 @@ def context_hypertile_unet(p):
     if p.sd_model is None or not shared.opts.hypertile_unet_enabled:
         return nullcontext()
     if shared.opts.cross_attention_optimization == 'Sub-quadratic' and not shared.cmd_opts.experimental:
-        logger.log.warning('Hypertile UNet is not compatible with Sub-quadratic cross-attention optimization')
+        log.warning('Hypertile UNet is not compatible with Sub-quadratic cross-attention optimization')
         return nullcontext()
     global max_h, max_w, error_reported # pylint: disable=global-statement
     error_reported = False
@@ -223,12 +223,12 @@ def context_hypertile_unet(p):
         log.warning(f'Hypertile UNet disabled: width={width} height={height} are not divisible by 8')
         return nullcontext()
     if unet is None:
-        # logger.log.warning('Hypertile UNet is enabled but no Unet model was found')
+        # log.warning('Hypertile UNet is enabled but no Unet model was found')
         return nullcontext()
     else:
         tile_size = shared.opts.hypertile_unet_tile if shared.opts.hypertile_unet_tile > 0 else max(128, 64 * min(p.width // 128, p.height // 128))
         min_tile_size = shared.opts.hypertile_unet_min_tile if shared.opts.hypertile_unet_min_tile > 0 else 128
-        logger.log.info(f'Applying HyperTile: unet={min_tile_size}/{tile_size}')
+        log.info(f'Applying HyperTile: unet={min_tile_size}/{tile_size}')
         p.extra_generation_params['Hypertile UNet'] = tile_size
         return split_attention(unet, tile_size=tile_size, min_tile_size=min_tile_size, swap_size=shared.opts.hypertile_unet_swap_size, depth=shared.opts.hypertile_unet_depth)
 

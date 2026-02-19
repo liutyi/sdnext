@@ -1,7 +1,7 @@
 from functools import wraps
 import torch
 from modules import rocm
-from modules import logger
+from modules.logger import log
 from modules.errors import log
 from installer import install, installed
 
@@ -195,7 +195,7 @@ def set_diffusers_attention(pipe, quiet:bool=False):
                 if 'Nunchaku' in pipe.unet.__class__.__name__:
                     pass
                 else:
-                    logger.log.error(f'Torch attention: type="{name}" cls={attention.__class__.__name__} pipe={pipe.__class__.__name__} {e}')
+                    log.error(f'Torch attention: type="{name}" cls={attention.__class__.__name__} pipe={pipe.__class__.__name__} {e}')
         """ # each transformer typically has its own attention processor
         if getattr(pipe, "transformer", None) is not None and hasattr(pipe.transformer, "set_attn_processor"):
             try:
@@ -204,10 +204,10 @@ def set_diffusers_attention(pipe, quiet:bool=False):
                 if 'Nunchaku' in pipe.transformer.__class__.__name__:
                     pass
                 else:
-                    logger.log.error(f'Torch attention: type="{name}" cls={attention.__class__.__name__} pipe={pipe.__class__.__name__} {e}')
+                    log.error(f'Torch attention: type="{name}" cls={attention.__class__.__name__} pipe={pipe.__class__.__name__} {e}')
         """
 
-    logger.log.quiet(quiet, f'Setting model: attention="{shared.opts.cross_attention_optimization}"')
+    log.quiet(quiet, f'Setting model: attention="{shared.opts.cross_attention_optimization}"')
     if shared.opts.cross_attention_optimization == "Disabled":
         pass # do nothing
     elif shared.opts.cross_attention_optimization == "Scaled-Dot-Product": # The default set by Diffusers
@@ -217,7 +217,7 @@ def set_diffusers_attention(pipe, quiet:bool=False):
         if hasattr(pipe, 'enable_xformers_memory_efficient_attention'):
             pipe.enable_xformers_memory_efficient_attention()
         else:
-            logger.log.warning(f"Attention: xFormers is not compatible with {pipe.__class__.__name__}")
+            log.warning(f"Attention: xFormers is not compatible with {pipe.__class__.__name__}")
     elif shared.opts.cross_attention_optimization == "Batch matrix-matrix":
         set_attn(pipe, p.AttnProcessor(), name="Batch matrix-matrix")
     elif shared.opts.cross_attention_optimization == "Dynamic Attention BMM":
@@ -229,6 +229,6 @@ def set_diffusers_attention(pipe, quiet:bool=False):
             pipe.enable_attention_slicing()
         else:
             pipe.disable_attention_slicing()
-        logger.log.debug(f"Torch attention: slicing={shared.opts.attention_slicing}")
+        log.debug(f"Torch attention: slicing={shared.opts.attention_slicing}")
 
     pipe.current_attn_name = shared.opts.cross_attention_optimization

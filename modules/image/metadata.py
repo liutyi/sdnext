@@ -4,7 +4,7 @@ import json
 import piexif
 from PIL import Image, ExifTags
 from modules import shared, errors, sd_samplers
-from modules import logger
+from modules.logger import log
 from modules.image.watermark import get_watermark
 
 
@@ -58,7 +58,7 @@ def parse_comfy_metadata(data: dict):
     prompt = parse_prompt()
     if len(workflow) > 0 or len(prompt) > 0:
         parsed = f'App: ComfyUI{workflow}{prompt}'
-        logger.log.info(f'Image metadata: {parsed}')
+        log.info(f'Image metadata: {parsed}')
         return parsed
     return ''
 
@@ -80,7 +80,7 @@ def parse_invoke_metadata(data: dict):
     metadata = parse_metadtaa()
     if len(metadata) > 0:
         parsed = f'App: InvokeAI{metadata}'
-        logger.log.info(f'Image metadata: {parsed}')
+        log.info(f'Image metadata: {parsed}')
         return parsed
     return ''
 
@@ -119,7 +119,7 @@ def read_info_from_image(image: Image.Image, watermark: bool = False) -> tuple[s
         try:
             exif = piexif.load(items["exif"])
         except Exception as e:
-            logger.log.error(f'Error loading EXIF data: {e}')
+            log.error(f'Error loading EXIF data: {e}')
             exif = {}
         for _key, subkey in exif.items():
             if isinstance(subkey, dict):
@@ -173,18 +173,18 @@ def image_data(data):
         image = Image.open(io.BytesIO(data))
         image.load()
         info, _ = read_info_from_image(image)
-        logger.log.debug(f'Decoded object: image={image} metadata={info}')
+        log.debug(f'Decoded object: image={image} metadata={info}')
         return info, None
     except Exception as e:
         err1 = e
     try:
         if len(data) > 1024 * 10:
-            logger.log.warning(f'Error decoding object: data too long: {len(data)}')
+            log.warning(f'Error decoding object: data too long: {len(data)}')
             return gr.update(), None
         info = data.decode('utf8')
-        logger.log.debug(f'Decoded object: data={len(data)} metadata={info}')
+        log.debug(f'Decoded object: data={len(data)} metadata={info}')
         return info, None
     except Exception as e:
         err2 = e
-    logger.log.error(f'Error decoding object: {err1 or err2}')
+    log.error(f'Error decoding object: {err1 or err2}')
     return gr.update(), None

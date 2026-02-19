@@ -6,11 +6,11 @@ import platform
 import subprocess
 import gradio as gr
 from modules import paths, call_queue, shared, errors, ui_sections, ui_symbols, ui_components, generation_parameters_copypaste, images, scripts_manager, script_callbacks, infotext, processing
-from modules import logger
+from modules.logger import log
 
 
 folder_symbol = ui_symbols.folder
-debug = logger.log.trace if os.environ.get('SD_PASTE_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug = log.trace if os.environ.get('SD_PASTE_DEBUG', None) is not None else lambda *args, **kwargs: None
 debug('Trace: PASTE')
 
 
@@ -35,7 +35,7 @@ def update_generation_info(generation_info, html_info, img_index):
         html_info_formatted = infotext_to_html(info)
         return html_info, html_info_formatted
     except Exception as e:
-        logger.log.trace(f'Update info: info="{generation_info}" {e}')
+        log.trace(f'Update info: info="{generation_info}" {e}')
     return html_info, html_info
 
 
@@ -76,7 +76,7 @@ def delete_files(js_data, files, all_files, index):
             files = [files[index]]
             start_index = index
         else:
-            logger.log.error(f'Delete: index={index} first={first_index} files={len(files)} out of range')
+            log.error(f'Delete: index={index} first={first_index} files={len(files)} out of range')
             files = []
     deleted = []
     all_files = [f.split('/file=')[1] if 'file=' in f else f for f in all_files] if isinstance(all_files, list) else []
@@ -86,23 +86,23 @@ def delete_files(js_data, files, all_files, index):
         try:
             fn = os.path.normpath(filedata['name'])
             if reference_dir in fn:
-                logger.log.warning(f'Delete: file="{fn}" not allowed')
+                log.warning(f'Delete: file="{fn}" not allowed')
                 continue
             if os.path.exists(fn) and os.path.isfile(fn):
                 deleted.append(fn)
                 os.remove(fn)
                 if fn in all_files:
                     all_files.remove(fn)
-                    logger.log.info(f'Delete: image="{fn}"')
+                    log.info(f'Delete: image="{fn}"')
                 else:
-                    logger.log.warning(f'Delete: image="{fn}" ui mismatch')
+                    log.warning(f'Delete: image="{fn}" ui mismatch')
             base, _ext = os.path.splitext(fn)
             desc = f'{base}.txt'
             if os.path.exists(desc) and os.path.isfile(desc):
                 os.remove(desc)
-                logger.log.info(f'Delete: text="{fn}"')
+                log.info(f'Delete: text="{fn}"')
         except Exception as e:
-            logger.log.error(f'Delete: file="{fn}" {e}')
+            log.error(f'Delete: file="{fn}" {e}')
     deleted = ', '.join(deleted) if len(deleted) > 0 else 'none'
     return all_files, plaintext_to_html(f"Deleted: {deleted}", ['performance'])
 
@@ -152,7 +152,7 @@ def save_files(js_data, files, html_info, index):
             files = [files[index]]
             start_index = index
         else:
-            logger.log.error(f'Save: index={index} first={p.index_of_first_image} files={len(files)} out of range')
+            log.error(f'Save: index={index} first={p.index_of_first_image} files={len(files)} out of range')
             files = []
     filenames = []
     fullfns = []
@@ -180,9 +180,9 @@ def save_files(js_data, files, html_info, index):
             if not os.path.exists(tgt_filename):
                 try:
                     shutil.copy(fullfn, destination)
-                    logger.log.info(f'Copying image: file="{fullfn}" folder="{destination}"')
+                    log.info(f'Copying image: file="{fullfn}" folder="{destination}"')
                 except Exception as e:
-                    logger.log.error(f'Copying image: {fullfn} {e}')
+                    log.error(f'Copying image: {fullfn} {e}')
             if shared.opts.save_txt:
                 try:
                     from PIL import Image
@@ -191,9 +191,9 @@ def save_files(js_data, files, html_info, index):
                     filename_txt = f"{os.path.splitext(tgt_filename)[0]}.txt"
                     with open(filename_txt, "w", encoding="utf8") as file:
                         file.write(f"{info}\n")
-                    logger.log.debug(f'Save: text="{filename_txt}"')
+                    log.debug(f'Save: text="{filename_txt}"')
                 except Exception as e:
-                    logger.log.warning(f'Image description save failed: {filename_txt} {e}')
+                    log.warning(f'Image description save failed: {filename_txt} {e}')
             script_callbacks.image_save_btn_callback(tgt_filename)
         else:
             image = generation_parameters_copypaste.image_from_url_text(filedata)
@@ -210,7 +210,7 @@ def save_files(js_data, files, html_info, index):
                 fullfn, txt_fullfn, _exif = images.save_image(image, paths.resolve_output_path(shared.opts.outdir_samples, shared.opts.outdir_save), "", seed=seed, prompt=prompt, info=info, extension=shared.opts.samples_format, grid=is_grid, p=p)
             except Exception as e:
                 fullfn, txt_fullfn = None, None
-                logger.log.error(f'Save: image={image} i={i} seeds={p.all_seeds} prompts={p.all_prompts}')
+                log.error(f'Save: image={image} i={i} seeds={p.all_seeds} prompts={p.all_prompts}')
                 errors.display(e, 'save')
             if fullfn is None:
                 continue
@@ -239,10 +239,10 @@ def open_folder(result_gallery, gallery_index = 0):
     except Exception:
         folder = shared.opts.outdir_samples
     if not os.path.exists(folder):
-        logger.log.warning(f'Folder open: folder="{folder}" does not exist')
+        log.warning(f'Folder open: folder="{folder}" does not exist')
         return
     elif not os.path.isdir(folder):
-        logger.log.warning(f'Folder open: folder="{folder}" not a folder')
+        log.warning(f'Folder open: folder="{folder}" not a folder')
         return
 
     if not shared.cmd_opts.hide_ui_dir_config:
@@ -386,7 +386,7 @@ def reuse_seed(seed_component: gr.Number, reuse_button: gr.Button, subseed:bool=
             seed = processing.processed.all_seeds[0] if not subseed else processing.processed.all_subseeds[0]
         else:
             seed = -1
-        logger.log.debug(f'Reuse seed: index={selected_gallery_index} seed={seed} subseed={subseed}')
+        log.debug(f'Reuse seed: index={selected_gallery_index} seed={seed} subseed={subseed}')
         return seed
 
     reuse_button.click(fn=reuse_click, _js="selected_gallery_index", inputs=[seed_component], outputs=[seed_component], show_progress='hidden')
@@ -401,7 +401,7 @@ def connect_reuse_seed(seed: gr.Number, reuse_seed_btn: gr.Button, generation_in
         restore_strength = -1
         try:
             gen_info = json.loads(gen_info_string)
-            logger.log.debug(f'Reuse: info={gen_info}')
+            log.debug(f'Reuse: info={gen_info}')
             index -= gen_info.get('index_of_first_image', 0)
             index = int(index)
             if is_subseed:
@@ -413,7 +413,7 @@ def connect_reuse_seed(seed: gr.Number, reuse_seed_btn: gr.Button, generation_in
                 restore_seed = all_seeds[index if 0 <= index < len(all_seeds) else 0]
         except json.decoder.JSONDecodeError:
             if gen_info_string != '':
-                logger.log.error(f"Error parsing JSON generation info: {gen_info_string}")
+                log.error(f"Error parsing JSON generation info: {gen_info_string}")
         if is_subseed is not None:
             return [restore_seed, gr_show(False), restore_strength]
         else:
@@ -429,7 +429,7 @@ def update_token_counter(text):
     token_count = 0
     max_length = 75
     if shared.state.job_count > 0:
-        logger.log.debug('Tokenizer busy')
+        log.debug('Tokenizer busy')
         return f"<span class='gr-box gr-text-input'>{token_count}/{max_length}</span>"
     from modules import extra_networks
     if isinstance(text, list):

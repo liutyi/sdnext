@@ -65,12 +65,15 @@ def install_traceback(suppress: list = None):
 
 _log_config = {'debug': False, 'trace': False, 'log_filename': None}
 
-def setup_logging(debug=None, trace=None, log_filename=None):
+def setup_logging(debug=None, trace=None, filename=None):
     global log_file, console, log_rolled, _log_config # pylint: disable=global-statement
 
-    if debug is not None: _log_config['debug'] = debug
-    if trace is not None: _log_config['trace'] = trace
-    if log_filename is not None: _log_config['log_filename'] = log_filename
+    if debug is not None:
+        _log_config['debug'] = debug
+    if trace is not None:
+        _log_config['trace'] = trace
+    if filename is not None:
+        _log_config['log_filename'] = filename
 
     debug = _log_config['debug']
     trace = _log_config['trace']
@@ -163,7 +166,7 @@ def setup_logging(debug=None, trace=None, log_filename=None):
     level = logging.DEBUG if (debug or trace) else logging.INFO
     log.setLevel(logging.DEBUG) # log to file is always at level debug for facility `sd`
     log.print = rprint
-    
+
     theme = Theme({
         "traceback.border": "black",
         "inspect.value.border": "black",
@@ -209,7 +212,7 @@ def setup_logging(debug=None, trace=None, log_filename=None):
     fh.addFilter(log_filter)
     fh.setLevel(logging.DEBUG)
     log.addHandler(fh)
-    
+
     if not log_rolled and debug and not log_filename:
         try:
             fh.doRollover()

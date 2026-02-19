@@ -5,7 +5,7 @@ import diffusers
 import gradio as gr
 import huggingface_hub as hf
 from modules import errors, shared, devices, scripts_manager, processing, sd_models, sd_samplers
-from modules import logger
+from modules.logger import log
 
 
 adapter = None
@@ -47,11 +47,11 @@ class Script(scripts_manager.Script):
         else:
             shared.opts.sd_model_refiner = model
         if shared.sd_model_type != 'sdxl':
-            logger.log.error(f'X-Adapter: incorrect base model: {shared.sd_model.__class__.__name__}')
+            log.error(f'X-Adapter: incorrect base model: {shared.sd_model.__class__.__name__}')
             return
 
         if adapter is None:
-            logger.log.debug('X-Adapter: adapter loading')
+            log.debug('X-Adapter: adapter loading')
             adapter = Adapter_XL()
             adapter_path = hf.hf_hub_download(repo_id='Lingmin-Ran/X-Adapter', filename='X_Adapter_v1.bin')
             adapter_dict = torch.load(adapter_path)
@@ -62,7 +62,7 @@ class Script(scripts_manager.Script):
             except Exception:
                 pass
         if adapter is None:
-            logger.log.error('X-Adapter: adapter loading failed')
+            log.error('X-Adapter: adapter loading failed')
             return
 
         sd_models.unload_model_weights(op='model')
@@ -76,7 +76,7 @@ class Script(scripts_manager.Script):
         diffusers.models.UNet2DConditionModel = orig_unetcondmodel # unpatch diffusers
 
         if shared.sd_refiner_type != 'sd':
-            logger.log.error(f'X-Adapter: incorrect adapter model: {shared.sd_model.__class__.__name__}')
+            log.error(f'X-Adapter: incorrect adapter model: {shared.sd_model.__class__.__name__}')
             return
 
         # backup pipeline and params
@@ -85,7 +85,7 @@ class Script(scripts_manager.Script):
         pipe = None
 
         try:
-            logger.log.debug('X-Adapter: creating pipeline')
+            log.debug('X-Adapter: creating pipeline')
             pipe = StableDiffusionXLAdapterPipeline(
                 vae=shared.sd_model.vae,
                 text_encoder=shared.sd_model.text_encoder,
@@ -126,10 +126,10 @@ class Script(scripts_manager.Script):
                 pipe.scheduler = diffusers.DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
                 pipe.scheduler_sd1_5 = diffusers.DPMSolverMultistepScheduler.from_config(pipe.scheduler_sd1_5.config)
                 pipe.scheduler_sd1_5.config.timestep_spacing = "leading"
-            logger.log.debug(f'X-Adapter: pipeline={pipe.__class__.__name__} args={p.task_args}')
+            log.debug(f'X-Adapter: pipeline={pipe.__class__.__name__} args={p.task_args}')
             shared.sd_model = pipe
         except Exception as e:
-            logger.log.error(f'X-Adapter: pipeline creation failed: {e}')
+            log.error(f'X-Adapter: pipeline creation failed: {e}')
             errors.display(e, 'X-Adapter: pipeline creation failed')
             shared.sd_model = orig_pipeline
 

@@ -4,11 +4,11 @@ import numpy as np
 from modules.lora import networks, lora_overrides, lora_load, lora_diffusers
 from modules.lora import lora_common as l
 from modules import extra_networks, shared, sd_models
-from modules import logger
+from modules.logger import log
 
 
 debug = os.environ.get('SD_LORA_DEBUG', None) is not None
-debug_log = logger.log.trace if debug else lambda *args, **kwargs: None
+debug_log = log.trace if debug else lambda *args, **kwargs: None
 
 
 def get_stepwise(param, step, steps): # from https://github.com/cheald/sd-webui-loractl/blob/master/loractl/lib/utils.py
@@ -54,7 +54,7 @@ def prompt(p):
         all_tags = list(set(all_tags))
         all_tags = [t for t in all_tags if t not in p.prompt]
         if len(all_tags) > 0:
-            logger.log.debug(f"Network load: type=LoRA tags={all_tags} max={shared.opts.lora_apply_tags} apply")
+            log.debug(f"Network load: type=LoRA tags={all_tags} max={shared.opts.lora_apply_tags} apply")
         all_tags = ', '.join(all_tags)
         p.extra_generation_params["LoRA tags"] = all_tags
         if '_tags_' in p.prompt:
@@ -237,7 +237,7 @@ class ExtraNetworkLora(extra_networks.ExtraNetwork):
             if has_changed:
                 jobid = shared.state.begin('LoRA')
                 if len(l.previously_loaded_networks) > 0:
-                    logger.log.info(f'Network unload: type=LoRA networks={[n.name for n in l.previously_loaded_networks]} mode={"fuse" if shared.opts.lora_fuse_native else "backup"}')
+                    log.info(f'Network unload: type=LoRA networks={[n.name for n in l.previously_loaded_networks]} mode={"fuse" if shared.opts.lora_fuse_native else "backup"}')
                     networks.network_deactivate(include, exclude)
                 networks.network_activate(include, exclude)
                 debug_log(f'Network change: type=LoRA previous={[n.name for n in l.previously_loaded_networks]} current={[n.name for n in l.loaded_networks]}')
@@ -249,7 +249,7 @@ class ExtraNetworkLora(extra_networks.ExtraNetwork):
             infotext(p)
             prompt(p)
             if has_changed and len(include) == 0: # print only once
-                logger.log.info(f'Network load: type=LoRA networks={[n.name for n in l.loaded_networks]} method={load_method} mode={"fuse" if shared.opts.lora_fuse_native else "backup"} te={te_multipliers} unet={unet_multipliers} time={l.timer.summary}')
+                log.info(f'Network load: type=LoRA networks={[n.name for n in l.loaded_networks]} method={load_method} mode={"fuse" if shared.opts.lora_fuse_native else "backup"} te={te_multipliers} unet={unet_multipliers} time={l.timer.summary}')
 
     def deactivate(self, p, force=False):
         if len(lora_diffusers.diffuser_loaded) > 0 and (shared.opts.lora_force_reload or force):
@@ -257,8 +257,8 @@ class ExtraNetworkLora(extra_networks.ExtraNetwork):
         if force:
             networks.network_deactivate()
         if self.active and l.debug:
-            logger.log.debug(f"Network end: type=LoRA time={l.timer.summary}")
+            log.debug(f"Network end: type=LoRA time={l.timer.summary}")
         if self.errors:
             for k, v in self.errors.items():
-                logger.log.error(f'Network: type=LoRA name="{k}" errors={v}')
+                log.error(f'Network: type=LoRA name="{k}" errors={v}')
             self.errors.clear()

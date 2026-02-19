@@ -1,4 +1,4 @@
-from modules import logger
+from modules.logger import log
 import io
 import time
 import json
@@ -54,7 +54,7 @@ def remote_decode(latents: torch.Tensor, width: int = 0, height: int = 0, model_
     model_type = model_type or shared.sd_model_type
     url = hf_decode_endpoints.get(model_type, None)
     if url is None:
-        logger.log.error(f'Decode: type="remote" type={model_type} unsuppported')
+        log.error(f'Decode: type="remote" type={model_type} unsuppported')
         return tensors
     t0 = time.time()
     modelloader.hf_login()
@@ -107,7 +107,7 @@ def remote_decode(latents: torch.Tensor, width: int = 0, height: int = 0, model_
                 timeout=300,
             )
             if not response.ok:
-                logger.log.error(f'Decode: type="remote" model={model_type} code={response.status_code} shape={latent.shape} url="{url}" args={params} headers={response.headers} response={response.json()}')
+                log.error(f'Decode: type="remote" model={model_type} code={response.status_code} shape={latent.shape} url="{url}" args={params} headers={response.headers} response={response.json()}')
             else:
                 content += len(response.content)
                 if shared.opts.remote_vae_type == 'raw' or 'video' in model_type:
@@ -119,12 +119,12 @@ def remote_decode(latents: torch.Tensor, width: int = 0, height: int = 0, model_
                     image = Image.open(io.BytesIO(response.content)).convert("RGB")
                     tensors.append(image)
         except Exception as e:
-            logger.log.error(f'Decode: type="remote" model={model_type} {e}')
+            log.error(f'Decode: type="remote" model={model_type} {e}')
             errors.display(e, 'VAE')
     if len(tensors) > 0 and shared.opts.remote_vae_type == 'raw':
         tensors = torch.cat(tensors, dim=0)
     t1 = time.time()
-    logger.log.debug(f'Decode: type="remote" model={model_type} mode={shared.opts.remote_vae_type} args={params} bytes={content} time={t1-t0:.3f}s')
+    log.debug(f'Decode: type="remote" model={model_type} mode={shared.opts.remote_vae_type} args={params} bytes={content} time={t1-t0:.3f}s')
     return tensors
 
 
@@ -137,7 +137,7 @@ def remote_encode(images: list[Image.Image], model_type: str | None = None):
     model_type = model_type or shared.sd_model_type
     url = hf_encode_endpoints.get(model_type, None)
     if url is None:
-        logger.log.error(f'Decode: type="remote" type={model_type} unsuppported')
+        log.error(f'Decode: type="remote" type={model_type} unsuppported')
         return images
     t0 = time.time()
     modelloader.hf_login()
@@ -154,7 +154,7 @@ def remote_encode(images: list[Image.Image], model_type: str | None = None):
             )
             tensors.append(init_latent)
         except Exception as e:
-            logger.log.error(f'Encode: type="remote" model={model_type} {e}')
+            log.error(f'Encode: type="remote" model={model_type} {e}')
             errors.display(e, 'VAE')
 
     if len(tensors) > 0 and torch.is_tensor(tensors[0]):
@@ -163,5 +163,5 @@ def remote_encode(images: list[Image.Image], model_type: str | None = None):
     else:
         return images
     t1 = time.time()
-    logger.log.debug(f'Encode: type="remote" model={model_type} mode={shared.opts.remote_vae_type} image={images} latent={tensors.shape} time={t1-t0:.3f}s')
+    log.debug(f'Encode: type="remote" model={model_type} mode={shared.opts.remote_vae_type} image={images} latent={tensors.shape} time={t1-t0:.3f}s')
     return tensors

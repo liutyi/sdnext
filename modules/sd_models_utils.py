@@ -8,7 +8,7 @@ import torch
 import safetensors.torch
 
 from modules import paths, shared, errors
-from modules import logger
+from modules.logger import log
 from modules.sd_checkpoint import CheckpointInfo # pylint: disable=unused-import
 
 
@@ -45,7 +45,7 @@ def path_to_repo(checkpoint_info):
         repo_id = repo_id.split('models--')[-1]
     repo_id = repo_id.replace('--', '/')
     if repo_id.count('/') != 1:
-        logger.log.warning(f'Model: repo="{repo_id}" repository not recognized')
+        log.warning(f'Model: repo="{repo_id}" repository not recognized')
     if '+' in repo_id:
         repo_id = repo_id.split('+')[0]
     return repo_id
@@ -64,14 +64,14 @@ def convert_to_faketensors(tensor):
 
 def read_state_dict(checkpoint_file, map_location=None, what:str='model'): # pylint: disable=unused-argument
     if not os.path.isfile(checkpoint_file):
-        logger.log.error(f'Load dict: path="{checkpoint_file}" not a file')
+        log.error(f'Load dict: path="{checkpoint_file}" not a file')
         return None
     try:
         pl_sd = None
         with progress.open(checkpoint_file, 'rb', description=f'[cyan]Load {what}: [yellow]{checkpoint_file}', auto_refresh=True, console=logger.console) as f:
             _, extension = os.path.splitext(checkpoint_file)
             if extension.lower() == ".ckpt" and shared.opts.sd_disable_ckpt:
-                logger.log.warning(f"Checkpoint loading disabled: {checkpoint_file}")
+                log.warning(f"Checkpoint loading disabled: {checkpoint_file}")
                 return None
             if shared.opts.stream_load:
                 if extension.lower() == ".safetensors":

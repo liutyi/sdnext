@@ -9,7 +9,7 @@ import collections
 import transformers
 from PIL import Image
 from modules import shared, devices, sd_models
-from modules import logger
+from modules.logger import log
 from modules.caption import vqa_detection
 
 
@@ -18,7 +18,7 @@ debug_enabled = os.environ.get('SD_CAPTION_DEBUG', None) is not None
 
 def debug(*args, **kwargs):
     if debug_enabled:
-        logger.log.trace(*args, **kwargs)
+        log.trace(*args, **kwargs)
 
 
 # Global state
@@ -48,7 +48,7 @@ def load_model(repo: str):
     global moondream3_model, loaded  # pylint: disable=global-statement
 
     if moondream3_model is None or loaded != repo:
-        logger.log.debug(f'Caption load: vlm="{repo}"')
+        log.debug(f'Caption load: vlm="{repo}"')
         moondream3_model = None
 
         moondream3_model = transformers.AutoModelForCausalLM.from_pretrained(
@@ -411,18 +411,18 @@ def clear_cache():
     cache_size = len(image_cache)
     image_cache.clear()
     debug(f'VQA caption: handler=moondream3 cleared image cache cache_size_was={cache_size}')
-    logger.log.debug(f'Moondream3: Cleared image cache ({cache_size} entries)')
+    log.debug(f'Moondream3: Cleared image cache ({cache_size} entries)')
 
 
 def unload():
     """Release Moondream 3 model from GPU/memory."""
     global moondream3_model, loaded  # pylint: disable=global-statement
     if moondream3_model is not None:
-        logger.log.debug(f'Moondream3 unload: model="{loaded}"')
+        log.debug(f'Moondream3 unload: model="{loaded}"')
         sd_models.move_model(moondream3_model, devices.cpu, force=True)
         moondream3_model = None
         loaded = None
         clear_cache()
         devices.torch_gc(force=True)
     else:
-        logger.log.debug('Moondream3 unload: no model loaded')
+        log.debug('Moondream3 unload: no model loaded')

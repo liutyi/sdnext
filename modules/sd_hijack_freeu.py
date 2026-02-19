@@ -1,7 +1,7 @@
 import math
 import torch
 from modules import shared, devices
-from modules import logger
+from modules.logger import log
 
 # based on <https://github.com/ljleb/sd-webui-freeu/blob/main/lib_free_u/unet.py>
 # official params are b1,b2,s1,s2
@@ -88,7 +88,7 @@ def get_fft_device():
             torch_fft_device = devices.device
         except Exception:
             torch_fft_device = devices.cpu
-            logger.log.warning(f'FreeU: device={devices.device} dtype={devices.dtype} does not support FFT')
+            log.warning(f'FreeU: device={devices.device} dtype={devices.dtype} does not support FFT')
     return torch_fft_device
 
 
@@ -157,4 +157,4 @@ def apply_freeu(p):
             p.sd_model.disable_freeu()
             state_enabled = False
     if shared.opts.freeu_enabled and state_enabled:
-        logger.log.info(f'Applying Free-U: b1={shared.opts.freeu_b1} b2={shared.opts.freeu_b2} s1={shared.opts.freeu_s1} s2={shared.opts.freeu_s2}')
+        log.info(f'Applying Free-U: b1={shared.opts.freeu_b1} b2={shared.opts.freeu_b2} s1={shared.opts.freeu_s1} s2={shared.opts.freeu_s2}')

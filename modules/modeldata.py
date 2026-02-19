@@ -2,7 +2,7 @@ import os
 import sys
 import threading
 from modules import shared, errors
-from modules import logger
+from modules.logger import log
 
 
 def get_model_type(pipe):
@@ -131,7 +131,7 @@ class ModelData:
         if self.locked:
             if self.sd_model is None:
                 fn = f'{os.path.basename(sys._getframe(2).f_code.co_filename)}:{sys._getframe(2).f_code.co_name}:{sys._getframe(1).f_code.co_name}' # pylint: disable=protected-access
-                logger.log.warning(f'Model locked: fn={fn}')
+                log.warning(f'Model locked: fn={fn}')
             return self.sd_model
         elif (self.sd_model is None) and (shared.opts.sd_model_checkpoint != 'None') and (not self.lock.locked()):
             with self.lock:
@@ -140,7 +140,7 @@ class ModelData:
                     self.sd_model = reload_model_weights(op='model') # note: reload_model_weights directly updates model_data.sd_model and returns it at the end
                     self.initial = False
                 except Exception as e:
-                    logger.log.error("Failed to load stable diffusion model")
+                    log.error("Failed to load stable diffusion model")
                     errors.display(e, "loading stable diffusion model")
                     self.sd_model = None
         return self.sd_model
@@ -157,7 +157,7 @@ class ModelData:
                     self.sd_refiner = reload_model_weights(op='refiner')
                     self.initial = False
                 except Exception as e:
-                    logger.log.error("Failed to load stable diffusion model")
+                    log.error("Failed to load stable diffusion model")
                     errors.display(e, "loading stable diffusion model")
                     self.sd_refiner = None
         return self.sd_refiner
@@ -179,7 +179,7 @@ class Shared(sys.modules[__name__].__class__):
         import modules.sd_models # pylint: disable=W0621
         if modules.sd_models.model_data.sd_model is None:
             fn = f'{os.path.basename(sys._getframe(2).f_code.co_filename)}:{sys._getframe(2).f_code.co_name}:{sys._getframe(1).f_code.co_name}' # pylint: disable=protected-access
-            logger.log.debug(f'Model requested: fn={fn}') # pylint: disable=protected-access
+            log.debug(f'Model requested: fn={fn}') # pylint: disable=protected-access
         return modules.sd_models.model_data.get_sd_model()
 
     @sd_model.setter

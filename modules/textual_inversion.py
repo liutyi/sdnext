@@ -4,11 +4,11 @@ import torch
 import safetensors.torch
 from modules.errorlimiter import limit_errors
 from modules import shared, devices, errors
-from modules import logger
+from modules.logger import log
 from modules.files_cache import directory_files, directory_mtime, extension_filter
 
 
-debug = logger.log.trace if os.environ.get('SD_TI_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug = log.trace if os.environ.get('SD_TI_DEBUG', None) is not None else lambda *args, **kwargs: None
 debug('Trace: TEXTUAL INVERSION')
 supported_models = ['ldm', 'sd', 'sdxl']
 
@@ -285,11 +285,11 @@ class EmbeddingDatabase:
                         embedding.tokens = []
                         self.skipped_embeddings[embedding.name] = embedding
                 except Exception as e:
-                    logger.log.error(f'Load embedding invalid: name="{embedding.name}" fn="{filename}" {e}')
+                    log.error(f'Load embedding invalid: name="{embedding.name}" fn="{filename}" {e}')
                     self.skipped_embeddings[embedding.name] = embedding
                     elimit()
             if overwrite:
-                logger.log.info(f"Load bundled embeddings: {list(data.keys())}")
+                log.info(f"Load bundled embeddings: {list(data.keys())}")
                 for embedding in embeddings:
                     if embedding.name not in self.skipped_embeddings:
                         deref_tokenizers(embedding.tokens, tokenizers)
@@ -300,14 +300,14 @@ class EmbeddingDatabase:
                         insert_vectors(embedding, tokenizers, text_encoders, hiddensizes)
                         self.register_embedding(embedding, shared.sd_model)
                     except Exception as e:
-                        logger.log.error(f'Load embedding: name="{embedding.name}" file="{embedding.filename}" {e}')
+                        log.error(f'Load embedding: name="{embedding.name}" file="{embedding.filename}" {e}')
                         errors.display(e, f'Load embedding: name="{embedding.name}" file="{embedding.filename}"')
                         elimit()
         return
 
     def load_from_dir(self, embdir):
         if not shared.sd_loaded:
-            logger.log.info('Skipping embeddings load: model not loaded')
+            log.info('Skipping embeddings load: model not loaded')
             return
         if not os.path.isdir(embdir.path):
             return
@@ -346,4 +346,4 @@ class EmbeddingDatabase:
         if self.previously_displayed_embeddings != displayed_embeddings and shared.opts.diffusers_enable_embed:
             self.previously_displayed_embeddings = displayed_embeddings
             t1 = time.time()
-            logger.log.info(f"Network load: type=embeddings loaded={len(self.word_embeddings)} skipped={len(self.skipped_embeddings)} time={t1-t0:.2f}")
+            log.info(f"Network load: type=embeddings loaded={len(self.word_embeddings)} skipped={len(self.skipped_embeddings)} time={t1-t0:.2f}")

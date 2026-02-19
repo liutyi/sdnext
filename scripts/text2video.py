@@ -8,7 +8,7 @@ TODO text2video items:
 
 import gradio as gr
 from modules import scripts_manager, processing, shared, images, sd_models, modelloader
-from modules import logger
+from modules.logger import log
 
 
 MODELS = [
@@ -58,20 +58,20 @@ class Script(scripts_manager.Script):
         if model_name == 'None':
             return None
         model = [m for m in MODELS if m['name'] == model_name][0]
-        logger.log.debug(f'Text2Video: model={model} defaults={use_default} frames={num_frames}, video={video_type} duration={duration} loop={gif_loop} pad={mp4_pad} interpolate={mp4_interpolate}')
+        log.debug(f'Text2Video: model={model} defaults={use_default} frames={num_frames}, video={video_type} duration={duration} loop={gif_loop} pad={mp4_pad} interpolate={mp4_interpolate}')
 
         if model['path'] in shared.opts.sd_model_checkpoint:
-            logger.log.debug(f'Text2Video cached: model={shared.opts.sd_model_checkpoint}')
+            log.debug(f'Text2Video cached: model={shared.opts.sd_model_checkpoint}')
         else:
             checkpoint = sd_models.get_closest_checkpoint_match(model['path'])
             if checkpoint is None:
-                logger.log.debug(f'Text2Video downloading: model={model["path"]}')
+                log.debug(f'Text2Video downloading: model={model["path"]}')
                 checkpoint = modelloader.download_diffusers_model(hub_id=model['path'])
                 sd_models.list_models()
             if checkpoint is None:
-                logger.log.error(f'Text2Video: failed to find model={model["path"]}')
+                log.error(f'Text2Video: failed to find model={model["path"]}')
                 return None
-            logger.log.debug(f'Text2Video loading: model={checkpoint}')
+            log.debug(f'Text2Video loading: model={checkpoint}')
             shared.opts.sd_model_checkpoint = checkpoint.name
             sd_models.reload_model_weights(op='model')
 
@@ -84,11 +84,11 @@ class Script(scripts_manager.Script):
         elif num_frames > 0:
             p.task_args['num_frames'] = num_frames
         else:
-            logger.log.error('Text2Video: invalid number of frames')
+            log.error('Text2Video: invalid number of frames')
             return None
 
         shared.sd_model = sd_models.set_diffuser_pipe(shared.sd_model, sd_models.DiffusersTaskType.TEXT_2_IMAGE)
-        logger.log.debug(f'Text2Video: args={p.task_args}')
+        log.debug(f'Text2Video: args={p.task_args}')
         processed = processing.process_images(p)
 
         if video_type != 'None':

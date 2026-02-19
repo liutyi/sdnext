@@ -12,6 +12,9 @@ if TYPE_CHECKING:
     import torch
 
 
+from modules.logger import log
+
+
 rocm_sdk: ModuleType | None = None
 
 
@@ -293,7 +296,6 @@ if sys.platform == "win32":
         try:
             import torch
             import numpy as np
-            from modules.logger import log
             from modules.devices import get_hip_agent
             from modules.rocm_triton_windows import apply_triton_patches
 

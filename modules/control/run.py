@@ -13,7 +13,7 @@ from modules.control.units import t2iadapter # TencentARC T2I-Adapter
 from modules.control.units import reference # ControlNet-Reference
 from modules.control.processor import preprocess_image
 from modules import devices, shared, errors, processing, images, sd_models, sd_vae, scripts_manager, masking
-from modules import logger
+from modules.logger import log
 from modules.processing_class import StableDiffusionProcessingControl
 from modules.ui_common import infotext_to_html
 from modules.api import script
@@ -22,7 +22,7 @@ from modules.paths import resolve_output_path
 
 
 debug = os.environ.get('SD_CONTROL_DEBUG', None) is not None
-debug_log = logger.log.trace if debug else lambda *args, **kwargs: None
+debug_log = log.trace if debug else lambda *args, **kwargs: None
 pipe = None
 instance = None
 original_pipeline = None
@@ -37,7 +37,7 @@ def restore_pipeline():
     if (original_pipeline is not None) and (original_pipeline.__class__.__name__ != shared.sd_model.__class__.__name__):
         if debug:
             fn = f'{sys._getframe(2).f_code.co_name}:{sys._getframe(1).f_code.co_name}' # pylint: disable=protected-access
-            logger.log.trace(f'Control restored pipeline: class={shared.sd_model.__class__.__name__} to={original_pipeline.__class__.__name__} fn={fn}')
+            log.trace(f'Control restored pipeline: class={shared.sd_model.__class__.__name__} to={original_pipeline.__class__.__name__} fn={fn}')
         shared.sd_model = original_pipeline
     pipe = None
     instance = None
@@ -46,7 +46,7 @@ def restore_pipeline():
 
 def terminate(msg):
     restore_pipeline()
-    logger.log.error(f'Control terminated: {msg}')
+    log.error(f'Control terminated: {msg}')
     return msg
 
 
@@ -68,7 +68,7 @@ def set_pipe(p, has_models, unit_type, selected_models, active_model, active_str
     pipe = None
     if has_models and not has_inputs(inits) and not has_inputs(inputs):
         if not any(has_inputs(u.override) for u in active_units if u.enabled): # check overrides
-            logger.log.error('Control: no input images')
+            log.error('Control: no input images')
             return pipe
     if has_models:
         p.ops.append('control')
@@ -86,7 +86,7 @@ def set_pipe(p, has_models, unit_type, selected_models, active_model, active_str
         instance = t2iadapter.AdapterPipeline(selected_models, shared.sd_model)
         pipe = instance.pipeline
         if inits is not None:
-            logger.log.warning('Control: T2I-Adapter does not support separate init image')
+            log.warning('Control: T2I-Adapter does not support separate init image')
     elif unit_type == 'controlnet' and has_models:
         p.extra_generation_params["Control type"] = 'ControlNet'
         if shared.sd_model_type == 'f1':
@@ -109,14 +109,14 @@ def set_pipe(p, has_models, unit_type, selected_models, active_model, active_str
         instance = xs.ControlNetXSPipeline(selected_models, shared.sd_model)
         pipe = instance.pipeline
         if inits is not None:
-            logger.log.warning('Control: ControlNet-XS does not support separate init image')
+            log.warning('Control: ControlNet-XS does not support separate init image')
     elif unit_type == 'lite' and has_models:
         p.extra_generation_params["Control type"] = 'ControlLLLite'
         p.controlnet_conditioning_scale = control_conditioning
         instance = lite.ControlLLitePipeline(shared.sd_model)
         pipe = instance.pipeline
         if inits is not None:
-            logger.log.warning('Control: ControlLLLite does not support separate init image')
+            log.warning('Control: ControlLLLite does not support separate init image')
     elif unit_type == 'reference' and has_models:
         p.extra_generation_params["Control type"] = 'Reference'
         p.extra_generation_params["Control attention"] = p.attention
@@ -128,7 +128,7 @@ def set_pipe(p, has_models, unit_type, selected_models, active_model, active_str
         instance = reference.ReferencePipeline(shared.sd_model)
         pipe = instance.pipeline
         if inits is not None:
-            logger.log.warning('Control: ControlNet-XS does not support separate init image')
+            log.warning('Control: ControlNet-XS does not support separate init image')
     else: # run in txt2img/img2img mode
         if len(active_strength) > 0:
             p.strength = active_strength[0]
@@ -167,7 +167,7 @@ def check_active(p, unit_type, units):
             active_strength.append(float(u.strength))
             p.adapter_conditioning_factor = u.factor
             active_units.append(u)
-            logger.log.debug(f'Control T2I-Adapter unit: i={num_units} process="{u.process.processor_id}" model="{u.adapter.model_id}" strength={u.strength} factor={u.factor}')
+            log.debug(f'Control T2I-Adapter unit: i={num_units} process="{u.process.processor_id}" model="{u.adapter.model_id}" strength={u.strength} factor={u.factor}')
         elif unit_type == 'controlnet' and (u.controlnet.model is not None or is_unified_model()):
             active_process.append(u.process)
             active_model.append(u.controlnet)
@@ -183,7 +183,7 @@ def check_active(p, unit_type, units):
                 p.is_tile = p.is_tile or 'tile' in u.mode.lower()
                 p.control_tile = u.tile
                 p.extra_generation_params["Control mode"] = u.mode
-            logger.log.debug(f'Control unit: i={num_units} type=ControlNet process="{u.process.processor_id}" model="{u.controlnet.model_id}" strength={u.strength} guess={u.guess} start={u.start} end={u.end} mode={u.mode}')
+            log.debug(f'Control unit: i={num_units} type=ControlNet process="{u.process.processor_id}" model="{u.controlnet.model_id}" strength={u.strength} guess={u.guess} start={u.start} end={u.end} mode={u.mode}')
         elif unit_type == 'xs' and u.controlnet.model is not None:
             active_process.append(u.process)
             active_model.append(u.controlnet)
@@ -191,13 +191,13 @@ def check_active(p, unit_type, units):
             active_start.append(float(u.start))
             active_end.append(float(u.end))
             active_units.append(u)
-            logger.log.debug(f'Control unit: i={num_units} type=ControlNetXS process={u.process.processor_id} model={u.controlnet.model_id} strength={u.strength} guess={u.guess} start={u.start} end={u.end}')
+            log.debug(f'Control unit: i={num_units} type=ControlNetXS process={u.process.processor_id} model={u.controlnet.model_id} strength={u.strength} guess={u.guess} start={u.start} end={u.end}')
         elif unit_type == 'lite' and u.controlnet.model is not None:
             active_process.append(u.process)
             active_model.append(u.controlnet)
             active_strength.append(float(u.strength))
             active_units.append(u)
-            logger.log.debug(f'Control unit: i={num_units} type=ControlLLite process={u.process.processor_id} model={u.controlnet.model_id} strength={u.strength} guess={u.guess} start={u.start} end={u.end}')
+            log.debug(f'Control unit: i={num_units} type=ControlLLite process={u.process.processor_id} model={u.controlnet.model_id} strength={u.strength} guess={u.guess} start={u.start} end={u.end}')
         elif unit_type == 'reference':
             p.override = u.override
             p.attention = u.attention
@@ -205,12 +205,12 @@ def check_active(p, unit_type, units):
             p.adain_weight = float(u.adain_weight)
             p.fidelity = u.fidelity
             active_units.append(u)
-            logger.log.debug('Control Reference unit')
+            log.debug('Control Reference unit')
         else:
             if u.process.processor_id is not None:
                 active_process.append(u.process)
                 active_units.append(u)
-                logger.log.debug(f'Control unit: i={num_units} type=Process process={u.process.processor_id}')
+                log.debug(f'Control unit: i={num_units} type=Process process={u.process.processor_id}')
             active_strength.append(float(u.strength))
     debug_log(f'Control active: process={len(active_process)} model={len(active_model)}')
     return active_process, active_model, active_strength, active_start, active_end, active_units
@@ -321,7 +321,7 @@ def control_run(state: str = '', # pylint: disable=keyword-arg-before-vararg
         input_type = 1 # inpaint always requires control_image
 
     if sampler_index is None:
-        logger.log.warning('Sampler: invalid')
+        log.warning('Sampler: invalid')
         sampler_index = 0
     if hr_sampler_index is None:
         hr_sampler_index = sampler_index
@@ -428,13 +428,13 @@ def control_run(state: str = '', # pylint: disable=keyword-arg-before-vararg
 
     # TODO modernui: monkey-patch for missing tabs.select event
     if p.selected_scale_tab_before == 0 and p.resize_name_before != 'None' and p.scale_by_before != 1 and inputs is not None and len(inputs) > 0:
-        logger.log.debug('Control: override resize mode=before')
+        log.debug('Control: override resize mode=before')
         p.selected_scale_tab_before = 1
     if p.selected_scale_tab_after == 0 and p.resize_name_after != 'None' and p.scale_by_after != 1:
-        logger.log.debug('Control: override resize mode=after')
+        log.debug('Control: override resize mode=after')
         p.selected_scale_tab_after = 1
     if p.selected_scale_tab_mask == 0 and p.resize_name_mask != 'None' and p.scale_by_mask != 1:
-        logger.log.debug('Control: override resize mode=mask')
+        log.debug('Control: override resize mode=mask')
         p.selected_scale_tab_mask = 1
 
     # hires/refine defined outside of main init
@@ -450,7 +450,7 @@ def control_run(state: str = '', # pylint: disable=keyword-arg-before-vararg
     p_extra_args = {}
 
     if shared.sd_model is None:
-        logger.log.warning('Aborted: op=control model not loaded')
+        log.warning('Aborted: op=control model not loaded')
         return [], '', '', 'Error: model not loaded'
 
     unit_type = unit_type.strip().lower() if unit_type is not None else ''
@@ -492,7 +492,7 @@ def control_run(state: str = '', # pylint: disable=keyword-arg-before-vararg
             if isinstance(inputs, str) and os.path.exists(inputs): # only video, the rest is a list
                 if input_type == 2: # separate init image
                     if isinstance(inits, str) and inits != inputs:
-                        logger.log.warning('Control: separate init video not support for video input')
+                        log.warning('Control: separate init video not support for video input')
                         input_type = 1
                 try:
                     video = cv2.VideoCapture(inputs)
@@ -508,7 +508,7 @@ def control_run(state: str = '', # pylint: disable=keyword-arg-before-vararg
                     if status:
                         shared.state.frame_count = 1 + frames // (video_skip_frames + 1)
                         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    logger.log.debug(f'Control: input video: path={inputs} frames={frames} fps={fps} size={w}x{h} codec={codec}')
+                    log.debug(f'Control: input video: path={inputs} frames={frames} fps={fps} size={w}x{h} codec={codec}')
                 except Exception as e:
                     if is_generator:
                         yield terminate(f'Video open failed: path={inputs} {e}')
@@ -540,7 +540,7 @@ def control_run(state: str = '', # pylint: disable=keyword-arg-before-vararg
                         try:
                             input_image = Image.open(input_image)
                         except Exception as e:
-                            logger.log.error(f'Control: image open failed: path={input_image} type=control error={e}')
+                            log.error(f'Control: image open failed: path={input_image} type=control error={e}')
                             continue
                     # match init input
                     if input_type == 1:
@@ -554,7 +554,7 @@ def control_run(state: str = '', # pylint: disable=keyword-arg-before-vararg
                         try:
                             init_image = Image.open(inits[i])
                         except Exception as e:
-                            logger.log.error(f'Control: image open failed: path={inits[i]} type=init error={e}')
+                            log.error(f'Control: image open failed: path={inits[i]} type=init error={e}')
                             continue
                     else:
                         debug_log(f'Control Init image: {i % len(inits) + 1} of {len(inits)}')
@@ -577,7 +577,7 @@ def control_run(state: str = '', # pylint: disable=keyword-arg-before-vararg
                                 and getattr(p, 'init_images', None) is None \
                                 and getattr(p, 'image', None) is None:
                                 if is_generator:
-                                    logger.log.debug(f'Control args: {p.task_args}')
+                                    log.debug(f'Control args: {p.task_args}')
                                     yield terminate(f'Mode={p.extra_generation_params.get("Control type", None)} input image is none')
                                 return [], '', '', 'Error: Input image is none'
                         if unit_type == 'lite':
@@ -667,7 +667,7 @@ def control_run(state: str = '', # pylint: disable=keyword-arg-before-vararg
 
             debug_log(f'Control: pipeline units={len(active_model)} process={len(active_process)} outputs={len(output_images)}')
     except Exception as e:
-        logger.log.error(f'Control: type={unit_type} units={len(active_model)} {e}')
+        log.error(f'Control: type={unit_type} units={len(active_model)} {e}')
         errors.display(e, 'Control')
 
     if len(output_images) == 0:

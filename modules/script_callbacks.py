@@ -6,7 +6,7 @@ from typing import Any
 from fastapi import FastAPI
 from gradio import Blocks
 import modules.errors as errors
-from modules import logger
+from modules.logger import log
 
 
 def report_exception(e, c, job):
@@ -142,7 +142,7 @@ def print_timers():
         if v > 0.05:
             long_callbacks.append(f'{k}={v:.2f}')
     if len(long_callbacks) > 0:
-        logger.log.debug(f'Script init: {long_callbacks}')
+        log.debug(f'Script init: {long_callbacks}')
 
 
 def clear_callbacks():

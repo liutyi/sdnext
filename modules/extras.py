@@ -9,7 +9,7 @@ import gradio as gr
 import safetensors.torch
 from modules.merging import merge, merge_utils, modules_sdxl
 from modules import shared, images, sd_models, sd_vae, sd_samplers, devices
-from modules import logger
+from modules.logger import log
 
 
 def run_pnginfo(image):
@@ -36,7 +36,7 @@ def run_modelmerger(id_task, **kwargs):  # pylint: disable=unused-argument
     try:
         pass # pylint: disable=unused-import
     except Exception as e:
-        logger.log.error(f"Merge: {e}")
+        log.error(f"Merge: {e}")
         return [*[gr.update() for _ in range(4)], "tensordict not available"]
 
     jobid = shared.state.begin('Merge')
@@ -75,7 +75,7 @@ def run_modelmerger(id_task, **kwargs):  # pylint: disable=unused-argument
             assert len(alpha) == 26 or len(alpha) == 20, "Alpha Block Weights are wrong length (26 or 20 for SDXL)"
             kwargs["alpha"] = alpha
         except KeyError as ke:
-            logger.log.warning(f"Merge: Malformed manual block weight: {ke}")
+            log.warning(f"Merge: Malformed manual block weight: {ke}")
     elif kwargs.get("alpha_preset", None) or kwargs.get("alpha", None):
         kwargs["alpha"] = kwargs.get("alpha_preset", kwargs["alpha"])
 
@@ -92,7 +92,7 @@ def run_modelmerger(id_task, **kwargs):  # pylint: disable=unused-argument
             assert len(beta) == 26 or len(beta) == 20, "Beta Block Weights are wrong length (26 or 20 for SDXL)"
             kwargs["beta"] = beta
         except KeyError as ke:
-            logger.log.warning(f"Merge: Malformed manual block weight: {ke}")
+            log.warning(f"Merge: Malformed manual block weight: {ke}")
     elif kwargs.get("beta_preset", None) or kwargs.get("beta", None):
         kwargs["beta"] = kwargs.get("beta_preset", kwargs["beta"])
 
@@ -124,7 +124,7 @@ def run_modelmerger(id_task, **kwargs):  # pylint: disable=unused-argument
 
     bake_in_vae_filename = sd_vae.vae_dict.get(kwargs.get("bake_in_vae", None), None)
     if bake_in_vae_filename is not None:
-        logger.log.info(f"Merge VAE='{bake_in_vae_filename}'")
+        log.info(f"Merge VAE='{bake_in_vae_filename}'")
         shared.state.textinfo = 'Merge VAE'
         vae_dict = sd_vae.load_vae_dict(bake_in_vae_filename)
         for key in vae_dict.keys():
@@ -180,7 +180,7 @@ def run_modelmerger(id_task, **kwargs):  # pylint: disable=unused-argument
         torch.save(theta_0, output_modelname)
 
     t1 = time.time()
-    logger.log.info(f"Merge complete: saved='{output_modelname}' time={t1-t0:.2f}")
+    log.info(f"Merge complete: saved='{output_modelname}' time={t1-t0:.2f}")
     sd_models.list_models()
     created_model = next((ckpt for ckpt in sd_models.checkpoints_list.values() if ckpt.name == filename), None)
     if created_model:
@@ -201,9 +201,9 @@ def run_model_modules(model_type:str, model_name:str, custom_name:str,
     def msg(text, err:bool=False):
         nonlocal status
         if err:
-            logger.log.error(f'Modules merge: {text}')
+            log.error(f'Modules merge: {text}')
         else:
-            logger.log.info(f'Modules merge: {text}')
+            log.info(f'Modules merge: {text}')
         status += text + '<br>'
         return status
 

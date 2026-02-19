@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from transformers import AutoProcessor, LlavaForConditionalGeneration
 from modules import shared, devices, sd_models, model_quant
-from modules import logger
+from modules.logger import log
 
 
 """
@@ -64,7 +64,7 @@ def load(repo: str = None):
     if llava_model is None or opts.repo != repo:
         opts.repo = repo
         llava_model = None
-        logger.log.info(f'Caption: type=vlm model="JoyCaption" {str(opts)}')
+        log.info(f'Caption: type=vlm model="JoyCaption" {str(opts)}')
         processor = AutoProcessor.from_pretrained(repo, max_pixels=1024*1024, cache_dir=shared.opts.hfcache_dir)
         quant_args = model_quant.create_config(module='LLM')
         llava_model = LlavaForConditionalGeneration.from_pretrained(
@@ -81,13 +81,13 @@ def unload():
     """Release JoyCaption model from GPU/memory."""
     global llava_model, processor  # pylint: disable=global-statement
     if llava_model is not None:
-        logger.log.debug(f'JoyCaption unload: model="{opts.repo}"')
+        log.debug(f'JoyCaption unload: model="{opts.repo}"')
         sd_models.move_model(llava_model, devices.cpu, force=True)
         llava_model = None
         processor = None
         devices.torch_gc(force=True)
     else:
-        logger.log.debug('JoyCaption unload: no model loaded')
+        log.debug('JoyCaption unload: no model loaded')
 
 
 def predict(question: str, image, vqa_model: str = None) -> str:

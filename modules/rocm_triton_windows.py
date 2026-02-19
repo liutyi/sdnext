@@ -1,7 +1,7 @@
 import sys
 import torch
 from modules import shared, devices
-from modules import logger
+from modules.logger import log
 from modules.rocm import Agent
 
 
@@ -88,7 +88,7 @@ if sys.platform == "win32":
                         props["mem_bus_width"] = MEM_BUS_WIDTH[name]
                     else:
                         props["mem_bus_width"] = 128
-                        logger.log.warning(f'[TRITON] defaulting mem_bus_width=128 for device "{name}".')
+                        log.warning(f'[TRITON] defaulting mem_bus_width=128 for device "{name}".')
                 return props
             triton.runtime.driver.active.utils.get_device_properties = triton_runtime_driver_active_utils_get_device_properties
         except Exception:

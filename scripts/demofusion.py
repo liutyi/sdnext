@@ -15,7 +15,7 @@ from diffusers.utils import is_accelerate_available, is_accelerate_version
 from diffusers.utils.torch_utils import randn_tensor
 from diffusers.pipelines.pipeline_utils import DiffusionPipeline, ImagePipelineOutput
 from modules import scripts_manager, processing, shared, sd_models, devices
-from modules import logger
+from modules.logger import log
 
 
 ### Class definition
@@ -165,7 +165,7 @@ class DemoFusionSDXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoaderM
                     text_input_ids, untruncated_ids
                 ):
                     removed_text = tokenizer.batch_decode(untruncated_ids[:, tokenizer.model_max_length - 1 : -1])
-                    logger.log.warning(f"The following part of your input was truncated because CLIP can only handle sequences up to {tokenizer.model_max_length} tokens: {removed_text}")
+                    log.warning(f"The following part of your input was truncated because CLIP can only handle sequences up to {tokenizer.model_max_length} tokens: {removed_text}")
 
                 prompt_embeds = text_encoder(
                     text_input_ids.to(device),
@@ -347,11 +347,11 @@ class DemoFusionSDXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoaderM
 
         # DemoFusion specific checks
         if max(height, width) % 1024 != 0:
-            logger.log.error('DemoFusion: resolution={width}x{height} long side must be divisible by 1024')
+            log.error('DemoFusion: resolution={width}x{height} long side must be divisible by 1024')
             return None
 
         if num_images_per_prompt != 1:
-            logger.log.warning('DemoFusion: number of images per prompt is not support and will be ignored')
+            log.warning('DemoFusion: number of images per prompt is not support and will be ignored')
             num_images_per_prompt = 1
 
     # Copied from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion.StableDiffusionPipeline.prepare_latents
@@ -831,7 +831,7 @@ class DemoFusionSDXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoaderM
             self.text_encoder.cpu()
             self.text_encoder_2.cpu()
 
-        logger.log.debug('DemoFusion: phase=1 denoising')
+        log.debug('DemoFusion: phase=1 denoising')
         with self.progress_bar(total=num_inference_steps) as progress_bar:
             for i, t in enumerate(timesteps):
 
@@ -897,7 +897,7 @@ class DemoFusionSDXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoaderM
                 if needs_upcasting:
                     self.upcast_vae()
                     latents = latents.to(next(iter(self.vae.post_quant_conv.parameters())).dtype)
-                    logger.log.debug('DemoFusion: phase=1 decoding')
+                    log.debug('DemoFusion: phase=1 decoding')
                 if self.lowvram and multi_decoder:
                     current_width_height = self.unet.config.sample_size * self.vae_scale_factor
                     image = self.tiled_decode(latents, current_width_height, current_width_height)
@@ -917,7 +917,7 @@ class DemoFusionSDXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoaderM
                 latents = latents.to(device)
                 self.unet.to(device)
                 torch.cuda.empty_cache()
-            logger.log.debug(f'DemoFusion: phase={current_scale_num} denoising')
+            log.debug(f'DemoFusion: phase={current_scale_num} denoising')
             current_height = self.unet.config.sample_size * self.vae_scale_factor * current_scale_num
             current_width = self.unet.config.sample_size * self.vae_scale_factor * current_scale_num
             if height > width:
@@ -1137,7 +1137,7 @@ class DemoFusionSDXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoaderM
                         self.upcast_vae()
                         latents = latents.to(next(iter(self.vae.post_quant_conv.parameters())).dtype)
 
-                    logger.log.debug(f'DemoFusion: phase={current_scale_num} decoding')
+                    log.debug(f'DemoFusion: phase={current_scale_num} decoding')
                     if multi_decoder:
                         image = self.tiled_decode(latents, current_height, current_width)
                     else:
@@ -1177,7 +1177,7 @@ class DemoFusionSDXLPipeline(DiffusionPipeline, FromSingleFileMixin, LoraLoaderM
                 if hasattr(component, "_hf_hook"):
                     is_model_cpu_offload = isinstance(component._hf_hook, CpuOffload) # pylint: disable=protected-access
                     is_sequential_cpu_offload = isinstance(component._hf_hook, AlignDevicesHook) # pylint: disable=protected-access
-                    logger.log.info("Accelerate hooks detected. Since you have called `load_lora_weights()`, the previous hooks will be first removed. Then the LoRA parameters will be loaded and the hooks will be applied again.")
+                    log.info("Accelerate hooks detected. Since you have called `load_lora_weights()`, the previous hooks will be first removed. Then the LoRA parameters will be loaded and the hooks will be applied again.")
                     recursive = is_sequential_cpu_offload
                     remove_hook_from_module(component, recurse=recursive)
         state_dict, network_alphas = self.lora_state_dict(
@@ -1246,7 +1246,7 @@ class Script(scripts_manager.Script):
     def run(self, p: processing.StableDiffusionProcessing, cosine_scale_1, cosine_scale_2, cosine_scale_3, sigma, view_batch_size, stride, multi_decoder): # pylint: disable=arguments-differ
         c = shared.sd_model.__class__.__name__ if shared.sd_loaded else ''
         if c != 'StableDiffusionXLPipeline':
-            logger.log.warning(f'DemoFusion: pipeline={c} required=StableDiffusionXLPipeline')
+            log.warning(f'DemoFusion: pipeline={c} required=StableDiffusionXLPipeline')
             return None
         p.task_args['cosine_scale_1'] = cosine_scale_1
         p.task_args['cosine_scale_2'] = cosine_scale_2
@@ -1257,7 +1257,7 @@ class Script(scripts_manager.Script):
         p.task_args['multi_decoder'] = multi_decoder
         p.task_args['output_type'] = 'np'
         p.task_args['low_vram'] = True
-        logger.log.debug(f'DemoFusion: {p.task_args}')
+        log.debug(f'DemoFusion: {p.task_args}')
         old_pipe = shared.sd_model
         new_pipe = DemoFusionSDXLPipeline(
             vae = shared.sd_model.vae,
@@ -1272,7 +1272,7 @@ class Script(scripts_manager.Script):
         shared.sd_model = new_pipe
         sd_models.move_model(shared.sd_model, devices.device) # move pipeline to device
         sd_models.set_diffuser_options(shared.sd_model, vae=None, op='model')
-        logger.log.debug(f'DemoFusion create: pipeline={shared.sd_model.__class__.__name__}')
+        log.debug(f'DemoFusion create: pipeline={shared.sd_model.__class__.__name__}')
         processed = processing.process_images(p)
         shared.sd_model = old_pipe
         return processed

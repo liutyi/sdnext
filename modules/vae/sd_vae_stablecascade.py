@@ -2,7 +2,7 @@ import os
 from torch import nn
 import safetensors
 from modules import devices, paths
-from modules import logger
+from modules.logger import log
 
 preview_model = None
 dtype = devices.dtype_vae
@@ -80,12 +80,12 @@ def decode(latents):
             preview_model.load_state_dict(previewer_checkpoint if 'state_dict' not in previewer_checkpoint else previewer_checkpoint['state_dict'])
             preview_model.eval().requires_grad_(False).to(devices.device, dtype)
             del previewer_checkpoint
-            logger.log.info(f"Load Stable Cascade previewer: model={model_path}")
+            log.info(f"Load Stable Cascade previewer: model={model_path}")
     try:
         with devices.inference_context():
             latents = latents.detach().clone().unsqueeze(0).to(devices.device, dtype)
             image = preview_model(latents)[0].clamp(0, 1).float()
             return image
     except Exception as e:
-        logger.log.error(f'Stable Cascade previewer: {e}')
+        log.error(f'Stable Cascade previewer: {e}')
         return latents

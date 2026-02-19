@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timezone
 import git
 from modules import shared, errors
-from modules import logger
+from modules.logger import log
 from modules.paths import extensions_dir, extensions_builtin_dir
 
 
@@ -99,7 +99,7 @@ def temp_disable_extensions():
         shared.opts.data['theme_type'] = 'None'
         shared.opts.data['gradio_theme'] = theme_name
     else:
-        logger.log.error(f'UI theme invalid: theme="{theme_name}" available={["standard/*", "modern/*", "none/*"]} fallback="standard/black-teal"')
+        log.error(f'UI theme invalid: theme="{theme_name}" available={["standard/*", "modern/*", "none/*"]} fallback="standard/black-teal"')
         shared.opts.data['theme_type'] = 'Standard'
         shared.opts.data['gradio_theme'] = 'black-teal'
 
@@ -156,7 +156,7 @@ class Extension:
             try:
                 self.status = 'unknown'
                 if len(repo.remotes) == 0:
-                    logger.log.debug(f"Extension: no remotes info repo={self.name}")
+                    log.debug(f"Extension: no remotes info repo={self.name}")
                     return
                 self.git_name = repo.remotes.origin.url.split('.git')[0].split('/')[-1]
                 self.description = repo.description
@@ -173,7 +173,7 @@ class Extension:
                 self.commit_hash = head.hexsha
                 self.version = f"<p>{self.commit_hash[:8]}</p><p>{format_dt(ts2utc(self.commit_date))}</p>"
             except Exception as ex:
-                logger.log.error(f"Extension: failed reading data from git repo={self.name}: {ex}")
+                log.error(f"Extension: failed reading data from git repo={self.name}: {ex}")
                 self.remote = None
 
     def list_files(self, subdir, extension):
@@ -191,7 +191,7 @@ class Extension:
                     priority = str(f.read().strip())
             res.append(scripts_manager.ScriptFile(self.path, filename, os.path.join(dirpath, filename), priority))
             if priority != '50':
-                logger.log.debug(f'Extension priority override: {os.path.dirname(dirpath)}:{priority}')
+                log.debug(f'Extension priority override: {os.path.dirname(dirpath)}:{priority}')
         res = [x for x in res if os.path.splitext(x.path)[1].lower() == extension and os.path.isfile(x.path)]
         return res
 
@@ -234,7 +234,7 @@ def list_extensions():
     if not os.path.isdir(extensions_dir):
         return
     if shared.opts.disable_all_extensions == "all" or shared.opts.disable_all_extensions == "user":
-        logger.log.warning(f"Option set: Disable extensions: {shared.opts.disable_all_extensions}")
+        log.warning(f"Option set: Disable extensions: {shared.opts.disable_all_extensions}")
     extension_paths = []
     extension_names = []
     extension_folders = [extensions_builtin_dir] if shared.cmd_opts.safe else [extensions_builtin_dir, extensions_dir]
@@ -246,7 +246,7 @@ def list_extensions():
             if not os.path.isdir(path):
                 continue
             if extension_dirname in extension_names:
-                logger.log.info(f'Skipping conflicting extension: {path}')
+                log.info(f'Skipping conflicting extension: {path}')
                 continue
             extension_names.append(extension_dirname)
             extension_paths.append((extension_dirname, path, dirname == extensions_builtin_dir))
@@ -257,4 +257,4 @@ def list_extensions():
         enabled = dirname.lower() not in disabled_extensions
         extension = Extension(name=dirname, path=path, enabled=enabled, is_builtin=is_builtin)
         extensions.append(extension)
-    logger.log.debug(f'Extensions: disabled={[e.name for e in extensions if not e.enabled]}')
+    log.debug(f'Extensions: disabled={[e.name for e in extensions if not e.enabled]}')

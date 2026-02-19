@@ -7,7 +7,7 @@ import torch
 import numpy as np
 from PIL import Image
 from modules import shared, sd_models, processing, processing_vae, processing_helpers, sd_hijack_hypertile, extra_networks, sd_vae
-from modules import logger
+from modules.logger import log
 from modules.processing_callbacks import diffusers_callback_legacy, diffusers_callback, set_callbacks_p
 from modules.processing_helpers import get_generator, apply_circular # pylint: disable=unused-import
 from modules.processing_prompt import set_prompt
@@ -15,7 +15,7 @@ from modules.api import helpers
 
 
 debug_enabled = os.environ.get('SD_DIFFUSERS_DEBUG', None)
-debug_log = logger.log.trace if debug_enabled else lambda *args, **kwargs: None
+debug_log = log.trace if debug_enabled else lambda *args, **kwargs: None
 disable_pbar = os.environ.get('SD_DISABLE_PBAR', None) is not None
 
 
@@ -161,7 +161,7 @@ def task_specific_kwargs(p, model):
         task_args['image'] = p.init_images
     if 'BlipDiffusionPipeline' in model_cls:
         if len(p.init_images) == 0:
-            logger.log.error('BLiP diffusion requires init image')
+            log.error('BLiP diffusion requires init image')
             return task_args
         task_args = {
             'reference_image': p.init_images[0],
@@ -236,14 +236,14 @@ def set_pipeline_args(p, model, prompts:list, negative_prompts:list, prompts_2:l
             p.timesteps = [int(x) for x in timesteps if x.isdigit()]
             p.steps = len(timesteps)
             args['timesteps'] = p.timesteps
-            logger.log.debug(f'Sampler: steps={len(p.timesteps)} timesteps={p.timesteps}')
+            log.debug(f'Sampler: steps={len(p.timesteps)} timesteps={p.timesteps}')
         elif ('sigmas' in possible) and hasattr(model.scheduler, 'set_timesteps') and ("sigmas" in set(inspect.signature(model.scheduler.set_timesteps).parameters.keys())):
             p.timesteps = [float(x)/1000.0 for x in timesteps if x.isdigit()]
             p.steps = len(p.timesteps)
             args['sigmas'] = p.timesteps
-            logger.log.debug(f'Sampler: steps={len(p.timesteps)} sigmas={p.timesteps}')
+            log.debug(f'Sampler: steps={len(p.timesteps)} sigmas={p.timesteps}')
         else:
-            logger.log.warning(f'Sampler: cls={model.scheduler.__class__.__name__} timesteps not supported')
+            log.warning(f'Sampler: cls={model.scheduler.__class__.__name__} timesteps not supported')
 
     if hasattr(model, 'scheduler') and hasattr(model.scheduler, 'noise_sampler_seed') and hasattr(model.scheduler, 'noise_sampler'):
         model.scheduler.noise_sampler = None # noise needs to be reset instead of using cached values
@@ -427,13 +427,13 @@ def set_pipeline_args(p, model, prompts:list, negative_prompts:list, prompts_2:l
             del clean[k]
             clean['prompt'] = 'embeds'
     task = str(sd_models.get_diffusers_task(model)).replace('DiffusersTaskType.', '')
-    logger.log.info(f'{desc}: pipeline={model.__class__.__name__} task={task} batch={p.iteration + 1}/{p.n_iter}x{p.batch_size} set={clean}')
+    log.info(f'{desc}: pipeline={model.__class__.__name__} task={task} batch={p.iteration + 1}/{p.n_iter}x{p.batch_size} set={clean}')
 
     if p.hdr_clamp or p.hdr_maximize or p.hdr_brightness != 0 or p.hdr_color != 0 or p.hdr_sharpen != 0:
-        logger.log.debug(f'HDR: clamp={p.hdr_clamp} maximize={p.hdr_maximize} brightness={p.hdr_brightness} color={p.hdr_color} sharpen={p.hdr_sharpen} threshold={p.hdr_threshold} boundary={p.hdr_boundary} max={p.hdr_max_boundary} center={p.hdr_max_center}')
+        log.debug(f'HDR: clamp={p.hdr_clamp} maximize={p.hdr_maximize} brightness={p.hdr_brightness} color={p.hdr_color} sharpen={p.hdr_sharpen} threshold={p.hdr_threshold} boundary={p.hdr_boundary} max={p.hdr_max_boundary} center={p.hdr_max_center}')
     if shared.cmd_opts.profile:
         t1 = time.time()
-        logger.log.debug(f'Profile: pipeline args: {t1-t0:.2f}')
+        log.debug(f'Profile: pipeline args: {t1-t0:.2f}')
     if debug_enabled:
         debug_log(f'Process pipeline args: {args}')
 

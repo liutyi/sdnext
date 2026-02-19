@@ -6,10 +6,10 @@ import transformers
 from safetensors.torch import load_file
 from huggingface_hub import hf_hub_download
 from modules import shared, errors, devices, sd_models, sd_unet, model_te, model_quant, sd_hijack_te
-from modules import logger
+from modules.logger import log
 
 
-debug = logger.log.trace if os.environ.get('SD_LOAD_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug = log.trace if os.environ.get('SD_LOAD_DEBUG', None) is not None else lambda *args, **kwargs: None
 
 
 def load_flux_quanto(checkpoint_info):
@@ -39,9 +39,9 @@ def load_flux_quanto(checkpoint_info):
             try:
                 transformer = transformer.to(dtype=devices.dtype)
             except Exception:
-                logger.log.error(f"Load model: type=FLUX Failed to cast transformer to {devices.dtype}, set dtype to {transformer_dtype}")
+                log.error(f"Load model: type=FLUX Failed to cast transformer to {devices.dtype}, set dtype to {transformer_dtype}")
     except Exception as e:
-        logger.log.error(f"Load model: type=FLUX failed to load Quanto transformer: {e}")
+        log.error(f"Load model: type=FLUX failed to load Quanto transformer: {e}")
         if debug:
             errors.display(e, 'FLUX Quanto:')
 
@@ -65,9 +65,9 @@ def load_flux_quanto(checkpoint_info):
             try:
                 text_encoder_2 = text_encoder_2.to(dtype=devices.dtype)
             except Exception:
-                logger.log.error(f"Load model: type=FLUX Failed to cast text encoder to {devices.dtype}, set dtype to {text_encoder_2_dtype}")
+                log.error(f"Load model: type=FLUX Failed to cast text encoder to {devices.dtype}, set dtype to {text_encoder_2_dtype}")
     except Exception as e:
-        logger.log.error(f"Load model: type=FLUX failed to load Quanto text encoder: {e}")
+        log.error(f"Load model: type=FLUX failed to load Quanto text encoder: {e}")
         if debug:
             errors.display(e, 'FLUX Quanto:')
 
@@ -98,7 +98,7 @@ def load_flux_bnb(checkpoint_info, diffusers_load_config): # pylint: disable=unu
         else:
             transformer = diffusers.FluxTransformer2DModel.from_single_file(repo_path, **diffusers_load_config)
     except Exception as e:
-        logger.log.error(f"Load model: type=FLUX failed to load BnB transformer: {e}")
+        log.error(f"Load model: type=FLUX failed to load BnB transformer: {e}")
         transformer, text_encoder_2 = None, None
         if debug:
             errors.display(e, 'FLUX:')
@@ -128,9 +128,9 @@ def load_quants(kwargs, repo_id, cache_dir, allow_quant): # pylint: disable=unus
             elif 'shuttle' in repo_id.lower():
                 nunchaku_repo = f"mit-han-lab/nunchaku-shuttle-jaguar/svdq-{nunchaku_precision}_r32-shuttle-jaguar.safetensors"
             else:
-                logger.log.error(f'Load module: quant=Nunchaku module=transformer repo="{repo_id}" unsupported')
+                log.error(f'Load module: quant=Nunchaku module=transformer repo="{repo_id}" unsupported')
             if nunchaku_repo is not None:
-                logger.log.debug(f'Load module: quant=Nunchaku module=transformer repo="{nunchaku_repo}" precision={nunchaku_precision} offload={shared.opts.nunchaku_offload} attention={shared.opts.nunchaku_attention}')
+                log.debug(f'Load module: quant=Nunchaku module=transformer repo="{nunchaku_repo}" precision={nunchaku_precision} offload={shared.opts.nunchaku_offload} attention={shared.opts.nunchaku_attention}')
                 kwargs['transformer'] = nunchaku.NunchakuFluxTransformer2dModel.from_pretrained(nunchaku_repo, offload=shared.opts.nunchaku_offload, torch_dtype=devices.dtype, cache_dir=cache_dir)
                 kwargs['transformer'].quantization_method = 'SVDQuant'
                 if shared.opts.nunchaku_attention:
@@ -142,14 +142,14 @@ def load_quants(kwargs, repo_id, cache_dir, allow_quant): # pylint: disable=unus
             import nunchaku
             nunchaku_precision = nunchaku.utils.get_precision()
             nunchaku_repo = 'mit-han-lab/nunchaku-t5/awq-int4-flux.1-t5xxl.safetensors'
-            logger.log.debug(f'Load module: quant=Nunchaku module=t5 repo="{nunchaku_repo}" precision={nunchaku_precision}')
+            log.debug(f'Load module: quant=Nunchaku module=t5 repo="{nunchaku_repo}" precision={nunchaku_precision}')
             kwargs['text_encoder_2'] = nunchaku.NunchakuT5EncoderModel.from_pretrained(nunchaku_repo, torch_dtype=devices.dtype, cache_dir=cache_dir)
             kwargs['text_encoder_2'].quantization_method = 'SVDQuant'
         if 'text_encoder_2' not in kwargs and model_quant.check_quant('TE'):
             load_args, quant_args = model_quant.get_dit_args(diffusers_load_config, module='TE', device_map=True)
             kwargs['text_encoder_2'] = transformers.T5EncoderModel.from_pretrained(repo_id, subfolder="text_encoder_2", **load_args, **quant_args)
     except Exception as e:
-        logger.log.error(f'Quantization: {e}')
+        log.error(f'Quantization: {e}')
         errors.display(e, 'Quantization:')
     return kwargs
 
@@ -164,7 +164,7 @@ def load_transformer(file_path): # triggered by opts.sd_unet change
         "cache_dir": shared.opts.hfcache_dir,
     }
     if quant is not None and quant != 'none':
-        logger.log.info(f'Load module: type=UNet/Transformer file="{file_path}" offload={shared.opts.diffusers_offload_mode} prequant={quant} dtype={devices.dtype}')
+        log.info(f'Load module: type=UNet/Transformer file="{file_path}" offload={shared.opts.diffusers_offload_mode} prequant={quant} dtype={devices.dtype}')
     if 'gguf' in file_path.lower():
         from modules import ggml
         _transformer = ggml.load_gguf(file_path, cls=diffusers.FluxTransformer2DModel, compute_dtype=devices.dtype)
@@ -190,16 +190,16 @@ def load_transformer(file_path): # triggered by opts.sd_unet change
     else:
         quant_args = model_quant.create_bnb_config({})
         if quant_args:
-            logger.log.info(f'Load module: type=Flux transformer file="{file_path}" offload={shared.opts.diffusers_offload_mode} quant=bnb dtype={devices.dtype}')
+            log.info(f'Load module: type=Flux transformer file="{file_path}" offload={shared.opts.diffusers_offload_mode} quant=bnb dtype={devices.dtype}')
             from pipelines.flux.flux_nf4 import load_flux_nf4
             transformer, _text_encoder_2 = load_flux_nf4(file_path, prequantized=False)
             if transformer is not None:
                 return transformer
         load_args, quant_args = model_quant.get_dit_args(diffusers_load_config, module='Model', device_map=True)
-        logger.log.debug(f'Load model: type=Flux transformer file="{file_path}" offload={shared.opts.diffusers_offload_mode} args={load_args}')
+        log.debug(f'Load model: type=Flux transformer file="{file_path}" offload={shared.opts.diffusers_offload_mode} args={load_args}')
         transformer = diffusers.FluxTransformer2DModel.from_single_file(file_path, **load_args, **quant_args)
     if transformer is None:
-        logger.log.error('Failed to load UNet model')
+        log.error('Failed to load UNet model')
         shared.opts.sd_unet = 'Default'
     return transformer
 
@@ -210,7 +210,7 @@ def load_flux(checkpoint_info, diffusers_load_config): # triggered by opts.sd_ch
     allow_post_quant = False
 
     prequantized = model_quant.get_quant(checkpoint_info.path)
-    logger.log.debug(f'Load model: type=FLUX model="{checkpoint_info.name}" repo="{repo_id}" unet="{shared.opts.sd_unet}" te="{shared.opts.sd_text_encoder}" vae="{shared.opts.sd_vae}" quant={prequantized} offload={shared.opts.diffusers_offload_mode} dtype={devices.dtype}')
+    log.debug(f'Load model: type=FLUX model="{checkpoint_info.name}" repo="{repo_id}" unet="{shared.opts.sd_unet}" te="{shared.opts.sd_text_encoder}" vae="{shared.opts.sd_vae}" quant={prequantized} offload={shared.opts.diffusers_offload_mode} dtype={devices.dtype}')
     debug(f'Load model: type=FLUX config={diffusers_load_config}')
 
     transformer = None
@@ -225,7 +225,7 @@ def load_flux(checkpoint_info, diffusers_load_config): # triggered by opts.sd_ch
 
     if shared.opts.teacache_enabled:
         from modules import teacache
-        logger.log.debug(f'Transformers cache: type=teacache patch=forward cls={diffusers.FluxTransformer2DModel.__name__}')
+        log.debug(f'Transformers cache: type=teacache patch=forward cls={diffusers.FluxTransformer2DModel.__name__}')
         diffusers.FluxTransformer2DModel.forward = teacache.teacache_flux_forward # patch must be done before transformer is loaded
 
     # load overrides if any
@@ -237,7 +237,7 @@ def load_flux(checkpoint_info, diffusers_load_config): # triggered by opts.sd_ch
                 shared.opts.sd_unet = 'Default'
                 sd_unet.failed_unet.append(shared.opts.sd_unet)
         except Exception as e:
-            logger.log.error(f"Load model: type=FLUX failed to load UNet: {e}")
+            log.error(f"Load model: type=FLUX failed to load UNet: {e}")
             shared.opts.sd_unet = 'Default'
             if debug:
                 errors.display(e, 'FLUX UNet:')
@@ -250,7 +250,7 @@ def load_flux(checkpoint_info, diffusers_load_config): # triggered by opts.sd_ch
             else:
                 text_encoder_2 = load_t5(name=shared.opts.sd_text_encoder, cache_dir=shared.opts.diffusers_dir)
         except Exception as e:
-            logger.log.error(f"Load model: type=FLUX failed to load T5: {e}")
+            log.error(f"Load model: type=FLUX failed to load T5: {e}")
             shared.opts.sd_text_encoder = 'Default'
             if debug:
                 errors.display(e, 'FLUX T5:')
@@ -264,7 +264,7 @@ def load_flux(checkpoint_info, diffusers_load_config): # triggered by opts.sd_ch
                 vae_config = os.path.join('configs', 'flux', 'vae', 'config.json')
                 vae = diffusers.AutoencoderKL.from_single_file(vae_file, config=vae_config, **diffusers_load_config)
         except Exception as e:
-            logger.log.error(f"Load model: type=FLUX failed to load VAE: {e}")
+            log.error(f"Load model: type=FLUX failed to load VAE: {e}")
             shared.opts.sd_vae = 'Default'
             if debug:
                 errors.display(e, 'FLUX VAE:')
@@ -279,7 +279,7 @@ def load_flux(checkpoint_info, diffusers_load_config): # triggered by opts.sd_ch
             if _text_encoder is not None:
                 text_encoder_2 = _text_encoder
         except Exception as e:
-            logger.log.error(f"Load model: type=FLUX failed to load NF4 components: {e}")
+            log.error(f"Load model: type=FLUX failed to load NF4 components: {e}")
             if debug:
                 errors.display(e, 'FLUX NF4:')
     if prequantized == 'qint8' or prequantized == 'qint4':
@@ -290,7 +290,7 @@ def load_flux(checkpoint_info, diffusers_load_config): # triggered by opts.sd_ch
             if _text_encoder is not None:
                 text_encoder_2 = _text_encoder
         except Exception as e:
-            logger.log.error(f"Load model: type=FLUX failed to load Quanto components: {e}")
+            log.error(f"Load model: type=FLUX failed to load Quanto components: {e}")
             if debug:
                 errors.display(e, 'FLUX Quanto:')
 
@@ -324,14 +324,14 @@ def load_flux(checkpoint_info, diffusers_load_config): # triggered by opts.sd_ch
 
     else:
         cls = diffusers.FluxPipeline
-    logger.log.debug(f'Load model: type=FLUX cls={cls.__name__} preloaded={list(kwargs)} revision={diffusers_load_config.get("revision", None)}')
+    log.debug(f'Load model: type=FLUX cls={cls.__name__} preloaded={list(kwargs)} revision={diffusers_load_config.get("revision", None)}')
     for c in kwargs:
         if getattr(kwargs[c], 'quantization_method', None) is not None or getattr(kwargs[c], 'gguf', None) is not None:
-            logger.log.debug(f'Load model: type=FLUX component={c} dtype={kwargs[c].dtype} quant={getattr(kwargs[c], "quantization_method", None) or getattr(kwargs[c], "gguf", None)}')
+            log.debug(f'Load model: type=FLUX component={c} dtype={kwargs[c].dtype} quant={getattr(kwargs[c], "quantization_method", None) or getattr(kwargs[c], "gguf", None)}')
         if kwargs[c].dtype == torch.float32 and devices.dtype != torch.float32:
             try:
                 kwargs[c] = kwargs[c].to(dtype=devices.dtype)
-                logger.log.warning(f'Load model: type=FLUX component={c} dtype={kwargs[c].dtype} cast dtype={devices.dtype} recast')
+                log.warning(f'Load model: type=FLUX component={c} dtype={kwargs[c].dtype} cast dtype={devices.dtype} recast')
             except Exception:
                 pass
 

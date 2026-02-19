@@ -4,7 +4,7 @@ from PIL import Image
 from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn, TimeElapsedColumn
 import modules.postprocess.esrgan_model_arch as arch
 from modules import images, devices, shared
-from modules import logger
+from modules.logger import log
 from modules.upscaler import Upscaler, UpscalerData, compile_upscaler
 
 
@@ -132,7 +132,7 @@ class UpscalerESRGAN(Upscaler):
         img = esrgan_upscale(model, img)
         if shared.opts.upscaler_unload and selected_model in self.models:
             del self.models[selected_model]
-            logger.log.debug(f"Upscaler unloaded: type={self.name} model={selected_model}")
+            log.debug(f"Upscaler unloaded: type={self.name} model={selected_model}")
             devices.torch_gc(force=True)
         return img
 
@@ -141,10 +141,10 @@ class UpscalerESRGAN(Upscaler):
         if info is None:
             return
         if self.models.get(info.local_data_path, None) is not None:
-            logger.log.debug(f"Upscaler cached: type={self.name} model={info.local_data_path}")
+            log.debug(f"Upscaler cached: type={self.name} model={info.local_data_path}")
             return self.models[info.local_data_path]
         state_dict = torch.load(info.local_data_path, map_location='cpu' if devices.device.type in {'mps', 'cpu'} else None)
-        logger.log.info(f"Upscaler loaded: type={self.name} model={info.local_data_path}")
+        log.info(f"Upscaler loaded: type={self.name} model={info.local_data_path}")
 
         if "params_ema" in state_dict:
             state_dict = state_dict["params_ema"]
