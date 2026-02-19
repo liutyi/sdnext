@@ -1507,17 +1507,19 @@ def get_state():
         'python': sys.version,
         'platform': sys.platform,
         'requirements': 'unknown',
+        'installer': 'unknown',
         'extensions': {}
     }
     try:
         import hashlib
-        if os.path.isfile('requirements.txt'):
-            with open('requirements.txt', 'rb') as f:
-                state['requirements'] = hashlib.sha256(f.read()).hexdigest()
+        with open('requirements.txt', 'rb') as f:
+            state['requirements'] = hashlib.sha256(f.read()).hexdigest()
+        with open('installer.py', 'rb') as f:
+            state['installer'] = hashlib.sha256(f.read()).hexdigest()
     except Exception:
         pass
     try:
-        from concurrent.futures import ThreadPoolExecutor
+        from concurrent.futures.thread import ThreadPoolExecutor
         from modules.paths import extensions_builtin_dir, extensions_dir
         extension_folders = [extensions_builtin_dir] if args.safe else [extensions_builtin_dir, extensions_dir]
         ext_dirs = []
@@ -1551,7 +1553,7 @@ def check_state():
         with open('data/installer.json', 'r', encoding='utf8') as f:
             saved_state = json.load(f)
         unchanged = saved_state == get_state()
-        log.debug(f'State: changed={unchanged}')
+        log.debug(f'State: cached={unchanged}')
         return unchanged
     except Exception:
         return False

@@ -10,7 +10,8 @@
     "torch": "unknown",
     "python": "3.14.3 (main, Feb  4 2026, 09:28:29) [GCC 13.3.0]",
     "platform": "linux",
-    "requirements": "cb99715eb5944d558a05c4f573053d62837fce7ba6337f1025c5c1e363f1be59",
+    "requirements": "371491b35da9028466bb445ad4fc6f2fff1742e37ad0c851030ca0dd348b82d8",
+    "installer": "285607749a1f183de49be90c7b42864a8a40ceae29eaaa49d2ef9eff9dbf93bb",
     "extensions": {
         "stable-diffusion-webui-rembg": "cfceed7243ce97cf8fd64a43df0291448c22a9dd",
         "sd-extension-chainner": "2a7005fbcf8985644b66121365fa7228a65f34b0",
