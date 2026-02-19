@@ -206,7 +206,7 @@ def test_model(pipe: diffusers.StableDiffusionXLPipeline, fn: str, **kwargs):
     if not test.generate:
         return
     try:
-        generator = torch.Generator(devices.device).manual_seed(int(4242))
+        generator = torch.Generator(devices.device).manual_seed(4242)
         args = {
             'prompt': test.prompt,
             'negative_prompt': test.negative,
@@ -278,7 +278,7 @@ def save_model(pipe: diffusers.StableDiffusionXLPipeline):
         yield msg(f'pretrained={folder}')
         shared.log.info(f'Modules merge save: type=sdxl diffusers="{folder}"')
         pipe.save_pretrained(folder, safe_serialization=True, push_to_hub=False)
-        with open(os.path.join(folder, 'vae', 'config.json'), 'r', encoding='utf8') as f:
+        with open(os.path.join(folder, 'vae', 'config.json'), encoding='utf8') as f:
             vae_config = json.load(f)
             vae_config['force_upcast'] = False
             vae_config['scaling_factor'] = 0.13025

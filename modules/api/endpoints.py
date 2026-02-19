@@ -1,4 +1,3 @@
-from typing import Optional
 from modules import shared
 from modules.api import models, helpers
 
@@ -43,7 +42,7 @@ def get_sd_models():
         checkpoints.append(model)
     return checkpoints
 
-def get_controlnets(model_type: Optional[str] = None):
+def get_controlnets(model_type: str | None = None):
     from modules.control.units.controlnet import api_list_models
     return api_list_models(model_type)
 
@@ -60,7 +59,7 @@ def get_embeddings():
         return models.ResEmbeddings(loaded=[], skipped=[])
     return models.ResEmbeddings(loaded=list(db.word_embeddings.keys()), skipped=list(db.skipped_embeddings.keys()))
 
-def get_extra_networks(page: Optional[str] = None, name: Optional[str] = None, filename: Optional[str] = None, title: Optional[str] = None, fullname: Optional[str] = None, hash: Optional[str] = None): # pylint: disable=redefined-builtin
+def get_extra_networks(page: str | None = None, name: str | None = None, filename: str | None = None, title: str | None = None, fullname: str | None = None, hash: str | None = None): # pylint: disable=redefined-builtin
     res = []
     for pg in shared.extra_networks:
         if page is not None and pg.name != page.lower():

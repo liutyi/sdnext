@@ -671,4 +671,4 @@ class DeepDanbooruModel(nn.Module):
 
     def load_state_dict(self, state_dict, **kwargs): # pylint: disable=arguments-differ,unused-argument
         self.tags = state_dict.get('tags', [])
-        super(DeepDanbooruModel, self).load_state_dict({k: v for k, v in state_dict.items() if k != 'tags'}) # pylint: disable=R1725
+        super().load_state_dict({k: v for k, v in state_dict.items() if k != 'tags'}) # pylint: disable=R1725

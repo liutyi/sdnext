@@ -4,7 +4,7 @@ import threading
 import torch
 import numpy as np
 from PIL import Image
-from modules import modelloader, devices, shared
+from modules import modelloader, devices, shared, paths
 
 re_special = re.compile(r'([\\()])')
 load_lock = threading.Lock()
@@ -18,7 +18,7 @@ class DeepDanbooru:
         with load_lock:
             if self.model is not None:
                 return
-            model_path = os.path.join(shared.models_path, "DeepDanbooru")
+            model_path = os.path.join(paths.models_path, "DeepDanbooru")
             shared.log.debug(f'Caption load: module=DeepDanbooru folder="{model_path}"')
             files = modelloader.load_models(
                 model_path=model_path,
@@ -96,7 +96,7 @@ class DeepDanbooru:
             x = torch.from_numpy(a).to(device=devices.device, dtype=devices.dtype)
             y = self.model(x)[0].detach().float().cpu().numpy()
         probability_dict = {}
-        for current, probability in zip(self.model.tags, y):
+        for current, probability in zip(self.model.tags, y, strict=False):
             if probability < general_threshold:
                 continue
             if current.startswith("rating:") and not include_rating:

@@ -57,7 +57,7 @@ def create_ui():
 
                 def add_copy_image_controls(tab_name, elem):
                     with gr.Row(variant="compact", elem_id=f"img2img_copy_{tab_name}_row"):
-                        for title, name in zip(['➠ Image', '➠ Inpaint', '➠ Sketch', '➠ Composite'], ['img2img', 'inpaint', 'sketch', 'composite']):
+                        for title, name in zip(['➠ Image', '➠ Inpaint', '➠ Sketch', '➠ Composite'], ['img2img', 'inpaint', 'sketch', 'composite'], strict=False):
                             if name == tab_name:
                                 gr.Button(title, elem_id=f'{tab_name}_copy_to_{name}', interactive=False)
                                 copy_image_destinations[name] = elem

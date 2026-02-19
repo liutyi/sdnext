@@ -119,7 +119,7 @@ def create_dirty_indicator(key, keys_to_reset, **kwargs):
 
 def run_settings(*args):
     changed = []
-    for key, value, comp in zip(shared.opts.data_labels.keys(), args, components):
+    for key, value, comp in zip(shared.opts.data_labels.keys(), args, components, strict=False):
         if comp == dummy_component or value=='dummy': # or getattr(comp, 'visible', True) is False or key in hidden_list:
             # actual = shared.opts.data.get(key, None)  # ensure the key is in data
             # default = shared.opts.data_labels[key].default
@@ -173,7 +173,9 @@ def run_settings_single(value, key, progress=False):
     return get_value_for_setting(key), shared.opts.dumpjson()
 
 
-def create_ui(disabled_tabs=[]):
+def create_ui(disabled_tabs=None):
+    if disabled_tabs is None:
+        disabled_tabs = []
     shared.log.debug('UI initialize: tab=settings')
     global text_settings # pylint: disable=global-statement
     text_settings = gr.Textbox(elem_id="settings_json", elem_classes=["settings_json"], value=lambda: shared.opts.dumpjson(), visible=False)

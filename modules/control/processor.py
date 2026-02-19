@@ -46,11 +46,17 @@ def preprocess_image(
         input_mask:Image.Image = None,
         input_type:str = 0,
         unit_type:str = 'controlnet',
-        active_process:list = [],
-        active_model:list = [],
-        selected_models:list = [],
+        active_process:list = None,
+        active_model:list = None,
+        selected_models:list = None,
         has_models:bool = False,
     ):
+    if selected_models is None:
+        selected_models = []
+    if active_model is None:
+        active_model = []
+    if active_process is None:
+        active_process = []
     t0 = time.time()
     jobid = shared.state.begin('Preprocess')
 

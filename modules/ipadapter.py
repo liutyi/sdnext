@@ -288,7 +288,19 @@ def parse_params(p: processing.StableDiffusionProcessing, adapters: list, adapte
     return adapter_images, adapter_masks, adapter_scales, adapter_crops, adapter_starts, adapter_ends
 
 
-def apply(pipe, p: processing.StableDiffusionProcessing, adapter_names=[], adapter_scales=[1.0], adapter_crops=[False], adapter_starts=[0.0], adapter_ends=[1.0], adapter_images=[]):
+def apply(pipe, p: processing.StableDiffusionProcessing, adapter_names=None, adapter_scales=None, adapter_crops=None, adapter_starts=None, adapter_ends=None, adapter_images=None):
+    if adapter_images is None:
+        adapter_images = []
+    if adapter_ends is None:
+        adapter_ends = [1.0]
+    if adapter_starts is None:
+        adapter_starts = [0.0]
+    if adapter_crops is None:
+        adapter_crops = [False]
+    if adapter_scales is None:
+        adapter_scales = [1.0]
+    if adapter_names is None:
+        adapter_names = []
     global adapters_loaded # pylint: disable=global-statement
     # overrides
     if hasattr(p, 'ip_adapter_names'):
@@ -361,7 +373,7 @@ def apply(pipe, p: processing.StableDiffusionProcessing, adapter_names=[], adapt
                 if adapter_starts[i] > 0:
                     adapter_scales[i] = 0.00
             pipe.set_ip_adapter_scale(adapter_scales if len(adapter_scales) > 1 else adapter_scales[0])
-            ip_str =  [f'{os.path.splitext(adapter)[0]}:{scale}:{start}:{end}:{crop}' for adapter, scale, start, end, crop in zip(adapter_names, adapter_scales, adapter_starts, adapter_ends, adapter_crops)]
+            ip_str =  [f'{os.path.splitext(adapter)[0]}:{scale}:{start}:{end}:{crop}' for adapter, scale, start, end, crop in zip(adapter_names, adapter_scales, adapter_starts, adapter_ends, adapter_crops, strict=False)]
         if hasattr(pipe, 'transformer') and 'Nunchaku' in pipe.transformer.__class__.__name__:
             if isinstance(repos, str):
                 sd_models.clear_caches(full=True)

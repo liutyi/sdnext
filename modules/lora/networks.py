@@ -11,7 +11,11 @@ applied_layers: list[str] = []
 default_components = ['text_encoder', 'text_encoder_2', 'text_encoder_3', 'text_encoder_4', 'unet', 'transformer', 'transformer_2']
 
 
-def network_activate(include=[], exclude=[]):
+def network_activate(include=None, exclude=None):
+    if exclude is None:
+        exclude = []
+    if include is None:
+        include = []
     t0 = time.time()
     with limit_errors("network_activate"):
         sd_model = getattr(shared.sd_model, "pipe", shared.sd_model)
@@ -77,7 +81,11 @@ def network_activate(include=[], exclude=[]):
         sd_models.set_diffuser_offload(sd_model, op="model")
 
 
-def network_deactivate(include=[], exclude=[]):
+def network_deactivate(include=None, exclude=None):
+    if exclude is None:
+        exclude = []
+    if include is None:
+        include = []
     if not shared.opts.lora_fuse_native or shared.opts.lora_force_diffusers:
         return
     if len(l.previously_loaded_networks) == 0:

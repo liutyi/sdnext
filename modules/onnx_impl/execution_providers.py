@@ -1,6 +1,5 @@
 import sys
 from enum import Enum
-from typing import Tuple, List
 from installer import log
 from modules import devices
 
@@ -33,7 +32,7 @@ TORCH_DEVICE_TO_EP = {
 
 try:
     import onnxruntime as ort
-    available_execution_providers: List[ExecutionProvider] = ort.get_available_providers()
+    available_execution_providers: list[ExecutionProvider] = ort.get_available_providers()
 except Exception as e:
     log.error(f'ONNX import error: {e}')
     available_execution_providers = []
@@ -90,7 +89,7 @@ def get_execution_provider_options():
     return execution_provider_options
 
 
-def get_provider() -> Tuple:
+def get_provider() -> tuple:
     from modules.shared import opts
     return (opts.onnx_execution_provider, get_execution_provider_options(),)
 

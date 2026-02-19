@@ -72,7 +72,7 @@ def get_custom_args():
     rec('args')
 
 
-@lru_cache()
+@lru_cache
 def commit_hash(): # compatbility function
     global stored_commit_hash # pylint: disable=global-statement
     if stored_commit_hash is not None:
@@ -85,7 +85,7 @@ def commit_hash(): # compatbility function
     return stored_commit_hash
 
 
-@lru_cache()
+@lru_cache
 def run(command, desc=None, errdesc=None, custom_env=None, live=False): # compatbility function
     if desc is not None:
         installer.log.info(desc)
@@ -94,7 +94,7 @@ def run(command, desc=None, errdesc=None, custom_env=None, live=False): # compat
         if result.returncode != 0:
             raise RuntimeError(f"""{errdesc or 'Error running command'} Command: {command} Error code: {result.returncode}""")
         return ''
-    result = subprocess.run(command, stdout=subprocess.PIPE, check=False, stderr=subprocess.PIPE, shell=True, env=os.environ if custom_env is None else custom_env)
+    result = subprocess.run(command, capture_output=True, check=False, shell=True, env=os.environ if custom_env is None else custom_env)
     if result.returncode != 0:
         raise RuntimeError(f"""{errdesc or 'Error running command'}: {command} code: {result.returncode}
 {result.stdout.decode(encoding="utf8", errors="ignore") if len(result.stdout)>0 else ''}
@@ -104,26 +104,26 @@ def run(command, desc=None, errdesc=None, custom_env=None, live=False): # compat
 
 
 def check_run(command): # compatbility function
-    result = subprocess.run(command, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    result = subprocess.run(command, check=False, capture_output=True, shell=True)
     return result.returncode == 0
 
 
-@lru_cache()
+@lru_cache
 def is_installed(pkg): # compatbility function
     return installer.installed(pkg)
 
 
-@lru_cache()
+@lru_cache
 def repo_dir(name): # compatbility function
     return os.path.join(script_path, dir_repos, name)
 
 
-@lru_cache()
+@lru_cache
 def run_python(code, desc=None, errdesc=None): # compatbility function
     return run(f'"{sys.executable}" -c "{code}"', desc, errdesc)
 
 
-@lru_cache()
+@lru_cache
 def run_pip(pkg, desc=None): # compatbility function
     forbidden = ['onnxruntime', 'opencv-python']
     if desc is None:
@@ -136,7 +136,7 @@ def run_pip(pkg, desc=None): # compatbility function
     return run(f'"{sys.executable}" -m pip {pkg} --prefer-binary{index_url_line}', desc=f"Installing {desc}", errdesc=f"Couldn't install {desc}")
 
 
-@lru_cache()
+@lru_cache
 def check_run_python(code): # compatbility function
     return check_run(f'"{sys.executable}" -c "{code}"')
 

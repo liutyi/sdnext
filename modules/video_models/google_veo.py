@@ -43,7 +43,7 @@ def get_size_buckets(width: int, height: int) -> str:
     return closest_size, closest_aspect_ratio
 
 
-class GoogleVeoVideoPipeline():
+class GoogleVeoVideoPipeline:
     def __init__(self, model_name: str):
         self.model = model_name
         self.client = None

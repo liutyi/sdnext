@@ -2,7 +2,6 @@ import gradio as gr
 import gradio.routes
 import gradio.utils
 from modules import errors, timer, gr_hijack, shared, script_callbacks, ui_common, ui_symbols, ui_javascript, ui_sections, generation_parameters_copypaste, call_queue, scripts_manager
-from modules.paths import script_path, data_path # pylint: disable=unused-import
 from modules.api import mime
 
 

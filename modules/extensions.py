@@ -186,7 +186,7 @@ class Extension:
                 continue
             priority = '50'
             if os.path.isfile(os.path.join(dirpath, "..", ".priority")):
-                with open(os.path.join(dirpath, "..", ".priority"), "r", encoding="utf-8") as f:
+                with open(os.path.join(dirpath, "..", ".priority"), encoding="utf-8") as f:
                     priority = str(f.read().strip())
             res.append(scripts_manager.ScriptFile(self.path, filename, os.path.join(dirpath, filename), priority))
             if priority != '50':

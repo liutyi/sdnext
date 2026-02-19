@@ -1,7 +1,6 @@
 import os
 import math
 import time
-import typing
 from collections import OrderedDict
 import torch
 from compel.embeddings_provider import BaseTextualInversionManager, EmbeddingsProvider
@@ -85,7 +84,7 @@ class PromptEmbedder:
             return
         seen_prompts = {}
         # per prompt in batch
-        for batchidx, (prompt, negative_prompt) in enumerate(zip(self.prompts, self.negative_prompts)):
+        for batchidx, (prompt, negative_prompt) in enumerate(zip(self.prompts, self.negative_prompts, strict=False)):
             self.prepare_schedule(prompt, negative_prompt)
             schedule_key = (
                 tuple(self.positive_schedule) if self.positive_schedule is not None else None,
@@ -300,7 +299,7 @@ class PromptEmbedder:
         return None
 
 
-def compel_hijack(self, token_ids: torch.Tensor, attention_mask: typing.Optional[torch.Tensor] = None) -> torch.Tensor:
+def compel_hijack(self, token_ids: torch.Tensor, attention_mask: torch.Tensor | None = None) -> torch.Tensor:
     needs_hidden_states = self.returned_embeddings_type != 1
     text_encoder_output = self.text_encoder(token_ids, attention_mask, output_hidden_states=needs_hidden_states, return_dict=True)
 
@@ -323,7 +322,7 @@ def compel_hijack(self, token_ids: torch.Tensor, attention_mask: typing.Optional
     return hidden_state
 
 
-def sd3_compel_hijack(self, token_ids: torch.Tensor, attention_mask: typing.Optional[torch.Tensor] = None) -> torch.Tensor:
+def sd3_compel_hijack(self, token_ids: torch.Tensor, attention_mask: torch.Tensor | None = None) -> torch.Tensor:
     needs_hidden_states = True
     text_encoder_output = self.text_encoder(token_ids, attention_mask, output_hidden_states=needs_hidden_states, return_dict=True)
     clip_skip = int(self.returned_embeddings_type)
@@ -353,10 +352,10 @@ class DiffusersTextualInversionManager(BaseTextualInversionManager):
 
     # code from
     # https://github.com/huggingface/diffusers/blob/705c592ea98ba4e288d837b9cba2767623c78603/src/diffusers/loaders.py
-    def maybe_convert_prompt(self, prompt: typing.Union[str, typing.List[str]], tokenizer: PreTrainedTokenizer):
-        prompts = [prompt] if not isinstance(prompt, typing.List) else prompt
+    def maybe_convert_prompt(self, prompt: str | list[str], tokenizer: PreTrainedTokenizer):
+        prompts = [prompt] if not isinstance(prompt, list) else prompt
         prompts = [self._maybe_convert_prompt(p, tokenizer) for p in prompts]
-        if not isinstance(prompt, typing.List):
+        if not isinstance(prompt, list):
             return prompts[0]
         return prompts
 
@@ -378,7 +377,7 @@ class DiffusersTextualInversionManager(BaseTextualInversionManager):
         debug(f'Prompt: convert="{prompt}"')
         return prompt
 
-    def expand_textual_inversion_token_ids_if_necessary(self, token_ids: typing.List[int]) -> typing.List[int]:
+    def expand_textual_inversion_token_ids_if_necessary(self, token_ids: list[int]) -> list[int]:
         if len(token_ids) == 0:
             return token_ids
         prompt = self.pipe.tokenizer.decode(token_ids)
@@ -470,7 +469,7 @@ def get_prompts_with_weights(pipe, prompt: str):
     texts_and_weights = prompt_parser.parse_prompt_attention(prompt)
     if shared.opts.prompt_mean_norm:
         texts_and_weights = normalize_prompt(texts_and_weights)
-    texts, text_weights = zip(*texts_and_weights)
+    texts, text_weights = zip(*texts_and_weights, strict=False)
     avg_weight = 0
     min_weight = 1
     max_weight = 0
@@ -478,7 +477,7 @@ def get_prompts_with_weights(pipe, prompt: str):
 
     try:
         all_tokens = 0
-        for text, weight in zip(texts, text_weights):
+        for text, weight in zip(texts, text_weights, strict=False):
             tokens = get_tokens(pipe, 'section', text)
             all_tokens += tokens
             avg_weight += tokens*weight
@@ -627,8 +626,8 @@ def get_weighted_text_embeddings(pipe, prompt: str = "", neg_prompt: str = "", c
         ps = 2 * [get_prompts_with_weights(pipe, prompt)]
         ns = 2 * [get_prompts_with_weights(pipe, neg_prompt)]
 
-    positives, positive_weights = zip(*ps)
-    negatives, negative_weights = zip(*ns)
+    positives, positive_weights = zip(*ps, strict=False)
+    negatives, negative_weights = zip(*ns, strict=False)
     if hasattr(pipe, "tokenizer_2") and not hasattr(pipe, "tokenizer"):
         positives.pop(0)
         positive_weights.pop(0)

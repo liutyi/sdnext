@@ -73,8 +73,12 @@ def is_stepwise(en_obj):
     return any([len(str(x).split("@")) > 1 for x in all_args]) # noqa C419 # pylint: disable=use-a-generator
 
 
-def activate(p, extra_network_data=None, step=0, include=[], exclude=[]):
+def activate(p, extra_network_data=None, step=0, include=None, exclude=None):
     """call activate for extra networks in extra_network_data in specified order, then call activate for all remaining registered networks with an empty argument list"""
+    if exclude is None:
+        exclude = []
+    if include is None:
+        include = []
     if p.disable_extra_networks:
         return
     extra_network_data = extra_network_data or p.network_data

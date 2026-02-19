@@ -22,7 +22,6 @@ _triton_ok = False
 def check_sharpfin():
     global _sharpfin_checked, _sharpfin_ok, _triton_ok  # pylint: disable=global-statement
     if not _sharpfin_checked:
-        from modules.sharpfin.functional import scale  # pylint: disable=unused-import
         _sharpfin_ok = True
         try:
             from modules.sharpfin import TRITON_AVAILABLE

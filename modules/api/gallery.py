@@ -2,7 +2,6 @@ import io
 import os
 import time
 import base64
-from typing import List, Union
 from urllib.parse import quote, unquote
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -52,7 +51,7 @@ class ConnectionManager:
         debug(f'Browser WS disconnect: client={ws.client.host}')
         self.active.remove(ws)
 
-    async def send(self, ws: WebSocket, data: Union[str, dict, bytes]):
+    async def send(self, ws: WebSocket, data: str | dict | bytes):
         # debug(f'Browser WS send: client={ws.client.host} data={type(data)}')
         if ws.client_state != WebSocketState.CONNECTED:
             return
@@ -65,7 +64,7 @@ class ConnectionManager:
         else:
             debug(f'Browser WS send: client={ws.client.host} data={type(data)} unknown')
 
-    async def broadcast(self, data: Union[str, dict, bytes]):
+    async def broadcast(self, data: str | dict | bytes):
         for ws in self.active:
             await self.send(ws, data)
 
@@ -206,7 +205,7 @@ def register_api(app: FastAPI): # register api
             shared.log.error(f'Gallery: {folder} {e}')
             return []
 
-    shared.api.add_api_route("/sdapi/v1/browser/folders", get_folders, methods=["GET"], response_model=List[str])
+    shared.api.add_api_route("/sdapi/v1/browser/folders", get_folders, methods=["GET"], response_model=list[str])
     shared.api.add_api_route("/sdapi/v1/browser/thumb", get_thumb, methods=["GET"], response_model=dict)
     shared.api.add_api_route("/sdapi/v1/browser/files", ht_files, methods=["GET"], response_model=list)
 

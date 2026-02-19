@@ -171,7 +171,7 @@ def draw_grid_annotations(im, width, height, x_texts, y_texts, margin=0, title=N
     calc_img = Image.new("RGB", (1, 1), shared.opts.grid_background)
     calc_d = ImageDraw.Draw(calc_img)
     title_texts = [title] if title else [[GridAnnotation()]]
-    for texts, allowed_width in zip(x_texts + y_texts + title_texts, [width] * len(x_texts) + [pad_left] * len(y_texts) + [(width+margin)*cols]):
+    for texts, allowed_width in zip(x_texts + y_texts + title_texts, [width] * len(x_texts) + [pad_left] * len(y_texts) + [(width+margin)*cols], strict=False):
         items = [] + texts
         texts.clear()
         for line in items:

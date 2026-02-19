@@ -129,7 +129,7 @@ if __name__ == '__main__':
     import sys
     if len(sys.argv) > 1:
         if os.path.exists(sys.argv[1]):
-            with open(sys.argv[1], 'r', encoding='utf8') as f:
+            with open(sys.argv[1], encoding='utf8') as f:
                 parse(f.read())
         else:
             parse(sys.argv[1])

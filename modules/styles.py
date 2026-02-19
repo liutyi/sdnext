@@ -5,14 +5,13 @@ import csv
 import json
 import time
 import random
-from typing import Dict
 from modules import files_cache, shared, infotext, sd_models, sd_vae
 
 
 debug_enabled = os.environ.get('SD_STYLES_DEBUG', None) is not None
 
 
-class Style():
+class Style:
     def __init__(self, name: str, desc: str = "", prompt: str = "", negative_prompt: str = "", extra: str = "", wildcards: str = "", filename: str = "", preview: str = "", mtime: float = 0):
         self.name = name
         self.description = desc
@@ -50,7 +49,7 @@ def select_from_weighted_list(inner: str) -> str:
         return ''
 
     parts = [p.strip() for p in inner.split('|') if p.strip()]
-    weighted: Dict[str, float] = {}
+    weighted: dict[str, float] = {}
     unweighted = []
 
     for p in parts:
@@ -102,7 +101,7 @@ def select_from_weighted_list(inner: str) -> str:
     if total <= 0.0:
         return items[0][0]
 
-    names, weights = zip(*items)
+    names, weights = zip(*items, strict=False)
     return random.choices(names, weights=weights, k=1)[0]
 
 
@@ -130,7 +129,11 @@ def apply_curly_braces_to_prompt(prompt, seed=-1):
     return prompt
 
 
-def apply_file_wildcards(prompt, replaced = [], not_found = [], recursion=0, seed=-1):
+def apply_file_wildcards(prompt, replaced = None, not_found = None, recursion=0, seed=-1):
+    if not_found is None:
+        not_found = []
+    if replaced is None:
+        replaced = []
     def check_wildcard_files(prompt, wildcard, files, file_only=True):
         trimmed = wildcard.replace('\\', os.path.sep).replace('/', os.path.sep).strip().lower()
         for file in files:
@@ -141,7 +144,7 @@ def apply_file_wildcards(prompt, replaced = [], not_found = [], recursion=0, see
             paths.insert(0, os.path.splitext(file)[0].lower())
             if (trimmed in paths) or (os.path.sep in trimmed and trimmed in paths[0]):
                 try:
-                    with open(file, 'r', encoding='utf-8') as f:
+                    with open(file, encoding='utf-8') as f:
                         lines = f.readlines()
                         lines = [line.split('#')[0].strip('\n').strip() for line in lines]
                         lines = [line for line in lines if len(line) > 0]
@@ -317,7 +320,7 @@ class StyleDatabase:
                 pass
 
     def load_style(self, fn, prefix=None):
-        with open(fn, 'r', encoding='utf-8') as f:
+        with open(fn, encoding='utf-8') as f:
             new_style = None
             try:
                 all_styles = json.load(f)
@@ -508,7 +511,7 @@ class StyleDatabase:
     def load_csv(self, legacy_file):
         if not os.path.isfile(legacy_file):
             return
-        with open(legacy_file, "r", encoding="utf-8-sig", newline='') as file:
+        with open(legacy_file, encoding="utf-8-sig", newline='') as file:
             reader = csv.DictReader(file, skipinitialspace=True)
             num = 0
             for row in reader:

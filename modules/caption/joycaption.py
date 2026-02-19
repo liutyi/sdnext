@@ -39,7 +39,7 @@ Extra Options:
 """
 
 @dataclass
-class JoyOptions():
+class JoyOptions:
     repo: str = "fancyfeast/llama-joycaption-alpha-two-hf-llava"
     temp: float = 0.5
     top_k: float = 10

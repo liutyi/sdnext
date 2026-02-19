@@ -1,6 +1,5 @@
 import os
 import sys
-from typing import List, Union
 import cv2
 from PIL import Image
 from modules.control import util # helper functions
@@ -141,12 +140,12 @@ def set_pipe(p, has_models, unit_type, selected_models, active_model, active_str
 
 
 def check_active(p, unit_type, units):
-    active_process: List[processors.Processor] = [] # all active preprocessors
-    active_model: List[Union[controlnet.ControlNet, xs.ControlNetXS, t2iadapter.Adapter]] = [] # all active models
-    active_strength: List[float] = [] # strength factors for all active models
-    active_start: List[float] = [] # start step for all active models
-    active_end: List[float] = [] # end step for all active models
-    active_units: List[unit.Unit] = [] # all active units
+    active_process: list[processors.Processor] = [] # all active preprocessors
+    active_model: list[controlnet.ControlNet | xs.ControlNetXS | t2iadapter.Adapter] = [] # all active models
+    active_strength: list[float] = [] # strength factors for all active models
+    active_start: list[float] = [] # start step for all active models
+    active_end: list[float] = [] # end step for all active models
+    active_units: list[unit.Unit] = [] # all active units
     num_units = 0
     for u in units:
         if u.type != unit_type:
@@ -218,7 +217,7 @@ def check_active(p, unit_type, units):
 
 def check_enabled(p, unit_type, units, active_model, active_strength, active_start, active_end):
     has_models = False
-    selected_models: List[Union[controlnet.ControlNetModel, xs.ControlNetXSModel, t2iadapter.AdapterModel]] = None
+    selected_models: list[controlnet.ControlNetModel | xs.ControlNetXSModel | t2iadapter.AdapterModel] = None
     control_conditioning = None
     control_guidance_start = None
     control_guidance_end = None
@@ -254,7 +253,7 @@ def control_set(kwargs):
         p_extra_args[k] = v
 
 
-def init_units(units: List[unit.Unit]):
+def init_units(units: list[unit.Unit]):
     for u in units:
         if not u.enabled:
             continue
@@ -271,9 +270,9 @@ def init_units(units: List[unit.Unit]):
 
 
 def control_run(state: str = '', # pylint: disable=keyword-arg-before-vararg
-                units: List[unit.Unit] = [], inputs: List[Image.Image] = [], inits: List[Image.Image] = [], mask: Image.Image = None, unit_type: str = None, is_generator: bool = True,
+                units: list[unit.Unit] = None, inputs: list[Image.Image] = None, inits: list[Image.Image] = None, mask: Image.Image = None, unit_type: str = None, is_generator: bool = True,
                 input_type: int = 0,
-                prompt: str = '', negative_prompt: str = '', styles: List[str] = [],
+                prompt: str = '', negative_prompt: str = '', styles: list[str] = None,
                 steps: int = 20, sampler_index: int = None,
                 seed: int = -1, subseed: int = -1, subseed_strength: float = 0, seed_resize_from_h: int = -1, seed_resize_from_w: int = -1,
                 guidance_name: str = 'Default', guidance_scale: float = 6.0, guidance_rescale: float = 0.0, guidance_start: float = 0.0, guidance_stop: float = 1.0,
@@ -289,11 +288,23 @@ def control_run(state: str = '', # pylint: disable=keyword-arg-before-vararg
                 enable_hr: bool = False, hr_sampler_index: int = None, hr_denoising_strength: float = 0.0, hr_resize_mode: int = 0, hr_resize_context: str = 'None', hr_upscaler: str = None, hr_force: bool = False, hr_second_pass_steps: int = 20,
                 hr_scale: float = 1.0, hr_resize_x: int = 0, hr_resize_y: int = 0, refiner_steps: int = 5, refiner_start: float = 0.0, refiner_prompt: str = '', refiner_negative: str = '',
                 video_skip_frames: int = 0, video_type: str = 'None', video_duration: float = 2.0, video_loop: bool = False, video_pad: int = 0, video_interpolate: int = 0,
-                extra: dict = {},
+                extra: dict = None,
                 override_script_name: str = None,
-                override_script_args = [],
+                override_script_args = None,
                 *input_script_args,
         ):
+    if override_script_args is None:
+        override_script_args = []
+    if extra is None:
+        extra = {}
+    if styles is None:
+        styles = []
+    if inits is None:
+        inits = []
+    if inputs is None:
+        inputs = []
+    if units is None:
+        units = []
     global pipe, original_pipeline # pylint: disable=global-statement
     if 'refine' in state:
         enable_hr = True
@@ -303,7 +314,7 @@ def control_run(state: str = '', # pylint: disable=keyword-arg-before-vararg
     init_units(units)
     if inputs is None or (type(inputs) is list and len(inputs) == 0):
         inputs = [None]
-    output_images: List[Image.Image] = [] # output images
+    output_images: list[Image.Image] = [] # output images
     processed_image: Image.Image = None # last processed image
     if mask is not None and input_type == 0:
         input_type = 1 # inpaint always requires control_image

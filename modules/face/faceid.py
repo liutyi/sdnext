@@ -1,4 +1,3 @@
-from typing import List
 import os
 import cv2
 import torch
@@ -34,7 +33,7 @@ def hijack_load_ip_adapter(self):
 def face_id(
     p: processing.StableDiffusionProcessing,
     app,
-    source_images: List[Image.Image],
+    source_images: list[Image.Image],
     model: str,
     override: bool,
     cache: bool,

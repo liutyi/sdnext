@@ -161,7 +161,7 @@ def update_settings(*settings):
     update(['Depth Pro', 'params', 'color_map'], settings[28])
 
 
-class Processor():
+class Processor:
     def __init__(self, processor_id: str = None, resize = True):
         self.model = None
         self.processor_id = None
@@ -268,7 +268,9 @@ class Processor():
             display(e, 'Control Processor load')
             return f'Processor load filed: {processor_id}'
 
-    def __call__(self, image_input: Image, mode: str = 'RGB', width: int = 0, height: int = 0, resize_mode: int = 0, resize_name: str = 'None', scale_tab: int = 1, scale_by: float = 1.0, local_config: dict = {}):
+    def __call__(self, image_input: Image, mode: str = 'RGB', width: int = 0, height: int = 0, resize_mode: int = 0, resize_name: str = 'None', scale_tab: int = 1, scale_by: float = 1.0, local_config: dict = None):
+        if local_config is None:
+            local_config = {}
         if self.override is not None:
             debug(f'Control Processor: id="{self.processor_id}" override={self.override}')
             width = image_input.width if image_input is not None else width

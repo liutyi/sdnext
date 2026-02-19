@@ -1,5 +1,4 @@
 from types import SimpleNamespace
-from typing import List
 import os
 import sys
 import time
@@ -235,7 +234,7 @@ def run_segment(input_image: gr.Image, input_mask: np.ndarray):
     combined_mask = np.zeros(input_mask.shape, dtype='uint8')
     input_mask_size = np.count_nonzero(input_mask)
     debug(f'Segment SAM: {vars(opts)}')
-    for mask, score in zip(outputs['masks'], outputs['scores']):
+    for mask, score in zip(outputs['masks'], outputs['scores'], strict=False):
         mask = mask.astype('uint8')
         mask_size = np.count_nonzero(mask)
         if mask_size == 0:
@@ -561,7 +560,7 @@ def create_segment_ui():
         return controls
 
 
-def bind_controls(image_controls: List[gr.Image], preview_image: gr.Image, output_image: gr.Image):
+def bind_controls(image_controls: list[gr.Image], preview_image: gr.Image, output_image: gr.Image):
     for image_control in image_controls:
         btn_mask.click(run_mask, inputs=[image_control], outputs=[preview_image])
         btn_lama.click(run_lama, inputs=[image_control], outputs=[output_image])

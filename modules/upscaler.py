@@ -1,7 +1,7 @@
 import os
 from abc import abstractmethod
 from PIL import Image
-from modules import modelloader, shared
+from modules import modelloader, shared, paths
 
 
 models = None
@@ -39,14 +39,13 @@ class Upscaler:
         if self.user_path is not None and len(self.user_path) > 0 and not os.path.exists(self.user_path):
             shared.log.info(f'Upscaler create: folder="{self.user_path}"')
         if self.model_path is None and self.name:
-            self.model_path = os.path.join(shared.models_path, self.name)
+            self.model_path = os.path.join(paths.models_path, self.name)
         try:
             if self.model_path and create_dirs:
                 os.makedirs(self.model_path, exist_ok=True)
         except Exception:
             pass
         try:
-            import cv2  # pylint: disable=unused-import
             self.can_tile = True
         except Exception:
             pass

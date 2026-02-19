@@ -346,7 +346,7 @@ def create_ui():
                         preset = interpolate(presets, ratio)
                     else:
                         preset = presets[0]
-                    preset = ['%.3f' % x if int(x) != x else str(x) for x in preset] # pylint: disable=consider-using-f-string
+                    preset = [f'{x:.3f}' if int(x) != x else str(x) for x in preset] # pylint: disable=consider-using-f-string
                     preset = [preset[0], ",".join(preset[1:13]), preset[13], ",".join(preset[14:])]
                     return [gr.update(value=x) for x in preset] + [gr.update(selected=2)]
 
@@ -498,7 +498,7 @@ def create_ui():
 
                 def civitai_download(model_urls, model_names, model_types, model_path, civit_token, model_output):
                     from modules.civitai.download_civitai import download_civit_model
-                    for model_url, model_name, model_type in zip(model_urls, model_names, model_types):
+                    for model_url, model_name, model_type in zip(model_urls, model_names, model_types, strict=False):
                         msg = f"<h4>Initiating download</h4><div>{model_name} | {model_type} | <a href='{model_url}'>{model_url}</a></div><br>"
                         yield msg + model_output
                         download_civit_model(model_url, model_name, model_path, model_type, civit_token)

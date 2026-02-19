@@ -43,8 +43,10 @@ def worker(
         mp4_fps, mp4_codec, mp4_sf, mp4_video, mp4_frames, mp4_opt, mp4_ext, mp4_interpolate,
         vae_type,
         variant,
-        metadata:dict={},
+        metadata:dict=None,
     ):
+    if metadata is None:
+        metadata = {}
     timer.process.reset()
     memstats.reset_stats()
     if stream is None or shared.state.interrupted or shared.state.skipped:

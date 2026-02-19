@@ -90,7 +90,7 @@ def initialize():
     timer.startup.record("te")
 
     modules.modelloader.cleanup_models()
-    modules.sd_models.setup_model()
+    modules.sd_checkpoint.setup_model()
     timer.startup.record("models")
 
     from modules.lora import lora_load

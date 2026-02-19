@@ -365,7 +365,7 @@ def reprocess(gallery):
     shared.log.info(f'Reprocessing: latent={latent.shape}')
     reprocessed = vae_decode(latent, shared.sd_model, output_type='pil')
     outputs = []
-    for i0, i1 in zip(gallery, reprocessed):
+    for i0, i1 in zip(gallery, reprocessed, strict=False):
         if isinstance(i1, np.ndarray):
             i1 = Image.fromarray(i1)
         fn = i0['name']

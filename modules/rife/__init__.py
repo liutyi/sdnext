@@ -12,7 +12,7 @@ from torch.nn import functional as F
 from tqdm.rich import tqdm
 from modules.rife.ssim import ssim_matlab
 from modules.rife.model_rife import RifeModel
-from modules import devices, shared
+from modules import devices, shared, paths
 
 
 model_url = 'https://github.com/vladmandic/rife/raw/main/model/flownet-v46.pkl'
@@ -23,7 +23,7 @@ def load(model_path: str = 'rife/flownet-v46.pkl'):
     global model # pylint: disable=global-statement
     if model is None:
         from modules import modelloader
-        model_dir = os.path.join(shared.models_path, 'RIFE')
+        model_dir = os.path.join(paths.models_path, 'RIFE')
         model_path = modelloader.load_file_from_url(url=model_url, model_dir=model_dir, file_name='flownet-v46.pkl')
         shared.log.debug(f'Video interpolate: model="{model_path}"')
         model = RifeModel()
@@ -104,7 +104,7 @@ def interpolate(images: list, count: int = 2, scale: float = 1.0, pad: int = 1, 
                 else:
                     output = execute(I0, I1, count-1)
                 for mid in output:
-                    mid = (((mid[0] * 255.0).byte().cpu().numpy().transpose(1, 2, 0)))
+                    mid = ((mid[0] * 255.0).byte().cpu().numpy().transpose(1, 2, 0))
                     buffer.put(mid[:h, :w])
                 buffer.put(frame)
                 pbar.update(1)

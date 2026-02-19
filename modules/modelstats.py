@@ -28,7 +28,7 @@ def stat(fn: str):
     return size, mtime
 
 
-class Module():
+class Module:
     name: str = ''
     cls: str = None
     device: str = None
@@ -61,7 +61,7 @@ class Module():
         return s
 
 
-class Model():
+class Model:
     name: str = ''
     fn: str = ''
     type: str = ''

@@ -1,4 +1,3 @@
-from typing import Union
 from PIL import Image
 import gradio as gr
 from installer import log
@@ -7,7 +6,6 @@ from modules.control.units import controlnet
 from modules.control.units import xs
 from modules.control.units import lite
 from modules.control.units import t2iadapter
-from modules.control.units import reference # pylint: disable=unused-import
 
 
 default_device = None
@@ -16,7 +14,7 @@ unit_types = ['t2i adapter', 'controlnet', 'xs', 'lite', 'reference', 'ip']
 current = []
 
 
-class Unit(): # mashup of gradio controls and mapping to actual implementation classes
+class Unit: # mashup of gradio controls and mapping to actual implementation classes
     def update_choices(self, model_id=None):
         name = model_id or self.model_name
         if name == 'InstantX Union F1':
@@ -57,8 +55,10 @@ class Unit(): # mashup of gradio controls and mapping to actual implementation c
                  control_mode = None,
                  control_tile = None,
                  result_txt = None,
-                 extra_controls: list = [],
+                 extra_controls: list = None,
         ):
+        if extra_controls is None:
+            extra_controls = []
         self.model_id = model_id
         self.process_id = process_id
         self.controls = [gr.Label(value=unit_type, visible=False)] # separator
@@ -77,7 +77,7 @@ class Unit(): # mashup of gradio controls and mapping to actual implementation c
         self.process_name = None
         self.process: processors.Processor = processors.Processor()
         self.adapter: t2iadapter.Adapter = None
-        self.controlnet: Union[controlnet.ControlNet, xs.ControlNetXS] = None
+        self.controlnet: controlnet.ControlNet | xs.ControlNetXS = None
         # map to input image
         self.override: Image = None
         # global settings but passed per-unit

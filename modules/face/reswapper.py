@@ -1,4 +1,3 @@
-from typing import List
 import os
 import cv2
 import torch
@@ -43,8 +42,8 @@ def get_model(model_name: str):
 def reswapper(
     p: processing.StableDiffusionProcessing,
     app,
-    source_images: List[Image.Image],
-    target_images: List[Image.Image],
+    source_images: list[Image.Image],
+    target_images: list[Image.Image],
     model_name: str,
     original: bool,
 ):

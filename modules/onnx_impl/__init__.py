@@ -16,7 +16,7 @@ except Exception as e:
 
 
 class DynamicSessionOptions(ort.SessionOptions):
-    config: Optional[Dict] = None
+    config: dict | None = None
 
     def __init__(self):
         super().__init__()
@@ -28,7 +28,7 @@ class DynamicSessionOptions(ort.SessionOptions):
             return sess_options.copy()
         return DynamicSessionOptions()
 
-    def enable_static_dims(self, config: Dict):
+    def enable_static_dims(self, config: dict):
         self.config = config
         self.add_free_dimension_override_by_name("unet_sample_batch", config["hidden_batch_size"])
         self.add_free_dimension_override_by_name("unet_sample_channels", 4)
@@ -103,9 +103,9 @@ class OnnxRuntimeModel(TorchCompatibleModule, diffusers.OnnxRuntimeModel):
 
 class VAEConfig:
     DEFAULTS = { "scaling_factor": 0.18215 }
-    config: Dict
+    config: dict
 
-    def __init__(self, config: Dict):
+    def __init__(self, config: dict):
         self.config = config
 
     def __getattr__(self, key):

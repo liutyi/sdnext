@@ -10,7 +10,7 @@ def load_nunchaku(names, strengths):
     global previously_loaded # pylint: disable=global-statement
     strengths = [s[0] if isinstance(s, list) else s for s in strengths]
     networks = lora_load.gather_networks(names)
-    networks = [(network, strength) for network, strength in zip(networks, strengths) if network is not None and strength > 0]
+    networks = [(network, strength) for network, strength in zip(networks, strengths, strict=False) if network is not None and strength > 0]
     loras = [(network.filename, strength) for network, strength in networks]
     is_changed = loras != previously_loaded
     if not is_changed:

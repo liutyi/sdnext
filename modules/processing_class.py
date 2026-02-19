@@ -2,7 +2,7 @@ import os
 import sys
 import inspect
 import hashlib
-from typing import Any, Dict, List
+from typing import Any
 from dataclasses import dataclass, field
 import numpy as np
 from PIL import Image, ImageOps
@@ -51,7 +51,7 @@ class StableDiffusionProcessing:
                  pag_scale: float = 0.0,
                  pag_adaptive: float = 0.5,
                  # styles
-                 styles: List[str] = [],
+                 styles: list[str] = None,
                  # vae
                  tiling: bool = False,
                  vae_type: str = 'Full',
@@ -79,8 +79,8 @@ class StableDiffusionProcessing:
                  hdr_color_picker: str = None,
                  hdr_tint_ratio: float = 0,
                  # img2img
-                 init_images: list = [],
-                 init_control: list = [],
+                 init_images: list = None,
+                 init_control: list = None,
                  denoising_strength: float = 0.3,
                  image_cfg_scale: float = None,
                  initial_noise_multiplier: float = None, # pylint: disable=unused-argument # a1111 compatibility
@@ -150,9 +150,9 @@ class StableDiffusionProcessing:
                  # xyz flag
                  xyz: bool = False,
                  # scripts
-                 script_args: list = [],
+                 script_args: list = None,
                  # overrides
-                 override_settings: Dict[str, Any] = {},
+                 override_settings: dict[str, Any] = None,
                  override_settings_restore_afterwards: bool = True,
                  # metadata
                  # extra_generation_params: Dict[Any, Any] = {},
@@ -161,6 +161,16 @@ class StableDiffusionProcessing:
                  **kwargs,
                 ):
 
+        if override_settings is None:
+            override_settings = {}
+        if script_args is None:
+            script_args = []
+        if init_control is None:
+            init_control = []
+        if init_images is None:
+            init_images = []
+        if styles is None:
+            styles = []
         for k, v in kwargs.items():
             setattr(self, k, v)
 

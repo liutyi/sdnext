@@ -6,7 +6,6 @@ import ctypes
 import shutil
 import zipfile
 import urllib.request
-from typing import Union
 from installer import args, log
 from modules import rocm
 
@@ -23,7 +22,7 @@ HIPSDK_TARGETS = ['rocblas.dll', 'rocsolver.dll', 'rocsparse.dll', 'hipfft.dll',
 MIOpen_enabled = False
 
 path = os.path.abspath(os.environ.get('ZLUDA', '.zluda'))
-default_agent: Union[rocm.Agent, None] = None
+default_agent: rocm.Agent | None = None
 hipBLASLt_enabled = False
 
 

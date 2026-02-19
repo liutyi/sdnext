@@ -1,13 +1,11 @@
 import sys
-from typing import Union
-from modules.zluda_installer import core, default_agent # pylint: disable=unused-import
 
 
 PLATFORM = sys.platform
 do_nothing = lambda _: None # pylint: disable=unnecessary-lambda-assignment
 
 
-def test(device) -> Union[Exception, None]:
+def test(device) -> Exception | None:
     import torch
     device = torch.device(device)
     try:

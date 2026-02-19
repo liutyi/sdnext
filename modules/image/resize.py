@@ -1,4 +1,3 @@
-from typing import Union
 import sys
 import time
 import numpy as np
@@ -8,7 +7,7 @@ from modules import shared, upscaler
 from modules.image import sharpfin
 
 
-def resize_image(resize_mode: int, im: Union[Image.Image, torch.Tensor], width: int, height: int, upscaler_name: str=None, output_type: str='image', context: str=None):
+def resize_image(resize_mode: int, im: Image.Image | torch.Tensor, width: int, height: int, upscaler_name: str=None, output_type: str='image', context: str=None):
     upscaler_name = upscaler_name or shared.opts.upscaler_for_img2img
 
     def verify_image(image):
@@ -34,7 +33,7 @@ def resize_image(resize_mode: int, im: Union[Image.Image, torch.Tensor], width: 
             im = vae_decode(latents, shared.sd_model, output_type='pil', vae_type='Tiny')[0]
             return im
 
-    def resize(im: Union[Image.Image, torch.Tensor], w, h):
+    def resize(im: Image.Image | torch.Tensor, w, h):
         w, h = int(w), int(h)
         if upscaler_name is None or upscaler_name == "None" or (hasattr(im, 'mode') and im.mode == 'L'):
             return sharpfin.resize(im, (w, h), linearize=False) # force for mask

@@ -1,5 +1,4 @@
 import torch
-import diffusers
 from PIL import Image
 from modules import shared, devices
 from modules.upscaler import Upscaler, UpscalerData

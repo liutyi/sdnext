@@ -391,7 +391,7 @@ class ExtraNetworksPage:
             r = random.randint(100, 255)
             g = random.randint(100, 255)
             b = random.randint(100, 255)
-            return '#{:02x}{:02x}{:02x}'.format(r, g, b) # pylint: disable=consider-using-f-string
+            return f'#{r:02x}{g:02x}{b:02x}' # pylint: disable=consider-using-f-string
 
         try:
             onclick = f'cardClicked({item.get("prompt", None)})'
@@ -515,7 +515,7 @@ class ExtraNetworksPage:
             fn = os.path.splitext(path)[0] + '.txt'
             if os.path.exists(fn):
                 try:
-                    with open(fn, "r", encoding="utf-8", errors="replace") as f:
+                    with open(fn, encoding="utf-8", errors="replace") as f:
                         txt = f.read()
                         txt = re.sub('[<>]', '', txt)
                         return txt
@@ -588,7 +588,6 @@ def register_pages():
     if shared.opts.diffusers_enable_embed:
         from modules.ui_extra_networks_textual_inversion import ExtraNetworksPageTextualInversion
         register_page(ExtraNetworksPageTextualInversion())
-    from modules.video_models.models_def import models # pylint: disable=unused-import
 
 
 def get_pages(title=None):
@@ -1044,7 +1043,7 @@ def create_ui(container, button_parent, tabname, skip_indexing = False):
         params, text = get_last_args()
         if (not params) or (not text) or (len(text) == 0):
             if os.path.exists(paths.params_path):
-                with open(paths.params_path, "r", encoding="utf8") as file:
+                with open(paths.params_path, encoding="utf8") as file:
                     text = file.read()
             else:
                 text = ''
@@ -1062,7 +1061,7 @@ def create_ui(container, button_parent, tabname, skip_indexing = False):
         params, text = get_last_args()
         if (not params) or (not text) or (len(text) == 0):
             if os.path.exists(paths.params_path):
-                with open(paths.params_path, "r", encoding="utf8") as file:
+                with open(paths.params_path, encoding="utf8") as file:
                     text = file.read()
             else:
                 text = ''

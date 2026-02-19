@@ -4,13 +4,12 @@ import time
 import shutil
 import importlib
 import contextlib
-from typing import Dict
 from urllib.parse import urlparse
 import huggingface_hub as hf
 from installer import install, log
 from modules import shared, errors, files_cache
 from modules.upscaler import Upscaler
-from modules.paths import script_path, models_path
+from modules import paths
 
 
 loggedin = None
@@ -55,7 +54,7 @@ def hf_login(token=None):
     return True
 
 
-def download_diffusers_model(hub_id: str, cache_dir: str = None, download_config: Dict[str, str] = None, token = None, variant = None, revision = None, mirror = None, custom_pipeline = None):
+def download_diffusers_model(hub_id: str, cache_dir: str = None, download_config: dict[str, str] = None, token = None, variant = None, revision = None, mirror = None, custom_pipeline = None):
     if hub_id is None or len(hub_id) == 0:
         return None
     from diffusers import DiffusionPipeline
@@ -117,7 +116,7 @@ def load_diffusers_models(clear=True):
     # t0 = time.time()
     place = shared.opts.diffusers_dir
     if place is None or len(place) == 0 or not os.path.isdir(place):
-        place = os.path.join(models_path, 'Diffusers')
+        place = os.path.join(paths.models_path, 'Diffusers')
     if clear:
         diffuser_repos.clear()
     already_found = []
@@ -382,25 +381,25 @@ def cleanup_models():
     # This code could probably be more efficient if we used a tuple list or something to store the src/destinations
     # and then enumerate that, but this works for now. In the future, it'd be nice to just have every "model" scaler
     # somehow auto-register and just do these things...
-    root_path = script_path
-    src_path = models_path
-    dest_path = os.path.join(models_path, "Stable-diffusion")
+    root_path = paths.script_path
+    src_path = paths.models_path
+    dest_path = os.path.join(paths.models_path, "Stable-diffusion")
     # move_files(src_path, dest_path, ".ckpt")
     # move_files(src_path, dest_path, ".safetensors")
     src_path = os.path.join(root_path, "ESRGAN")
-    dest_path = os.path.join(models_path, "ESRGAN")
+    dest_path = os.path.join(paths.models_path, "ESRGAN")
     move_files(src_path, dest_path)
-    src_path = os.path.join(models_path, "BSRGAN")
-    dest_path = os.path.join(models_path, "ESRGAN")
+    src_path = os.path.join(paths.models_path, "BSRGAN")
+    dest_path = os.path.join(paths.models_path, "ESRGAN")
     move_files(src_path, dest_path, ".pth")
     src_path = os.path.join(root_path, "SwinIR")
-    dest_path = os.path.join(models_path, "SwinIR")
+    dest_path = os.path.join(paths.models_path, "SwinIR")
     move_files(src_path, dest_path)
     src_path = os.path.join(root_path, "repositories/latent-diffusion/experiments/pretrained_models/")
-    dest_path = os.path.join(models_path, "LDSR")
+    dest_path = os.path.join(paths.models_path, "LDSR")
     move_files(src_path, dest_path)
     src_path = os.path.join(root_path, "SCUNet")
-    dest_path = os.path.join(models_path, "SCUNet")
+    dest_path = os.path.join(paths.models_path, "SCUNet")
     move_files(src_path, dest_path)
 
 
@@ -430,7 +429,7 @@ def move_files(src_path: str, dest_path: str, ext_filter: str = None):
 def load_upscalers():
     # We can only do this 'magic' method to dynamically load upscalers if they are referenced, so we'll try to import any _model.py files before looking in __subclasses__
     t0 = time.time()
-    modules_dir = os.path.join(shared.script_path, "modules", "postprocess")
+    modules_dir = os.path.join(paths.script_path, "modules", "postprocess")
     for file in os.listdir(modules_dir):
         if "_model.py" in file:
             model_name = file.replace("_model.py", "")

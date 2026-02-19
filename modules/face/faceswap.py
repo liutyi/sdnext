@@ -1,4 +1,3 @@
-from typing import List
 import os
 import cv2
 import numpy as np
@@ -12,7 +11,7 @@ insightface_app = None
 swapper = None
 
 
-def face_swap(p: processing.StableDiffusionProcessing, app, input_images: List[Image.Image], source_image: Image.Image, cache: bool):
+def face_swap(p: processing.StableDiffusionProcessing, app, input_images: list[Image.Image], source_image: Image.Image, cache: bool):
     global swapper # pylint: disable=global-statement
     if swapper is None:
         import insightface.model_zoo

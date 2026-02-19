@@ -41,9 +41,8 @@ class UvicornServer(uvicorn.Server):
         self.start()
 
 
-class HypercornServer():
+class HypercornServer:
     def __init__(self, app: fastapi.FastAPI, listen = None, port = None, keyfile = None, certfile = None, loop = "auto", http = None):
-        import asyncio
         import hypercorn
         self.app: fastapi.FastAPI = app
         self.server: HypercornServer = None

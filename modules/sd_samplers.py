@@ -1,7 +1,6 @@
 import os
 import copy
 from modules import shared
-from modules.sd_samplers_common import samples_to_image_grid, sample_to_image # pylint: disable=unused-import
 
 
 debug = shared.log.trace if os.environ.get('SD_SAMPLER_DEBUG', None) is not None else lambda *args, **kwargs: None

@@ -65,7 +65,6 @@ def ipex_optimize(sd_model, apply_to_components=True, op="Model"):
 
 def optimize_openvino(sd_model, clear_cache=True):
     try:
-        from modules.intel.openvino import openvino_fx # pylint: disable=unused-import
         if clear_cache and shared.compiled_model_state is not None:
             shared.compiled_model_state.compiled_cache.clear()
             shared.compiled_model_state.req_cache.clear()
@@ -124,12 +123,10 @@ def compile_stablefast(sd_model):
         return sd_model
     config = sf.CompilationConfig.Default()
     try:
-        import xformers # pylint: disable=unused-import
         config.enable_xformers = True
     except Exception:
         pass
     try:
-        import triton # pylint: disable=unused-import
         config.enable_triton = True
     except Exception:
         pass
@@ -196,7 +193,7 @@ def compile_torch(sd_model, apply_to_components=True, op="Model"):
                 shared.compiled_model_state = CompiledModelState()
             return sd_model
         elif shared.opts.cuda_compile_backend ==  "migraphx":
-            import torch_migraphx # pylint: disable=unused-import
+            pass # pylint: disable=unused-import
         log_level = logging.WARNING if 'verbose' in shared.opts.cuda_compile_options else logging.CRITICAL # pylint: disable=protected-access
         if hasattr(torch, '_logging'):
             torch._logging.set_logs(dynamo=log_level, aot=log_level, inductor=log_level) # pylint: disable=protected-access

@@ -8,17 +8,16 @@ import contextlib
 from enum import Enum
 from typing import TYPE_CHECKING
 import gradio as gr
-from installer import log, print_dict, console, get_version # pylint: disable=unused-import
+from installer import log, print_dict # pylint: disable=unused-import
 log.debug('Initializing: shared module')
 
 import modules.memmon
 import modules.paths as paths
-from modules.json_helpers import readfile, writefile # pylint: disable=W0611
-from modules.shared_helpers import listdir, walk_files, html_path, html, req, total_tqdm # pylint: disable=W0611
+from modules.json_helpers import readfile # pylint: disable=W0611
+from modules.shared_helpers import listdir, req # pylint: disable=W0611
 from modules import errors, devices, shared_state, cmd_args, theme, history, files_cache
 from modules.shared_defaults import get_default_modes
-from modules.paths import models_path, script_path, data_path, sd_configs_path, sd_default_config, sd_model_file, default_sd_model_file, extensions_dir, extensions_builtin_dir # pylint: disable=W0611
-from modules.memstats import memory_stats, ram_stats # pylint: disable=unused-import
+from modules.memstats import memory_stats # pylint: disable=unused-import
 
 log.debug('Initializing: pipelines')
 from modules import shared_items
@@ -74,6 +73,9 @@ sdnq_quant_modes = ["int8", "int7", "int6", "uint5", "uint4", "uint3", "uint2", 
 sdnq_matmul_modes = ["auto", "int8", "float8_e4m3fn", "float16"]
 default_hfcache_dir = os.environ.get("SD_HFCACHEDIR", None) or os.path.join(paths.models_path, 'huggingface')
 state = shared_state.State()
+models_path = paths.models_path
+script_path = paths.script_path
+data_path = paths.data_path
 
 
 # early select backend
@@ -120,6 +122,7 @@ def list_checkpoint_titles():
 
 
 list_checkpoint_tiles = list_checkpoint_titles # alias for legacy typo
+default_sd_model_file = paths.default_sd_model_file
 default_checkpoint = list_checkpoint_titles()[0] if len(list_checkpoint_titles()) > 0 else "model.safetensors"
 
 
@@ -862,7 +865,6 @@ mem_mon = modules.memmon.MemUsageMonitor("MemMon", devices.device)
 history = history.History()
 if devices.backend == "directml":
     directml_do_hijack()
-from modules import sdnq # pylint: disable=unused-import # register to diffusers and transformers
 log.debug('Quantization: registered=SDNQ')
 
 try:

@@ -63,7 +63,7 @@ try:
 except Exception:
     pass
 try:
-    import torch.distributed.distributed_c10d as _c10d # pylint: disable=unused-import,ungrouped-imports
+    pass # pylint: disable=unused-import,ungrouped-imports
 except Exception:
     errors.log.warning('Loader: torch is not built with distributed support')
 
@@ -73,7 +73,6 @@ warnings.filterwarnings(action="ignore", category=UserWarning, module="torchvisi
 torchvision = None
 try:
     import torchvision # pylint: disable=W0611,C0411
-    import pytorch_lightning # pytorch_lightning should be imported after torch, but it re-enables warnings on import so import once to disable them # pylint: disable=W0611,C0411
 except Exception as e:
     errors.log.error(f'Loader: torchvision=={torchvision.__version__ if "torchvision" in sys.modules else None} {e}')
     if '_no_nep' in str(e):
@@ -100,7 +99,7 @@ if ".dev" in torch.__version__ or "+git" in torch.__version__:
 timer.startup.record("torch")
 
 try:
-    import bitsandbytes # pylint: disable=W0611,C0411
+    import bitsandbytes # pylint: disable=unused-import
     _bnb = True
 except Exception:
     _bnb = False
@@ -132,7 +131,6 @@ except Exception as e:
     errors.log.warning(f'Torch onnxruntime: {e}')
 timer.startup.record("onnx")
 
-from fastapi import FastAPI # pylint: disable=W0611,C0411
 timer.startup.record("fastapi")
 
 import gradio # pylint: disable=W0611,C0411
@@ -161,17 +159,16 @@ except Exception as e:
     sys.exit(1)
 
 try:
-    import pillow_jxl # pylint: disable=W0611,C0411
+    pass # pylint: disable=W0611,C0411
 except Exception:
     pass
-from PIL import Image # pylint: disable=W0611,C0411
 timer.startup.record("pillow")
 
 
 import cv2 # pylint: disable=W0611,C0411
 timer.startup.record("cv2")
 
-class _tqdm_cls():
+class _tqdm_cls:
     def __call__(self, *args, **kwargs):
         bar_format = 'Progress {rate_fmt}{postfix} {bar} {percentage:3.0f}% {n_fmt}/{total_fmt} {elapsed} {remaining} ' + '\x1b[38;5;71m' + '{desc}' + '\x1b[0m'
         return tqdm_lib.tqdm(*args, bar_format=bar_format, ncols=80, colour='#327fba', **kwargs)

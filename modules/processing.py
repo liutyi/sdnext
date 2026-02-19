@@ -5,7 +5,13 @@ import numpy as np
 from PIL import Image, ImageOps
 from modules import shared, devices, errors, images, scripts_manager, memstats, script_callbacks, extra_networks, detailer, sd_models, sd_checkpoint, sd_vae, processing_helpers, timer
 from modules.sd_hijack_hypertile import context_hypertile_vae, context_hypertile_unet
-from modules.processing_class import StableDiffusionProcessing, StableDiffusionProcessingTxt2Img, StableDiffusionProcessingImg2Img, StableDiffusionProcessingControl, StableDiffusionProcessingVideo # pylint: disable=unused-import
+from modules.processing_class import ( # pylint: disable=unused-import
+    StableDiffusionProcessing,
+    StableDiffusionProcessingTxt2Img,
+    StableDiffusionProcessingImg2Img,
+    StableDiffusionProcessingVideo,
+    StableDiffusionProcessingControl,
+)
 from modules.processing_info import create_infotext
 from modules.modeldata import model_data
 
@@ -433,7 +439,7 @@ def process_images_inner(p: StableDiffusionProcessing) -> Processed:
                 results = p.scripts.process_images(p)
                 if results is not None:
                     samples = results.images
-                    for script_image, script_infotext in zip(results.images, results.infotexts):
+                    for script_image, script_infotext in zip(results.images, results.infotexts, strict=False):
                         output_images.append(script_image)
                         infotexts.append(script_infotext)
 
@@ -467,7 +473,7 @@ def process_images_inner(p: StableDiffusionProcessing) -> Processed:
                 output_binary = samples.bytes
             else:
                 batch_images, batch_infotexts = process_samples(p, samples)
-                for batch_image, batch_infotext in zip(batch_images, batch_infotexts):
+                for batch_image, batch_infotext in zip(batch_images, batch_infotexts, strict=False):
                     if batch_image is not None and batch_image not in output_images:
                         output_images.append(batch_image)
                         infotexts.append(batch_infotext)

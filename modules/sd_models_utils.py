@@ -8,8 +8,7 @@ import torch
 import safetensors.torch
 
 from modules import paths, shared, errors
-from modules.sd_checkpoint import CheckpointInfo, select_checkpoint, list_models, checkpoints_list, checkpoint_titles, get_closest_checkpoint_match, model_hash, update_model_hashes, setup_model, write_metadata, read_metadata_from_safetensors # pylint: disable=unused-import
-from modules.sd_offload import disable_offload, set_diffuser_offload, apply_balanced_offload, set_accelerate # pylint: disable=unused-import
+from modules.sd_checkpoint import CheckpointInfo # pylint: disable=unused-import
 
 
 class NoWatermark:
@@ -124,11 +123,11 @@ def patch_diffuser_config(sd_model, model_file):
         cfg_file = f'{model_file}_{k}.json'
         try:
             if os.path.exists(cfg_file):
-                with open(cfg_file, 'r', encoding='utf-8') as f:
+                with open(cfg_file, encoding='utf-8') as f:
                     return json.load(f)
             cfg_file = f'{os.path.join(paths.sd_configs_path, os.path.basename(model_file))}_{k}.json'
             if os.path.exists(cfg_file):
-                with open(cfg_file, 'r', encoding='utf-8') as f:
+                with open(cfg_file, encoding='utf-8') as f:
                     return json.load(f)
         except Exception:
             pass

@@ -26,7 +26,9 @@ load_lock = threading.Lock()
 
 
 class YoloResult:
-    def __init__(self, cls: int, label: str, score: float, box: list[int], mask: Image.Image = None, item: Image.Image = None, width = 0, height = 0, args = {}):
+    def __init__(self, cls: int, label: str, score: float, box: list[int], mask: Image.Image = None, item: Image.Image = None, width = 0, height = 0, args = None):
+        if args is None:
+            args = {}
         self.cls = cls
         self.label = label
         self.score = score
@@ -138,7 +140,7 @@ class YoloRestorer(Detailer):
             masks = prediction.masks.data.cpu().float().numpy() if prediction.masks is not None else []
             if len(masks) < len(classes):
                 masks = len(classes) * [None]
-            for score, box, cls, seg in zip(scores, boxes, classes, masks):
+            for score, box, cls, seg in zip(scores, boxes, classes, masks, strict=False):
                 if seg is not None:
                     try:
                         seg = (255 * seg).astype(np.uint8)

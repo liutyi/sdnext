@@ -1,4 +1,3 @@
-from typing import List, Union
 import os
 import time
 import torch
@@ -83,7 +82,7 @@ def get_text_encoders():
     text_encoders = []
     tokenizers = []
     hidden_sizes = []
-    for te, tok in zip(te_names, tokenizers_names):
+    for te, tok in zip(te_names, tokenizers_names, strict=False):
         text_encoder = getattr(pipe, te, None)
         if text_encoder is None:
             continue
@@ -135,14 +134,14 @@ def insert_vectors(embedding, tokenizers, text_encoders, hiddensizes):
     this may cause collisions.
     """
     with devices.inference_context():
-        for vector, size in zip(embedding.vec, embedding.vector_sizes):
+        for vector, size in zip(embedding.vec, embedding.vector_sizes, strict=False):
             if size not in hiddensizes:
                 continue
             idx = hiddensizes.index(size)
             unk_token_id = tokenizers[idx].convert_tokens_to_ids(tokenizers[idx].unk_token)
             if text_encoders[idx].get_input_embeddings().weight.data.shape[0] != len(tokenizers[idx]):
                 text_encoders[idx].resize_token_embeddings(len(tokenizers[idx]))
-            for token, v in zip(embedding.tokens, vector.unbind()):
+            for token, v in zip(embedding.tokens, vector.unbind(), strict=False):
                 token_id = tokenizers[idx].convert_tokens_to_ids(token)
                 if token_id > unk_token_id:
                     text_encoders[idx].get_input_embeddings().weight.data[token_id] = v
@@ -254,7 +253,7 @@ class EmbeddingDatabase:
         self.ids_lookup[first_id] = sorted(self.ids_lookup[first_id] + [(ids, embedding)], key=lambda x: len(x[0]), reverse=True)
         return embedding
 
-    def load_diffusers_embedding(self, filename: Union[str, List[str]] = None, data: dict = None):
+    def load_diffusers_embedding(self, filename: str | list[str] = None, data: dict = None):
         """
         File names take precidence over bundled embeddings passed as a dict.
         Bundled embeddings are automatically set to overwrite previous embeddings.

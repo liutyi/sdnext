@@ -45,7 +45,7 @@ TBD
     see [docs](https://vladmandic.github.io/sdnext-docs/Python/) for details  
   - remove hard-dependnecies:  
     `clip, numba, skimage, torchsde, omegaconf, antlr, patch-ng, patch-ng, astunparse, addict, inflection, jsonmerge, kornia`,  
-    `resize-right, voluptuous, yapf, sqlalchemy, invisible-watermark, pi-heif, ftfy, blendmodes, PyWavelets`  
+    `resize-right, voluptuous, yapf, sqlalchemy, invisible-watermark, pi-heif, ftfy, blendmodes, PyWavelets, imp`  
     these are now installed on-demand when needed  
   - refactor: to/from image/tensor logic, thanks @CalamitousFelicitousness  
   - refactor: switch to `pyproject.toml` for tool configs  
@@ -57,6 +57,8 @@ TBD
   - refactor: unified command line parsing  
   - refactor: launch use threads to async execute non-critical tasks  
   - refactor: switch from deprecated `pkg_resources` to `importlib`  
+  - refactor: modernize typing and type annotations  
+  - refactor: improve `pydantic==2.x` compatibility  
   - update `lint` rules, thanks @awsr  
   - remove requirements: `clip`, `open-clip`  
   - update `requirements`  

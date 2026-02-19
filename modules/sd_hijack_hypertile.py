@@ -2,7 +2,7 @@
 # based on: https://github.com/tfernd/HyperTile/tree/main/hyper_tile/utils.py + https://github.com/tfernd/HyperTile/tree/main/hyper_tile/hyper_tile.py
 
 from __future__ import annotations
-from typing import Callable
+from collections.abc import Callable
 from functools import wraps, cache
 from contextlib import contextmanager, nullcontext
 import random

@@ -21,7 +21,7 @@ vl_chat_processor = None
 loaded_repo = None
 
 
-class fake_attrdict():
+class fake_attrdict:
     class AttrDict(dict):  # dot notation access to dictionary attributes
         __getattr__ = dict.get
         __setattr__ = dict.__setitem__

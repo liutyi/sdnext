@@ -1,6 +1,5 @@
 import os
 import enum
-from typing import Union
 from collections import namedtuple
 from modules import sd_models, hashes, shared
 
@@ -120,7 +119,7 @@ class NetworkOnDisk:
         if self.filename is not None:
             fn = os.path.splitext(self.filename)[0] + '.txt'
             if os.path.exists(fn):
-                with open(fn, "r", encoding="utf-8") as file:
+                with open(fn, encoding="utf-8") as file:
                     return file.read()
         return None
 
@@ -144,7 +143,7 @@ class Network:  # LoraModule
 
 
 class ModuleType:
-    def create_module(self, net: Network, weights: NetworkWeights) -> Union[Network, None]: # pylint: disable=W0613
+    def create_module(self, net: Network, weights: NetworkWeights) -> Network | None: # pylint: disable=W0613
         return None
 
 

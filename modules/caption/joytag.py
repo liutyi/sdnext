@@ -6,7 +6,6 @@ import os
 import math
 import json
 from pathlib import Path
-from typing import Optional
 from PIL import Image
 import torch
 import torch.backends.cuda
@@ -126,7 +125,7 @@ class VisionModel(nn.Module):
 
     @staticmethod
     def load_model(path: str) -> 'VisionModel':
-        with open(Path(path) / 'config.json', 'r', encoding='utf8') as f:
+        with open(Path(path) / 'config.json', encoding='utf8') as f:
             config = json.load(f)
         from safetensors.torch import load_file
         resume = load_file(Path(path) / 'model.safetensors', device='cpu')
@@ -244,7 +243,7 @@ class CLIPMlp(nn.Module):
 
 class FastCLIPAttention2(nn.Module):
     """Fast Attention module for CLIP-like. This is NOT a drop-in replacement for CLIPAttention, since it adds additional flexibility.  Mainly uses xformers."""
-    def __init__(self, hidden_size: int, out_dim: int, num_attention_heads: int, out_seq_len: Optional[int] = None, norm_qk: bool = False):
+    def __init__(self, hidden_size: int, out_dim: int, num_attention_heads: int, out_seq_len: int | None = None, norm_qk: bool = False):
         super().__init__()
         self.out_seq_len = out_seq_len
         self.embed_dim = hidden_size
@@ -308,12 +307,12 @@ class FastCLIPEncoderLayer(nn.Module):
         self,
         hidden_size: int,
         num_attention_heads: int,
-        out_seq_len: Optional[int],
+        out_seq_len: int | None,
         activation_cls = QuickGELUActivation,
         use_palm_alt: bool = False,
         norm_qk: bool = False,
-        skip_init: Optional[float] = None,
-        stochastic_depth: Optional[float] = None,
+        skip_init: float | None = None,
+        stochastic_depth: float | None = None,
     ):
         super().__init__()
         self.use_palm_alt = use_palm_alt
@@ -523,8 +522,8 @@ class CLIPLikeModel(VisionModel):
         norm_qk: bool = False,
         no_wd_bias: bool = False,
         use_gap_head: bool = False,
-        skip_init: Optional[float] = None,
-        stochastic_depth: Optional[float] = None,
+        skip_init: float | None = None,
+        stochastic_depth: float | None = None,
     ):
         super().__init__(image_size, n_tags)
         out_dim = n_tags
@@ -939,7 +938,7 @@ class ViT(VisionModel):
         stochdepth_rate: float,
         use_sine: bool,
         loss_type: str,
-        layerscale_init: Optional[float] = None,
+        layerscale_init: float | None = None,
         head_mean_after: bool = False,
         cnn_stem: str = None,
         patch_dropout: float = 0.0,
@@ -1048,7 +1047,7 @@ def load():
         model = VisionModel.load_model(folder)
         model.to(dtype=devices.dtype)
         model.eval()  # required: custom loader, not from_pretrained
-        with open(os.path.join(folder, 'top_tags.txt'), 'r', encoding='utf8') as f:
+        with open(os.path.join(folder, 'top_tags.txt'), encoding='utf8') as f:
             tags = [line.strip() for line in f.readlines() if line.strip()]
         shared.log.info(f'Caption: type=vlm model="JoyTag" repo="{MODEL_REPO}" tags={len(tags)}')
     sd_models.move_model(model, devices.device)

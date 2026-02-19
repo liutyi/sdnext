@@ -1,4 +1,3 @@
-from typing import List
 import os
 import re
 import numpy as np
@@ -19,7 +18,7 @@ def get_stepwise(param, step, steps): # from https://github.com/cheald/sd-webui-
             return steps[0][0]
         steps = [[s[0], s[1] if len(s) == 2 else 1] for s in steps] # Add implicit 1s to any steps which don't have a weight
         steps.sort(key=lambda k: k[1]) # Sort by index
-        steps = [list(v) for v in zip(*steps)]
+        steps = [list(v) for v in zip(*steps, strict=False)]
         return steps
 
     def calculate_weight(m, step, max_steps, step_offset=2):
@@ -170,10 +169,10 @@ class ExtraNetworkLora(extra_networks.ExtraNetwork):
         self.model = None
         self.errors = {}
 
-    def signature(self, names: List[str], te_multipliers: List, unet_multipliers: List):
-        return [f'{name}:{te}:{unet}' for name, te, unet in zip(names, te_multipliers, unet_multipliers)]
+    def signature(self, names: list[str], te_multipliers: list, unet_multipliers: list):
+        return [f'{name}:{te}:{unet}' for name, te, unet in zip(names, te_multipliers, unet_multipliers, strict=False)]
 
-    def changed(self, requested: List[str], include: List[str] = None, exclude: List[str] = None) -> bool:
+    def changed(self, requested: list[str], include: list[str] = None, exclude: list[str] = None) -> bool:
         if shared.opts.lora_force_reload:
             debug_log(f'Network check: type=LoRA requested={requested} status=forced')
             return True
@@ -190,7 +189,7 @@ class ExtraNetworkLora(extra_networks.ExtraNetwork):
             sd_model.loaded_loras[key] = requested
             debug_log(f'Network check: type=LoRA key="{key}" requested={requested} loaded={loaded} status=changed')
             return True
-        for req, load in zip(requested, loaded):
+        for req, load in zip(requested, loaded, strict=False):
             if req != load:
                 sd_model.loaded_loras[key] = requested
                 debug_log(f'Network check: type=LoRA key="{key}" requested={requested} loaded={loaded} status=changed')
@@ -198,7 +197,11 @@ class ExtraNetworkLora(extra_networks.ExtraNetwork):
         debug_log(f'Network check: type=LoRA key="{key}" requested={requested} loaded={loaded} status=same')
         return False
 
-    def activate(self, p, params_list, step=0, include=[], exclude=[]):
+    def activate(self, p, params_list, step=0, include=None, exclude=None):
+        if exclude is None:
+            exclude = []
+        if include is None:
+            include = []
         self.errors.clear()
         if self.active:
             if self.model != shared.opts.sd_model_checkpoint: # reset if model changed

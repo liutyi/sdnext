@@ -136,9 +136,11 @@ def atomic_save_video(filename: str,
                       pix_fmt:str='yuv420p',
                       options:str='',
                       aac:int=24000,
-                      metadata:dict={},
+                      metadata:dict=None,
                       pbar=None,
                     ):
+    if metadata is None:
+        metadata = {}
     av = check_av()
     if av is None or av is False:
         shared.log.error('Video: ffmpeg/av not available')
@@ -205,9 +207,11 @@ def save_video(
         mp4_interpolate:int=0, # rife interpolation
         aac_sample_rate:int=24000, # audio sample rate
         stream=None, # async progress reporting stream
-        metadata:dict={}, # metadata for video
+        metadata:dict=None, # metadata for video
         pbar=None, # progress bar for video
     ):
+    if metadata is None:
+        metadata = {}
     output_video = None
 
     if binary is not None:

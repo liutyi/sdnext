@@ -1,5 +1,6 @@
 import platform
-from typing import NamedTuple, Callable, Optional
+from typing import NamedTuple, Optional
+from collections.abc import Callable
 import torch
 from modules.errors import log
 from modules.sd_hijack_utils import CondFunc
@@ -86,8 +87,8 @@ def directml_do_hijack():
 
 class OverrideItem(NamedTuple):
     value: str
-    condition: Optional[Callable]
-    message: Optional[str]
+    condition: Callable | None
+    message: str | None
 
 
 opts_override_table = {

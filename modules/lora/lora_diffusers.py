@@ -1,4 +1,3 @@
-from typing import Union
 import os
 import time
 import diffusers
@@ -50,7 +49,7 @@ def load_per_module(sd_model: diffusers.DiffusionPipeline, filename: str, adapte
     return adapter_name
 
 
-def load_diffusers(name: str, network_on_disk: network.NetworkOnDisk, lora_scale:float=shared.opts.extra_networks_default_multiplier, lora_module=None) -> Union[network.Network, None]:
+def load_diffusers(name: str, network_on_disk: network.NetworkOnDisk, lora_scale:float=shared.opts.extra_networks_default_multiplier, lora_module=None) -> network.Network | None:
     t0 = time.time()
     name = name.replace(".", "_")
     sd_model: diffusers.DiffusionPipeline = getattr(shared.sd_model, "pipe", shared.sd_model)

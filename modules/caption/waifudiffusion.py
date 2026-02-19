@@ -126,7 +126,7 @@ class WaifuDiffusionTagger:
         self.tags = []
         self.tag_categories = []
 
-        with open(csv_path, 'r', encoding='utf-8') as f:
+        with open(csv_path, encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for row in reader:
                 self.tags.append(row['name'])
@@ -269,7 +269,7 @@ class WaifuDiffusionTagger:
         character_count = 0
         rating_count = 0
 
-        for i, (tag_name, prob) in enumerate(zip(self.tags, probs)):
+        for i, (tag_name, prob) in enumerate(zip(self.tags, probs, strict=False)):
             category = self.tag_categories[i]
             tag_lower = tag_name.lower()
 

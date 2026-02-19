@@ -10,7 +10,7 @@ full_html = False
 base_models = ['', 'AuraFlow', 'Chroma', 'CogVideoX', 'Flux.1 S', 'Flux.1 D', 'Flux.1 Krea', 'Flux.1 Kontext', 'Flux.2 D', 'HiDream', 'Hunyuan 1', 'Hunyuan Video', 'Illustrious', 'Kolors', 'LTXV', 'Lumina', 'Mochi', 'NoobAI', 'PixArt a', 'PixArt E', 'Pony', 'Pony V7', 'Qwen', 'SD 1.4', 'SD 1.5', 'SD 1.5 LCM', 'SD 1.5 Hyper', 'SD 2.0', 'SD 2.1', 'SDXL 1.0', 'SDXL Lightning', 'SDXL Hyper', 'Wan Video 1.3B t2v', 'Wan Video 14B t2v', 'Wan Video 14B i2v 480p', 'Wan Video 14B i2v 720p', 'Wan Video 2.2 TI2V-5B', 'Wan Video 2.2 I2V-A14B', 'Wan Video 2.2 T2V-A14B', 'Wan Video 2.5 T2V', 'Wan Video 2.5 I2V', 'ZImageTurbo', 'Other']
 
 @dataclass
-class ModelImage():
+class ModelImage:
     def __init__(self, dct: dict):
         if isinstance(dct, str):
             dct = json.loads(dct)
@@ -26,7 +26,7 @@ class ModelImage():
 
 
 @dataclass
-class ModelFile():
+class ModelFile:
     def __init__(self, dct: dict):
         if isinstance(dct, str):
             dct = json.loads(dct)
@@ -43,7 +43,7 @@ class ModelFile():
 
 
 @dataclass
-class ModelVersion():
+class ModelVersion:
     def __init__(self, dct: dict):
         import bs4
         if isinstance(dct, str):
@@ -65,7 +65,7 @@ class ModelVersion():
 
 
 @dataclass
-class Model():
+class Model:
     def __init__(self, dct: dict):
         import bs4
         if isinstance(dct, str):

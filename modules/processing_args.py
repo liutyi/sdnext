@@ -1,4 +1,3 @@
-import typing
 import os
 import re
 import math
@@ -9,7 +8,7 @@ import numpy as np
 from PIL import Image
 from modules import shared, sd_models, processing, processing_vae, processing_helpers, sd_hijack_hypertile, extra_networks, sd_vae
 from modules.processing_callbacks import diffusers_callback_legacy, diffusers_callback, set_callbacks_p
-from modules.processing_helpers import resize_hires, calculate_base_steps, calculate_hires_steps, calculate_refiner_steps, get_generator, set_latents, apply_circular # pylint: disable=unused-import
+from modules.processing_helpers import get_generator, apply_circular # pylint: disable=unused-import
 from modules.processing_prompt import set_prompt
 from modules.api import helpers
 
@@ -185,7 +184,7 @@ def get_params(model):
         return possible
 
 
-def set_pipeline_args(p, model, prompts:list, negative_prompts:list, prompts_2:typing.Optional[list]=None, negative_prompts_2:typing.Optional[list]=None, prompt_attention:typing.Optional[str]=None, desc:typing.Optional[str]='', **kwargs):
+def set_pipeline_args(p, model, prompts:list, negative_prompts:list, prompts_2:list | None=None, negative_prompts_2:list | None=None, prompt_attention:str | None=None, desc:str | None='', **kwargs):
     t0 = time.time()
     shared.sd_model = sd_models.apply_balanced_offload(shared.sd_model)
     argsid = shared.state.begin('Params')

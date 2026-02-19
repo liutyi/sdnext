@@ -1,4 +1,3 @@
-import typing
 import os
 import time
 import torch
@@ -33,7 +32,7 @@ def prompt_callback(step, kwargs):
     return kwargs
 
 
-def diffusers_callback_legacy(step: int, timestep: int, latents: typing.Union[torch.FloatTensor, np.ndarray]):
+def diffusers_callback_legacy(step: int, timestep: int, latents: torch.FloatTensor | np.ndarray):
     if p is None:
         return
     if isinstance(latents, np.ndarray): # latents from Onnx pipelines is ndarray.
@@ -51,7 +50,9 @@ def diffusers_callback_legacy(step: int, timestep: int, latents: typing.Union[to
             time.sleep(0.1)
 
 
-def diffusers_callback(pipe, step: int = 0, timestep: int = 0, kwargs: dict = {}):
+def diffusers_callback(pipe, step: int = 0, timestep: int = 0, kwargs: dict = None):
+    if kwargs is None:
+        kwargs = {}
     t0 = time.time()
     if devices.backend == "ipex":
         torch.xpu.synchronize(devices.device)

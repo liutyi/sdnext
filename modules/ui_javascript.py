@@ -55,7 +55,7 @@ def html_body():
 
 def html_login():
     fn = os.path.join(script_path, "javascript", "login.js")
-    with open(fn, 'r', encoding='utf8') as f:
+    with open(fn, encoding='utf8') as f:
         inline = f.read()
     js = f'<script type="text/javascript">{inline}</script>\n'
     return js
@@ -110,11 +110,11 @@ def reload_javascript():
 
     def template_response(*args, **kwargs):
         res = shared.GradioTemplateResponseOriginal(*args, **kwargs)
-        res.body = res.body.replace(b'<head>', f'<head>{title}'.encode("utf8"))
-        res.body = res.body.replace(b'</head>', f'{manifest}</head>'.encode("utf8"))
-        res.body = res.body.replace(b'</head>', f'{login}</head>'.encode("utf8"))
-        res.body = res.body.replace(b'</head>', f'{js}</head>'.encode("utf8"))
-        res.body = res.body.replace(b'</body>', f'{css}{body}</body>'.encode("utf8"))
+        res.body = res.body.replace(b'<head>', f'<head>{title}'.encode())
+        res.body = res.body.replace(b'</head>', f'{manifest}</head>'.encode())
+        res.body = res.body.replace(b'</head>', f'{login}</head>'.encode())
+        res.body = res.body.replace(b'</head>', f'{js}</head>'.encode())
+        res.body = res.body.replace(b'</body>', f'{css}{body}</body>'.encode())
         lines = res.body.decode("utf8").split('\n')
         for line in lines:
             if 'meta name="twitter:' in line:

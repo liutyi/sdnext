@@ -1,4 +1,4 @@
-from typing import overload, List, Optional
+from typing import overload
 import os
 import sys
 import json
@@ -106,10 +106,12 @@ def str_to_bool(val: str | bool | None) -> bool | None:
     return val
 
 
-def install_traceback(suppress: list = []):
+def install_traceback(suppress: list = None):
     from rich.traceback import install as traceback_install
     from rich.pretty import install as pretty_install
 
+    if suppress is None:
+        suppress = []
     width = os.environ.get("SD_TRACEWIDTH", console.width if console else None)
     if width is not None:
         width = int(width)
@@ -133,7 +135,7 @@ def setup_logging():
     from functools import partial, partialmethod
     from logging.handlers import RotatingFileHandler
     try:
-        import rich # pylint: disable=unused-import
+        pass # pylint: disable=unused-import
     except Exception:
         log.error('Please restart SD.Next so changes take effect')
         sys.exit(1)
@@ -187,7 +189,7 @@ def setup_logging():
         _Segment = Segment
         left = _Segment(" " * self.left, style) if self.left else None
         right = [_Segment.line()]
-        blank_line: Optional[List[Segment]] = None
+        blank_line: list[Segment] | None = None
         if self.top:
             blank_line = [_Segment(f'{" " * width}\n', style)]
             yield from blank_line * self.top
@@ -215,8 +217,10 @@ def setup_logging():
     logging.Logger.trace = partialmethod(logging.Logger.log, logging.TRACE)
     logging.trace = partial(logging.log, logging.TRACE)
 
-    def exception_hook(e: Exception, suppress=[]):
+    def exception_hook(e: Exception, suppress=None):
         from rich.traceback import Traceback
+        if suppress is None:
+            suppress = []
         tb = Traceback.from_exception(type(e), e, e.__traceback__, show_locals=False, max_frames=16, extra_lines=1, suppress=suppress, theme="ansi_dark", word_wrap=False, width=console.width)
         # print-to-console, does not get printed-to-file
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -416,7 +420,7 @@ def uninstall(package, quiet = False):
 
 
 def run(cmd: str, arg: str):
-    result = subprocess.run(f'"{cmd}" {arg}', shell=True, check=False, env=os.environ, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    result = subprocess.run(f'"{cmd}" {arg}', shell=True, check=False, env=os.environ, capture_output=True)
     txt = result.stdout.decode(encoding="utf8", errors="ignore")
     if len(result.stderr) > 0:
         txt += ('\n' if len(txt) > 0 else '') + result.stderr.decode(encoding="utf8", errors="ignore")
@@ -461,7 +465,7 @@ def pip(arg: str, ignore: bool = False, quiet: bool = True, uv = True):
     all_args = f'{pip_log}{arg} {env_args}'.strip()
     if not quiet:
         log.debug(f'Running: {pipCmd}="{all_args}"')
-    result = subprocess.run(f'"{sys.executable}" -m {pipCmd} {all_args}', shell=True, check=False, env=os.environ, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    result = subprocess.run(f'"{sys.executable}" -m {pipCmd} {all_args}', shell=True, check=False, env=os.environ, capture_output=True)
     txt = result.stdout.decode(encoding="utf8", errors="ignore")
     if len(result.stderr) > 0:
         if uv and result.returncode != 0:
@@ -509,7 +513,7 @@ def git(arg: str, folder: str = None, ignore: bool = False, optional: bool = Fal
     git_cmd = os.environ.get('GIT', "git")
     if git_cmd != "git":
         git_cmd = os.path.abspath(git_cmd)
-    result = subprocess.run(f'"{git_cmd}" {arg}', check=False, shell=True, env=os.environ, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=folder or '.')
+    result = subprocess.run(f'"{git_cmd}" {arg}', check=False, shell=True, env=os.environ, capture_output=True, cwd=folder or '.')
     stdout = result.stdout.decode(encoding="utf8", errors="ignore")
     if len(result.stderr) > 0:
         stdout += ('\n' if len(stdout) > 0 else '') + result.stderr.decode(encoding="utf8", errors="ignore")
@@ -639,7 +643,11 @@ def get_platform():
 
 
 # check python version
-def check_python(supported_minors=[], experimental_minors=[], reason=None):
+def check_python(supported_minors=None, experimental_minors=None, reason=None):
+    if experimental_minors is None:
+        experimental_minors = []
+    if supported_minors is None:
+        supported_minors = []
     if supported_minors is None or len(supported_minors) == 0:
         supported_minors = [10, 11, 12, 13]
         experimental_minors = [14]
@@ -911,8 +919,6 @@ def install_torch_addons():
     if 'xformers' in xformers_package:
         try:
             install(xformers_package, ignore=True, no_deps=True)
-            import torch # pylint: disable=unused-import
-            import xformers # pylint: disable=unused-import
         except Exception as e:
             log.debug(f'xFormers cannot install: {e}')
     elif not args.experimental and not args.use_xformers and opts.get('cross_attention_optimization', '') != 'xFormers':
@@ -1126,7 +1132,7 @@ def run_extension_installer(folder):
             if os.environ.get('PYTHONPATH', None) is not None:
                 seperator = ';' if sys.platform == 'win32' else ':'
                 env['PYTHONPATH'] += seperator + os.environ.get('PYTHONPATH', None)
-            result = subprocess.run(f'"{sys.executable}" "{path_installer}"', shell=True, env=env, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=folder)
+            result = subprocess.run(f'"{sys.executable}" "{path_installer}"', shell=True, env=env, check=False, capture_output=True, cwd=folder)
             txt = result.stdout.decode(encoding="utf8", errors="ignore")
             debug(f'Extension installer: file="{path_installer}" {txt}')
             if result.returncode != 0:
@@ -1265,7 +1271,7 @@ def ensure_base_requirements():
         local_log = logging.getLogger('sdnext.installer')
         global setuptools, distutils # pylint: disable=global-statement
         # python may ship with incompatible setuptools
-        subprocess.run(f'"{sys.executable}" -m pip install setuptools=={setuptools_version}', shell=True, check=False, env=os.environ, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(f'"{sys.executable}" -m pip install setuptools=={setuptools_version}', shell=True, check=False, env=os.environ, capture_output=True)
         # need to delete all references to modules to be able to reload them otherwise python will use cached version
         modules = [m for m in sys.modules if m.startswith('setuptools') or m.startswith('distutils')]
         for m in modules:
@@ -1399,7 +1405,7 @@ def install_requirements():
     log.info('Install: verifying requirements')
     if args.new:
         log.debug('Install: flag=new')
-    with open('requirements.txt', 'r', encoding='utf8') as f:
+    with open('requirements.txt', encoding='utf8') as f:
         lines = [line.strip() for line in f.readlines() if line.strip() != '' and not line.startswith('#') and line is not None]
         for line in lines:
             if not installed(line, quiet=True):
@@ -1495,20 +1501,20 @@ def get_version(force=False):
     t_start = time.time()
     if (version is None) or (version.get('branch', 'unknown') == 'unknown') or force:
         try:
-            subprocess.run('git config log.showsignature false', stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell=True, check=True)
+            subprocess.run('git config log.showsignature false', capture_output=True, shell=True, check=True)
         except Exception:
             pass
         try:
-            res = subprocess.run('git log --pretty=format:"%h %ad" -1 --date=short', stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell=True, check=True)
+            res = subprocess.run('git log --pretty=format:"%h %ad" -1 --date=short', capture_output=True, shell=True, check=True)
             ver = res.stdout.decode(encoding = 'utf8', errors='ignore') if len(res.stdout) > 0 else '  '
             commit, updated = ver.split(' ')
             version['commit'], version['updated'] = commit, updated
         except Exception as e:
             log.warning(f'Version: where=commit {e}')
         try:
-            res = subprocess.run('git remote get-url origin', stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell=True, check=True)
+            res = subprocess.run('git remote get-url origin', capture_output=True, shell=True, check=True)
             origin = res.stdout.decode(encoding = 'utf8', errors='ignore') if len(res.stdout) > 0 else ''
-            res = subprocess.run('git rev-parse --abbrev-ref HEAD', stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell=True, check=True)
+            res = subprocess.run('git rev-parse --abbrev-ref HEAD', capture_output=True, shell=True, check=True)
             branch_name = res.stdout.decode(encoding = 'utf8', errors='ignore') if len(res.stdout) > 0 else ''
             version['url'] = origin.replace('\n', '').removesuffix('.git') + '/tree/' + branch_name.replace('\n', '')
             version['branch'] = branch_name.replace('\n', '')
@@ -1520,7 +1526,7 @@ def get_version(force=False):
         try:
             if os.path.exists('extensions-builtin/sdnext-modernui'):
                 os.chdir('extensions-builtin/sdnext-modernui')
-                res = subprocess.run('git rev-parse --abbrev-ref HEAD', stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell=True, check=True)
+                res = subprocess.run('git rev-parse --abbrev-ref HEAD', capture_output=True, shell=True, check=True)
                 branch_ui = res.stdout.decode(encoding = 'utf8', errors='ignore') if len(res.stdout) > 0 else ''
                 branch_ui = 'dev' if 'dev' in branch_ui else 'main'
                 version['ui'] = branch_ui
@@ -1536,7 +1542,7 @@ def get_version(force=False):
                 version['kanvas'] = 'disabled'
             elif os.path.exists('extensions-builtin/sdnext-kanvas'):
                 os.chdir('extensions-builtin/sdnext-kanvas')
-                res = subprocess.run('git rev-parse --abbrev-ref HEAD', stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell=True, check=True)
+                res = subprocess.run('git rev-parse --abbrev-ref HEAD', capture_output=True, shell=True, check=True)
                 branch_kanvas = res.stdout.decode(encoding = 'utf8', errors='ignore') if len(res.stdout) > 0 else ''
                 branch_kanvas = 'dev' if 'dev' in branch_kanvas else 'main'
                 version['kanvas'] = branch_kanvas
@@ -1723,7 +1729,7 @@ def check_timestamp():
     ok = True
     setup_time = -1
     version_time = -1
-    with open(log_file, 'r', encoding='utf8') as f:
+    with open(log_file, encoding='utf8') as f:
         lines = f.readlines()
         for line in lines:
             if 'Setup complete without errors' in line:
@@ -1752,7 +1758,6 @@ def check_timestamp():
 
 
 def add_args(parser):
-    import argparse
     group_install = parser.add_argument_group('Install')
     group_install.add_argument('--quick', default=os.environ.get("SD_QUICK",False), action='store_true', help="Bypass version checks, default: %(default)s")
     group_install.add_argument('--reset', default=os.environ.get("SD_RESET",False), action='store_true', help="Reset main repository to latest version, default: %(default)s")
@@ -1832,7 +1837,7 @@ def read_options():
     t_start = time.time()
     global opts # pylint: disable=global-statement
     if os.path.isfile(args.config):
-        with open(args.config, "r", encoding="utf8") as file:
+        with open(args.config, encoding="utf8") as file:
             try:
                 opts = json.load(file)
                 if type(opts) is str:

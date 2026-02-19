@@ -1,4 +1,3 @@
-from typing import Union
 import os
 import time
 import concurrent
@@ -39,7 +38,7 @@ def lora_dump(lora, dct):
             f.write(line + "\n")
 
 
-def load_safetensors(name, network_on_disk: network.NetworkOnDisk) -> Union[network.Network, None]:
+def load_safetensors(name, network_on_disk: network.NetworkOnDisk) -> network.Network | None:
     if not shared.sd_loaded:
         return None
 
@@ -241,7 +240,7 @@ def network_load(names, te_multipliers=None, unet_multipliers=None, dyn_dims=Non
     lora_diffusers.diffuser_scales.clear()
     t0 = time.time()
 
-    for i, (network_on_disk, name) in enumerate(zip(networks_on_disk, names)):
+    for i, (network_on_disk, name) in enumerate(zip(networks_on_disk, names, strict=False)):
         net = None
         if network_on_disk is not None:
             shorthash = getattr(network_on_disk, 'shorthash', '').lower()

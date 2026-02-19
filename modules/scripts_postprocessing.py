@@ -4,7 +4,9 @@ from modules import errors, shared
 
 
 class PostprocessedImage:
-    def __init__(self, image, info = {}):
+    def __init__(self, image, info = None):
+        if info is None:
+            info = {}
         self.image = image
         self.info = info
 
@@ -99,7 +101,7 @@ class ScriptPostprocessingRunner:
             jobid = shared.state.begin(script.name)
             script_args = args[script.args_from:script.args_to]
             process_args = {}
-            for (name, _component), value in zip(script.controls.items(), script_args):
+            for (name, _component), value in zip(script.controls.items(), script_args, strict=False):
                 process_args[name] = value
             shared.log.debug(f'Process: script="{script.name}" args={process_args}')
             script.process(pp, **process_args)
@@ -129,7 +131,7 @@ class ScriptPostprocessingRunner:
             jobid = shared.state.begin(script.name)
             script_args = args[script.args_from:script.args_to]
             process_args = {}
-            for (name, _component), value in zip(script.controls.items(), script_args):
+            for (name, _component), value in zip(script.controls.items(), script_args, strict=False):
                 process_args[name] = value
             shared.log.debug(f'Postprocess: script={script.name} args={process_args}')
             script.postprocess(filenames, **process_args)

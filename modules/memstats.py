@@ -24,7 +24,7 @@ def get_docker_limit():
     if docker_limit is not None:
         return docker_limit
     try:
-        with open('/sys/fs/cgroup/memory/memory.limit_in_bytes', 'r', encoding='utf8') as f:
+        with open('/sys/fs/cgroup/memory/memory.limit_in_bytes', encoding='utf8') as f:
             docker_limit = float(f.read())
     except Exception:
         docker_limit = sys.float_info.max
@@ -145,7 +145,9 @@ class Object:
         return f'{self.fn}.{self.name} type={self.type} size={self.size} ref={self.refcount}'
 
 
-def get_objects(gcl={}, threshold:int=0):
+def get_objects(gcl=None, threshold:int=0):
+    if gcl is None:
+        gcl = {}
     objects = []
     seen = []
 

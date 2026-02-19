@@ -1,5 +1,4 @@
 import sys
-from typing import Union
 import torch
 from modules import shared, devices
 from modules.rocm import Agent
@@ -58,7 +57,7 @@ if sys.platform == "win32":
         from modules import zluda
         return zluda.core.to_hip_stream(_cuda_getCurrentRawStream(device))
 
-    def get_default_agent() -> Union[Agent, None]:
+    def get_default_agent() -> Agent | None:
         if shared.devices.has_rocm():
             return devices.get_hip_agent()
         else:

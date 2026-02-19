@@ -6,7 +6,7 @@ from installer import log
 
 
 @dataclass
-class Model():
+class Model:
     name: str
     url: str = ''
     repo: str = None

@@ -1,7 +1,15 @@
 import re
 import inspect
-from typing import Any, Optional, Dict, List, Type, Callable, Union
-from pydantic import BaseModel, Field, create_model # pylint: disable=no-name-in-module
+from typing import Any, Optional, Union
+from collections.abc import Callable
+import pydantic
+from pydantic import BaseModel, Field, create_model
+try:
+    from pydantic import ConfigDict
+    PYDANTIC_V2 = True
+except ImportError:
+    ConfigDict = None
+    PYDANTIC_V2 = False
 from modules.processing import StableDiffusionProcessingTxt2Img, StableDiffusionProcessingImg2Img
 import modules.shared as shared
 
@@ -41,8 +49,10 @@ class PydanticModelGenerator:
         model_name: str = None,
         class_instance = None,
         additional_fields = None,
-        exclude_fields: List = [],
+        exclude_fields: list = None,
     ):
+        if exclude_fields is None:
+            exclude_fields = []
         def field_type_generator(_k, v):
             field_type = v.annotation
             return Optional[field_type]
@@ -80,12 +90,15 @@ class PydanticModelGenerator:
 
     def generate_model(self):
         model_fields = { d.field: (d.field_type, Field(default=d.field_value, alias=d.field_alias, exclude=d.field_exclude)) for d in self._model_def }
-        DynamicModel = create_model(self._model_name, **model_fields)
-        try:
-            DynamicModel.__config__.allow_population_by_field_name = True
-            DynamicModel.__config__.allow_mutation = True
-        except Exception:
-            pass
+        if PYDANTIC_V2:
+            config = ConfigDict(arbitrary_types_allowed=True, from_attributes=True, populate_by_name=True)
+        else:
+            class Config:
+                arbitrary_types_allowed = True
+                orm_mode = True
+                allow_population_by_field_name = True
+            config = Config
+        DynamicModel = create_model(self._model_name, __config__=config, **model_fields)
         return DynamicModel
 
 ### item classes
@@ -100,49 +113,49 @@ class ItemVae(BaseModel):
 
 class ItemUpscaler(BaseModel):
     name: str = Field(title="Name")
-    model_name: Optional[str] = Field(title="Model Name")
-    model_path: Optional[str] = Field(title="Path")
-    model_url: Optional[str] = Field(title="URL")
-    scale: Optional[float] = Field(title="Scale")
+    model_name: str | None = Field(title="Model Name")
+    model_path: str | None = Field(title="Path")
+    model_url: str | None = Field(title="URL")
+    scale: float | None = Field(title="Scale")
 
 class ItemModel(BaseModel):
     title: str = Field(title="Title")
     model_name: str = Field(title="Model Name")
     filename: str = Field(title="Filename")
     type: str = Field(title="Model type")
-    sha256: Optional[str] = Field(title="SHA256 hash")
-    hash: Optional[str] = Field(title="Short hash")
-    config: Optional[str] = Field(title="Config file")
+    sha256: str | None = Field(title="SHA256 hash")
+    hash: str | None = Field(title="Short hash")
+    config: str | None = Field(title="Config file")
 
 class ItemHypernetwork(BaseModel):
     name: str = Field(title="Name")
-    path: Optional[str] = Field(title="Path")
+    path: str | None = Field(title="Path")
 
 class ItemDetailer(BaseModel):
     name: str = Field(title="Name")
-    path: Optional[str] = Field(title="Path")
+    path: str | None = Field(title="Path")
 
 class ItemGAN(BaseModel):
     name: str = Field(title="Name")
-    path: Optional[str] = Field(title="Path")
-    scale: Optional[int] = Field(title="Scale")
+    path: str | None = Field(title="Path")
+    scale: int | None = Field(title="Scale")
 
 class ItemStyle(BaseModel):
     name: str = Field(title="Name")
-    prompt: Optional[str] = Field(title="Prompt")
-    negative_prompt: Optional[str] = Field(title="Negative Prompt")
-    extra: Optional[str] = Field(title="Extra")
-    filename: Optional[str] = Field(title="Filename")
-    preview: Optional[str] = Field(title="Preview")
+    prompt: str | None = Field(title="Prompt")
+    negative_prompt: str | None = Field(title="Negative Prompt")
+    extra: str | None = Field(title="Extra")
+    filename: str | None = Field(title="Filename")
+    preview: str | None = Field(title="Preview")
 
 class ItemExtraNetwork(BaseModel):
     name: str = Field(title="Name")
     type: str = Field(title="Type")
-    title: Optional[str] = Field(title="Title")
-    fullname: Optional[str] = Field(title="Fullname")
-    filename: Optional[str] = Field(title="Filename")
-    hash: Optional[str] = Field(title="Hash")
-    preview: Optional[str] = Field(title="Preview image URL")
+    title: str | None = Field(title="Title")
+    fullname: str | None = Field(title="Fullname")
+    filename: str | None = Field(title="Filename")
+    hash: str | None = Field(title="Hash")
+    preview: str | None = Field(title="Preview image URL")
 
 class ItemArtist(BaseModel):
     name: str = Field(title="Name")
@@ -150,16 +163,16 @@ class ItemArtist(BaseModel):
     category: str = Field(title="Category")
 
 class ItemEmbedding(BaseModel):
-    step: Optional[int] = Field(title="Step", description="The number of steps that were used to train this embedding, if available")
-    sd_checkpoint: Optional[str] = Field(title="SD Checkpoint", description="The hash of the checkpoint this embedding was trained on, if available")
-    sd_checkpoint_name: Optional[str] = Field(title="SD Checkpoint Name", description="The name of the checkpoint this embedding was trained on, if available. Note that this is the name that was used by the trainer; for a stable identifier, use `sd_checkpoint` instead")
+    step: int | None = Field(title="Step", description="The number of steps that were used to train this embedding, if available")
+    sd_checkpoint: str | None = Field(title="SD Checkpoint", description="The hash of the checkpoint this embedding was trained on, if available")
+    sd_checkpoint_name: str | None = Field(title="SD Checkpoint Name", description="The name of the checkpoint this embedding was trained on, if available. Note that this is the name that was used by the trainer; for a stable identifier, use `sd_checkpoint` instead")
     shape: int = Field(title="Shape", description="The length of each individual vector in the embedding")
     vectors: int = Field(title="Vectors", description="The number of vectors in the embedding")
 
 class ItemIPAdapter(BaseModel):
     adapter: str = Field(title="Adapter", default="Base", description="IP adapter name")
-    images: List[str] = Field(title="Image", default=[], description="IP adapter input images")
-    masks: Optional[List[str]] = Field(title="Mask", default=[], description="IP adapter mask images")
+    images: list[str] = Field(title="Image", default=[], description="IP adapter input images")
+    masks: list[str] | None = Field(title="Mask", default=[], description="IP adapter mask images")
     scale: float = Field(title="Scale", default=0.5, ge=0, le=1, description="IP adapter scale")
     start: float = Field(title="Start", default=0.0, ge=0, le=1, description="IP adapter start step")
     end: float = Field(title="End", default=1.0, gt=0, le=1, description="IP adapter end step")
@@ -183,17 +196,17 @@ class ItemFace(BaseModel):
 
 class ScriptArg(BaseModel):
     label: str = Field(default=None, title="Label", description="Name of the argument in UI")
-    value: Optional[Any] = Field(default=None, title="Value", description="Default value of the argument")
-    minimum: Optional[Any] = Field(default=None, title="Minimum", description="Minimum allowed value for the argumentin UI")
-    maximum: Optional[Any] = Field(default=None, title="Minimum", description="Maximum allowed value for the argumentin UI")
-    step: Optional[Any] = Field(default=None, title="Minimum", description="Step for changing value of the argumentin UI")
-    choices: Optional[Any] = Field(default=None, title="Choices", description="Possible values for the argument")
+    value: Any | None = Field(default=None, title="Value", description="Default value of the argument")
+    minimum: Any | None = Field(default=None, title="Minimum", description="Minimum allowed value for the argumentin UI")
+    maximum: Any | None = Field(default=None, title="Minimum", description="Maximum allowed value for the argumentin UI")
+    step: Any | None = Field(default=None, title="Minimum", description="Step for changing value of the argumentin UI")
+    choices: Any | None = Field(default=None, title="Choices", description="Possible values for the argument")
 
 class ItemScript(BaseModel):
     name: str = Field(default=None, title="Name", description="Script name")
     is_alwayson: bool = Field(default=None, title="IsAlwayson", description="Flag specifying whether this script is an alwayson script")
     is_img2img: bool = Field(default=None, title="IsImg2img", description="Flag specifying whether this script is an img2img script")
-    args: List[ScriptArg] = Field(title="Arguments", description="List of script's arguments")
+    args: list[ScriptArg] = Field(title="Arguments", description="List of script's arguments")
 
 class ItemExtension(BaseModel):
     name: str = Field(title="Name", description="Extension name")
@@ -201,13 +214,13 @@ class ItemExtension(BaseModel):
     branch: str = Field(default="uknnown", title="Branch", description="Extension Repository Branch")
     commit_hash: str = Field(title="Commit Hash", description="Extension Repository Commit Hash")
     version: str = Field(title="Version", description="Extension Version")
-    commit_date: Union[str, int] = Field(title="Commit Date", description="Extension Repository Commit Date")
+    commit_date: str | int = Field(title="Commit Date", description="Extension Repository Commit Date")
     enabled: bool = Field(title="Enabled", description="Flag specifying whether this extension is enabled")
 
 class ItemScheduler(BaseModel):
     name: str = Field(title="Name", description="Scheduler name")
     cls: str = Field(title="Class", description="Scheduler class name")
-    options: Dict[str, Any] = Field(title="Options", description="Dictionary of scheduler options")
+    options: dict[str, Any] = Field(title="Options", description="Dictionary of scheduler options")
 
 ### request/response classes
 
@@ -223,7 +236,7 @@ ReqTxt2Img = PydanticModelGenerator(
         {"key": "send_images", "type": bool, "default": True},
         {"key": "save_images", "type": bool, "default": False},
         {"key": "alwayson_scripts", "type": dict, "default": {}},
-        {"key": "ip_adapter", "type": Optional[List[ItemIPAdapter]], "default": None, "exclude": True},
+        {"key": "ip_adapter", "type": Optional[list[ItemIPAdapter]], "default": None, "exclude": True},
         {"key": "face", "type": Optional[ItemFace], "default": None, "exclude": True},
         {"key": "extra", "type": Optional[dict], "default": {}, "exclude": True},
     ]
@@ -233,7 +246,7 @@ if not hasattr(ReqTxt2Img, "__config__"):
 StableDiffusionTxt2ImgProcessingAPI = ReqTxt2Img
 
 class ResTxt2Img(BaseModel):
-    images: List[str] = Field(default=None, title="Image", description="The generated images in base64 format.")
+    images: list[str] = Field(default=None, title="Image", description="The generated images in base64 format.")
     parameters: dict
     info: str
 
@@ -253,7 +266,7 @@ ReqImg2Img = PydanticModelGenerator(
         {"key": "send_images", "type": bool, "default": True},
         {"key": "save_images", "type": bool, "default": False},
         {"key": "alwayson_scripts", "type": dict, "default": {}},
-        {"key": "ip_adapter", "type": Optional[List[ItemIPAdapter]], "default": None, "exclude": True},
+        {"key": "ip_adapter", "type": Optional[list[ItemIPAdapter]], "default": None, "exclude": True},
         {"key": "face_id", "type": Optional[ItemFace], "default": None, "exclude": True},
         {"key": "extra", "type": Optional[dict], "default": {}, "exclude": True},
     ]
@@ -263,7 +276,7 @@ if not hasattr(ReqImg2Img, "__config__"):
 StableDiffusionImg2ImgProcessingAPI = ReqImg2Img
 
 class ResImg2Img(BaseModel):
-    images: List[str] = Field(default=None, title="Image", description="The generated images in base64 format.")
+    images: list[str] = Field(default=None, title="Image", description="The generated images in base64 format.")
     parameters: dict
     info: str
 
@@ -289,9 +302,9 @@ class ResProcess(BaseModel):
 class ReqPromptEnhance(BaseModel):
     prompt: str = Field(title="Prompt", description="Prompt to enhance")
     type: str = Field(title="Type", default='text', description="Type of enhancement to perform")
-    model: Optional[str] = Field(title="Model", default=None, description="Model to use for enhancement")
-    system_prompt: Optional[str] = Field(title="System prompt", default=None, description="Model system prompt")
-    image: Optional[str] = Field(title="Image", default=None, description="Image to work on, must be a Base64 string containing the image's data.")
+    model: str | None = Field(title="Model", default=None, description="Model to use for enhancement")
+    system_prompt: str | None = Field(title="System prompt", default=None, description="Model system prompt")
+    image: str | None = Field(title="Image", default=None, description="Image to work on, must be a Base64 string containing the image's data.")
     seed: int = Field(title="Seed", default=-1, description="Seed used to generate the prompt")
     nsfw: bool = Field(title="NSFW", default=True, description="Should NSFW content be allowed?")
 
@@ -306,10 +319,10 @@ class ResProcessImage(ResProcess):
     image: str = Field(default=None, title="Image", description="The generated image in base64 format.")
 
 class ReqProcessBatch(ReqProcess):
-    imageList: List[FileData] = Field(title="Images", description="List of images to work on. Must be Base64 strings")
+    imageList: list[FileData] = Field(title="Images", description="List of images to work on. Must be Base64 strings")
 
 class ResProcessBatch(ResProcess):
-    images: List[str] = Field(title="Images", description="The generated images in base64 format.")
+    images: list[str] = Field(title="Images", description="The generated images in base64 format.")
 
 class ReqImageInfo(BaseModel):
     image: str = Field(title="Image", description="The base64 encoded image")
@@ -325,38 +338,38 @@ class ReqGetLog(BaseModel):
 
 
 class ReqPostLog(BaseModel):
-    message: Optional[str] = Field(default=None, title="Message", description="The info message to log")
-    debug: Optional[str] = Field(default=None, title="Debug message", description="The debug message to log")
-    error: Optional[str] = Field(default=None, title="Error message", description="The error message to log")
+    message: str | None = Field(default=None, title="Message", description="The info message to log")
+    debug: str | None = Field(default=None, title="Debug message", description="The debug message to log")
+    error: str | None = Field(default=None, title="Error message", description="The error message to log")
 
 class ReqHistory(BaseModel):
-    id: Union[int, str, None] = Field(default=None, title="Task ID", description="Task ID")
+    id: int | str | None = Field(default=None, title="Task ID", description="Task ID")
 
 class ReqProgress(BaseModel):
     skip_current_image: bool = Field(default=False, title="Skip current image", description="Skip current image serialization")
 
 class ResProgress(BaseModel):
-    id: Union[int, str, None] = Field(title="TaskID", description="Task ID")
+    id: int | str | None = Field(title="TaskID", description="Task ID")
     progress: float = Field(title="Progress", description="The progress with a range of 0 to 1")
     eta_relative: float = Field(title="ETA in secs")
     state: dict = Field(title="State", description="The current state snapshot")
-    current_image: Optional[str] = Field(default=None, title="Current image", description="The current image in base64 format. opts.show_progress_every_n_steps is required for this to work.")
-    textinfo: Optional[str] = Field(default=None, title="Info text", description="Info text used by WebUI.")
+    current_image: str | None = Field(default=None, title="Current image", description="The current image in base64 format. opts.show_progress_every_n_steps is required for this to work.")
+    textinfo: str | None = Field(default=None, title="Info text", description="Info text used by WebUI.")
 
 class ResHistory(BaseModel):
-    id: Union[int, str, None] = Field(title="ID", description="Task ID")
+    id: int | str | None = Field(title="ID", description="Task ID")
     job: str = Field(title="Job", description="Job name")
     op: str = Field(title="Operation", description="Job state")
-    timestamp: Union[float, None] = Field(title="Timestamp", description="Job timestamp")
-    duration: Union[float, None] = Field(title="Duration", description="Job duration")
-    outputs: List[str] = Field(title="Outputs", description="List of filenames")
+    timestamp: float | None = Field(title="Timestamp", description="Job timestamp")
+    duration: float | None = Field(title="Duration", description="Job duration")
+    outputs: list[str] = Field(title="Outputs", description="List of filenames")
 
 class ResStatus(BaseModel):
     status: str = Field(title="Status", description="Current status")
     task: str = Field(title="Task", description="Current job")
-    timestamp: Optional[str] = Field(title="Timestamp", description="Timestamp of the current job")
+    timestamp: str | None = Field(title="Timestamp", description="Timestamp of the current job")
     current: str = Field(title="Task", description="Current job")
-    id: Union[int, str, None] = Field(title="ID", description="ID of the current task")
+    id: int | str | None = Field(title="ID", description="ID of the current task")
     job: int = Field(title="Job", description="Current job")
     jobs: int = Field(title="Jobs", description="Total jobs")
     total: int = Field(title="Total Jobs", description="Total jobs")
@@ -364,9 +377,9 @@ class ResStatus(BaseModel):
     steps: int = Field(title="Steps", description="Total steps")
     queued: int = Field(title="Queued", description="Number of queued tasks")
     uptime: int = Field(title="Uptime", description="Uptime of the server")
-    elapsed: Optional[float] = Field(default=None, title="Elapsed time")
-    eta: Optional[float] = Field(default=None, title="ETA in secs")
-    progress: Optional[float] = Field(default=None, title="Progress", description="The progress with a range of 0 to 1")
+    elapsed: float | None = Field(default=None, title="Elapsed time")
+    eta: float | None = Field(default=None, title="ETA in secs")
+    progress: float | None = Field(default=None, title="Progress", description="The progress with a range of 0 to 1")
 
 class ReqLatentHistory(BaseModel):
     name: str = Field(title="Name", description="Name of the history item to select")
@@ -392,7 +405,15 @@ for key, metadata in shared.opts.data_labels.items():
     else:
         fields.update({key: (Optional[optType], Field())})
 
-OptionsModel = create_model("Options", **fields)
+if PYDANTIC_V2:
+    config = ConfigDict(arbitrary_types_allowed=True, from_attributes=True, populate_by_name=True)
+else:
+    class Config:
+        arbitrary_types_allowed = True
+        orm_mode = True
+        allow_population_by_field_name = True
+    config = Config
+OptionsModel = create_model("Options", __config__=config, **fields)
 
 flags = {}
 _options = vars(shared.parser)['_option_string_actions']
@@ -404,7 +425,15 @@ for key in _options:
             _type = type(_options[key].default)
         flags.update({flag.dest: (_type, Field(default=flag.default, description=flag.help))})
 
-FlagsModel = create_model("Flags", **flags)
+if PYDANTIC_V2:
+    config = ConfigDict(arbitrary_types_allowed=True, from_attributes=True, populate_by_name=True)
+else:
+    class Config:
+        arbitrary_types_allowed = True
+        orm_mode = True
+        allow_population_by_field_name = True
+    config = Config
+FlagsModel = create_model("Flags", __config__=config, **flags)
 
 class ResEmbeddings(BaseModel):
     loaded: list = Field(default=None, title="loaded", description="List of loaded embeddings")
@@ -426,9 +455,13 @@ class ResGPU(BaseModel): # definition of http response
 
 # helper function
 
-def create_model_from_signature(func: Callable, model_name: str, base_model: Type[BaseModel] = BaseModel, additional_fields: List = [], exclude_fields: List[str] = []) -> type[BaseModel]:
+def create_model_from_signature(func: Callable, model_name: str, base_model: type[BaseModel] = BaseModel, additional_fields: list = None, exclude_fields: list[str] = None) -> type[BaseModel]:
     from PIL import Image
 
+    if exclude_fields is None:
+        exclude_fields = []
+    if additional_fields is None:
+        additional_fields = []
     class Config:
         extra = 'allow'
 
@@ -443,13 +476,13 @@ def create_model_from_signature(func: Callable, model_name: str, base_model: Typ
     defaults = (...,) * non_default_args + defaults
     keyword_only_params = {param: kwonlydefaults.get(param, Any) for param in kwonlyargs}
     for k, v in annotations.items():
-        if v == List[Image.Image]:
-            annotations[k] = List[str]
+        if v == list[Image.Image]:
+            annotations[k] = list[str]
         elif v == Image.Image:
             annotations[k] = str
         elif str(v) == 'typing.List[modules.control.unit.Unit]':
-            annotations[k] = List[str]
-    model_fields = {param: (annotations.get(param, Any), default) for param, default in zip(args, defaults)}
+            annotations[k] = list[str]
+    model_fields = {param: (annotations.get(param, Any), default) for param, default in zip(args, defaults, strict=False)}
 
     for fld in additional_fields:
         model_def = ModelDef(
@@ -464,16 +497,21 @@ def create_model_from_signature(func: Callable, model_name: str, base_model: Typ
         if fld in model_fields:
             del model_fields[fld]
 
+    if PYDANTIC_V2:
+        config = ConfigDict(arbitrary_types_allowed=True, from_attributes=True, populate_by_name=True, extra='allow' if varkw else 'ignore')
+    else:
+        class Config:
+            arbitrary_types_allowed = True
+            orm_mode = True
+            allow_population_by_field_name = True
+            extra = 'allow' if varkw else 'ignore'
+        config = Config
+
     model = create_model(
         model_name,
-        **model_fields,
-        **keyword_only_params,
         __base__=base_model,
         __config__=config,
+        **model_fields,
+        **keyword_only_params,
     )
-    try:
-        model.__config__.allow_population_by_field_name = True
-        model.__config__.allow_mutation = True
-    except Exception:
-        pass
     return model

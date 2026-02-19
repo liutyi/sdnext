@@ -220,5 +220,13 @@ class Shared(sys.modules[__name__].__class__):
             model_type = 'unknown'
         return model_type
 
+    @property
+    def console(self):
+        try:
+            from installer import get_console
+            return get_console()
+        except ImportError:
+            return None
+
 
 model_data = ModelData()

@@ -18,13 +18,15 @@ cmd_opts = cmd_args.parse_args()
 compatibility_opts = ['clip_skip', 'uni_pc_lower_order_final', 'uni_pc_order']
 
 
-class Options():
+class Options:
     data_labels: dict[str, OptionInfo | LegacyOption]
     data: dict[str, Any]
     typemap = {int: float}
     debug = os.environ.get('SD_CONFIG_DEBUG', None) is not None
 
-    def __init__(self, options_templates: dict[str, OptionInfo | LegacyOption] = {}, restricted_opts: set[str] | None = None, *, filename = ''):
+    def __init__(self, options_templates: dict[str, OptionInfo | LegacyOption] = None, restricted_opts: set[str] | None = None, *, filename = ''):
+        if options_templates is None:
+            options_templates = {}
         if restricted_opts is None:
             restricted_opts = set()
         super().__setattr__('data_labels', options_templates)
@@ -48,21 +50,21 @@ class Options():
                 log.warning(f'Settings set: {key}={value} legacy')
             self.data[key] = value
             return
-        return super(Options, self).__setattr__(key, value) # pylint: disable=super-with-arguments
+        return super().__setattr__(key, value) # pylint: disable=super-with-arguments
 
     def get(self, item):
         if item in self.data:
             return self.data[item]
         if item in self.data_labels:
             return self.data_labels[item].default
-        return super(Options, self).__getattribute__(item) # pylint: disable=super-with-arguments
+        return super().__getattribute__(item) # pylint: disable=super-with-arguments
 
     def __getattr__(self, item):
         if item in self.data:
             return self.data[item]
         if item in self.data_labels:
             return self.data_labels[item].default
-        return super(Options, self).__getattribute__(item) # pylint: disable=super-with-arguments
+        return super().__getattribute__(item) # pylint: disable=super-with-arguments
 
     def set(self, key, value):
         """sets an option and calls its onchange callback, returning True if the option changed and False otherwise"""

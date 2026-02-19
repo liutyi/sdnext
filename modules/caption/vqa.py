@@ -708,7 +708,7 @@ class VQA:
         debug(f'VQA caption: handler=qwen output_ids_shape={output_ids.shape}')
         generated_ids = [
             output_ids[len(input_ids):]
-            for input_ids, output_ids in zip(inputs.input_ids, output_ids)
+            for input_ids, output_ids in zip(inputs.input_ids, output_ids, strict=False)
         ]
         response = self.processor.batch_decode(generated_ids, skip_special_tokens=True, clean_up_tokenization_spaces=True)
         if debug_enabled:
@@ -887,7 +887,7 @@ class VQA:
 
     def _ovis(self, question: str, image: Image.Image, repo: str, model_name: str = None): # pylint: disable=unused-argument
         try:
-            import flash_attn  # pylint: disable=unused-import
+            pass  # pylint: disable=unused-import
         except Exception:
             shared.log.error(f'Caption: vlm="{repo}" flash-attn is not available')
             return ''

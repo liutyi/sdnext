@@ -10,7 +10,9 @@ selected_model = None
 
 
 class CivitModel:
-    def __init__(self, name, fn, sha = None, meta = {}):
+    def __init__(self, name, fn, sha = None, meta = None):
+        if meta is None:
+            meta = {}
         self.name = name
         self.file = name
         self.id = meta.get('id', 0)

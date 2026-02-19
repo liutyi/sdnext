@@ -2,7 +2,7 @@ import os
 import sys
 import time
 from collections import namedtuple
-from typing import Optional, Dict, Any
+from typing import Any
 from fastapi import FastAPI
 from gradio import Blocks
 import modules.errors as errors
@@ -149,7 +149,7 @@ def clear_callbacks():
         callback_list.clear()
 
 
-def app_started_callback(demo: Optional[Blocks], app: FastAPI):
+def app_started_callback(demo: Blocks | None, app: FastAPI):
     for c in callback_map['callbacks_app_started']:
         try:
             t0 = time.time()
@@ -319,7 +319,7 @@ def image_grid_callback(params: ImageGridLoopParams):
             report_exception(e, c, 'image_grid')
 
 
-def infotext_pasted_callback(infotext: str, params: Dict[str, Any]):
+def infotext_pasted_callback(infotext: str, params: dict[str, Any]):
     for c in callback_map['callbacks_infotext_pasted']:
         try:
             t0 = time.time()

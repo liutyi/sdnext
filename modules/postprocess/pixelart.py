@@ -1,4 +1,3 @@
-from typing import List
 
 import math
 import torch
@@ -225,8 +224,8 @@ class JPEGEncoder(ImageProcessingMixin, ConfigMixin):
         block_size: int = 16,
         cbcr_downscale: int = 2,
         norm: str = "ortho",
-        latents_std: List[float] = None,
-        latents_mean: List[float] = None,
+        latents_std: list[float] = None,
+        latents_mean: list[float] = None,
     ):
         self.block_size = block_size
         self.cbcr_downscale = cbcr_downscale

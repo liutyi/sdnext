@@ -5,14 +5,14 @@ import ctypes
 import shutil
 import subprocess
 from types import ModuleType
-from typing import Union, overload, TYPE_CHECKING
+from typing import overload, TYPE_CHECKING
 from enum import Enum
 from functools import wraps
 if TYPE_CHECKING:
     import torch
 
 
-rocm_sdk: Union[ModuleType, None] = None
+rocm_sdk: ModuleType | None = None
 
 
 def resolve_link(path_: str) -> str:
@@ -27,7 +27,7 @@ def dirname(path_: str, r: int = 1) -> str:
     return path_
 
 
-def spawn(command: Union[str, list[str]], cwd: os.PathLike = '.') -> str:
+def spawn(command: str | list[str], cwd: os.PathLike = '.') -> str:
     process = subprocess.run(command, cwd=cwd, shell=True, check=False, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
     return process.stdout.decode(encoding="utf8", errors="ignore")
 
@@ -116,7 +116,7 @@ class Agent:
         return self.name
 
     @property
-    def therock(self) -> Union[str, None]:
+    def therock(self) -> str | None:
         if (self.gfx_version & 0xFFF0) == 0x1200:
             return "v2/gfx120X-all"
         if (self.gfx_version & 0xFFF0) == 0x1100:
@@ -141,7 +141,7 @@ class Agent:
         #    return "gfx950-dcgpu"
         return None
 
-    def get_gfx_version(self) -> Union[str, None]:
+    def get_gfx_version(self) -> str | None:
         if self.gfx_version is None:
             return None
         if self.gfx_version >= 0x1100 and self.gfx_version < 0x1200:
@@ -153,7 +153,7 @@ class Agent:
         return None
 
 
-def find() -> Union[ROCmEnvironment, None]:
+def find() -> ROCmEnvironment | None:
     hip_path = shutil.which("hipconfig")
     if hip_path is not None:
         return ROCmEnvironment(dirname(resolve_link(hip_path), 2))
@@ -364,7 +364,6 @@ else: # sys.platform != "win32"
 
     def rocm_init():
         try:
-            import torch
             from installer import log
             from modules.devices import get_hip_agent
 
@@ -377,10 +376,10 @@ else: # sys.platform != "win32"
 
     is_wsl: bool = os.environ.get('WSL_DISTRO_NAME', 'unknown' if spawn('wslpath -w /') else None) is not None
 
-environment: Union[Environment, None] = None
-blaslt_tensile_libpath: Union[str, None] = None
+environment: Environment | None = None
+blaslt_tensile_libpath: str | None = None
 is_installed: bool = False
-version: Union[str, None] = None
+version: str | None = None
 refresh()
 
 # amdgpu-arch.exe written in Python

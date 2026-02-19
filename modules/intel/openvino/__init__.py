@@ -81,7 +81,9 @@ def warn_once(msg):
         warned = True
 
 class OpenVINOGraphModule(torch.nn.Module):
-    def __init__(self, gm, partition_id, use_python_fusion_cache, model_hash_str: str = None, file_name="", int_inputs=[]):
+    def __init__(self, gm, partition_id, use_python_fusion_cache, model_hash_str: str = None, file_name="", int_inputs=None):
+        if int_inputs is None:
+            int_inputs = []
         super().__init__()
         self.gm = gm
         self.int_inputs = int_inputs
@@ -192,7 +194,7 @@ def execute(
     elif executor == "strictly_openvino":
         return openvino_execute(gm, *args, executor_parameters=executor_parameters, file_name=file_name)
 
-    msg = "Received unexpected value for 'executor': {0}. Allowed values are: openvino, strictly_openvino.".format(executor)
+    msg = f"Received unexpected value for 'executor': {executor}. Allowed values are: openvino, strictly_openvino."
     raise ValueError(msg)
 
 
@@ -373,7 +375,7 @@ def openvino_execute(gm: GraphModule, *args, executor_parameters=None, partition
     ov_inputs = []
     for arg in flat_args:
         if not isinstance(arg, int):
-            ov_inputs.append((arg.detach().cpu().numpy()))
+            ov_inputs.append(arg.detach().cpu().numpy())
 
     res = req.infer(ov_inputs, share_inputs=True, share_outputs=True)
 
@@ -423,7 +425,9 @@ def openvino_execute_partitioned(gm: GraphModule, *args, executor_parameters=Non
     return shared.compiled_model_state.partitioned_modules[signature][0](*ov_inputs)
 
 
-def partition_graph(gm: GraphModule, use_python_fusion_cache: bool, model_hash_str: str = None, file_name="", int_inputs=[]):
+def partition_graph(gm: GraphModule, use_python_fusion_cache: bool, model_hash_str: str = None, file_name="", int_inputs=None):
+    if int_inputs is None:
+        int_inputs = []
     for node in gm.graph.nodes:
         if node.op == "call_module" and "fused_" in node.name:
             openvino_submodule = getattr(gm, node.name)
@@ -509,7 +513,7 @@ def openvino_fx(subgraph, example_inputs, options=None):
         if os.path.isfile(maybe_fs_cached_name + ".xml") and os.path.isfile(maybe_fs_cached_name + ".bin"):
             example_inputs_reordered = []
             if (os.path.isfile(maybe_fs_cached_name + ".txt")):
-                f = open(maybe_fs_cached_name + ".txt", "r")
+                f = open(maybe_fs_cached_name + ".txt")
                 for input_data in example_inputs:
                     shape = f.readline()
                     if (str(input_data.size()) != shape):
@@ -532,7 +536,7 @@ def openvino_fx(subgraph, example_inputs, options=None):
                 if (shared.compiled_model_state.cn_model != [] and str(shared.compiled_model_state.cn_model) in maybe_fs_cached_name):
                     args_reordered = []
                     if (os.path.isfile(maybe_fs_cached_name + ".txt")):
-                        f = open(maybe_fs_cached_name + ".txt", "r")
+                        f = open(maybe_fs_cached_name + ".txt")
                         for input_data in args:
                             shape = f.readline()
                             if (str(input_data.size()) != shape):

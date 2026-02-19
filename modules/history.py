@@ -9,8 +9,10 @@ import torch
 from modules import shared, devices
 
 
-class Item():
-    def __init__(self, latent, preview=None, info=None, ops=[]):
+class Item:
+    def __init__(self, latent, preview=None, info=None, ops=None):
+        if ops is None:
+            ops = []
         self.ts = datetime.datetime.now().replace(microsecond=0)
         self.name = self.ts.strftime('%Y-%m-%d %H:%M:%S')
         self.latent = latent.detach().clone().to(devices.cpu)
@@ -20,7 +22,7 @@ class Item():
         self.size = sys.getsizeof(self.latent.storage())
 
 
-class History():
+class History:
     def __init__(self):
         self.index = -1
         self.latents = deque(maxlen=1024)
@@ -58,7 +60,9 @@ class History():
                 return i
         return -1
 
-    def add(self, latent, preview=None, info=None, ops=[]):
+    def add(self, latent, preview=None, info=None, ops=None):
+        if ops is None:
+            ops = []
         shared.state.latent_history += 1
         if shared.opts.latent_history == 0:
             return

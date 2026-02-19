@@ -2,7 +2,7 @@ from collections import defaultdict
 import torch
 
 
-class MemUsageMonitor():
+class MemUsageMonitor:
     device = None
     disabled = False
     opts = None

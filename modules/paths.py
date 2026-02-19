@@ -2,7 +2,6 @@
 import os
 import sys
 import json
-import shlex
 import argparse
 import tempfile
 from installer import log
@@ -19,7 +18,7 @@ cli = parser.parse_known_args(argv)[0]
 config_path = cli.config if os.path.isabs(cli.config) else os.path.join(cli.data_dir, cli.config)
 
 try:
-    with open(config_path, 'r', encoding='utf8') as f:
+    with open(config_path, encoding='utf8') as f:
         config = json.load(f)
 except Exception:
     config = {}

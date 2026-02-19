@@ -49,17 +49,25 @@ class Flux2TinyAutoEncoder(ModelMixin, ConfigMixin):
         in_channels: int = 3,
         out_channels: int = 3,
         latent_channels: int = 128,
-        encoder_block_out_channels: list[int] = [64, 64, 64, 64],
-        decoder_block_out_channels: list[int] = [64, 64, 64, 64],
+        encoder_block_out_channels: list[int] = None,
+        decoder_block_out_channels: list[int] = None,
         act_fn: str = "silu",
         upsampling_scaling_factor: int = 2,
-        num_encoder_blocks: list[int] = [1, 3, 3, 3],
-        num_decoder_blocks: list[int] = [3, 3, 3, 1],
+        num_encoder_blocks: list[int] = None,
+        num_decoder_blocks: list[int] = None,
         latent_magnitude: float = 3.0,
         latent_shift: float = 0.5,
         force_upcast: bool = False,
         scaling_factor: float = 0.13025,
     ) -> None:
+        if num_decoder_blocks is None:
+            num_decoder_blocks = [3, 3, 3, 1]
+        if num_encoder_blocks is None:
+            num_encoder_blocks = [1, 3, 3, 3]
+        if decoder_block_out_channels is None:
+            decoder_block_out_channels = [64, 64, 64, 64]
+        if encoder_block_out_channels is None:
+            encoder_block_out_channels = [64, 64, 64, 64]
         super().__init__()
         self.tiny_vae = AutoencoderTiny(
             in_channels=in_channels,

@@ -148,7 +148,9 @@ class State:
                 return job
         return None
 
-    def history(self, op:str, task_id:str=None, results:list=[]):
+    def history(self, op:str, task_id:str=None, results:list=None):
+        if results is None:
+            results = []
         job = {
             'id': task_id or self.id,
             'job': self.job.lower(),

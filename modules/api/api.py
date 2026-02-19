@@ -1,4 +1,3 @@
-from typing import List, Optional
 from threading import Lock
 from secrets import compare_digest
 from fastapi import FastAPI, APIRouter, Depends, Request
@@ -19,7 +18,7 @@ class Api:
                 user, password = auth.split(":")
                 self.credentials[user.replace('"', '').strip()] = password.replace('"', '').strip()
         if shared.cmd_opts.auth_file:
-            with open(shared.cmd_opts.auth_file, 'r', encoding="utf8") as file:
+            with open(shared.cmd_opts.auth_file, encoding="utf8") as file:
                 for line in file.readlines():
                     user, password = line.split(":")
                     self.credentials[user.replace('"', '').strip()] = password.replace('"', '').strip()
@@ -41,7 +40,7 @@ class Api:
         self.add_api_route("/js", server.get_js, methods=["GET"], auth=False)
         # server api
         self.add_api_route("/sdapi/v1/motd", server.get_motd, methods=["GET"], response_model=str)
-        self.add_api_route("/sdapi/v1/log", server.get_log, methods=["GET"], response_model=List[str])
+        self.add_api_route("/sdapi/v1/log", server.get_log, methods=["GET"], response_model=list[str])
         self.add_api_route("/sdapi/v1/log", server.post_log, methods=["POST"])
         self.add_api_route("/sdapi/v1/start", self.get_session_start, methods=["GET"])
         self.add_api_route("/sdapi/v1/version", server.get_version, methods=["GET"])
@@ -56,7 +55,7 @@ class Api:
         self.add_api_route("/sdapi/v1/options", server.get_config, methods=["GET"], response_model=models.OptionsModel)
         self.add_api_route("/sdapi/v1/options", server.set_config, methods=["POST"])
         self.add_api_route("/sdapi/v1/cmd-flags", server.get_cmd_flags, methods=["GET"], response_model=models.FlagsModel)
-        self.add_api_route("/sdapi/v1/gpu", gpu.get_gpu_status, methods=["GET"], response_model=List[models.ResGPU])
+        self.add_api_route("/sdapi/v1/gpu", gpu.get_gpu_status, methods=["GET"], response_model=list[models.ResGPU])
 
         # core api using locking
         self.add_api_route("/sdapi/v1/txt2img", self.generate.post_text2img, methods=["POST"], response_model=models.ResTxt2Img)
@@ -71,21 +70,21 @@ class Api:
 
         # api dealing with optional scripts
         self.add_api_route("/sdapi/v1/scripts", script.get_scripts_list, methods=["GET"], response_model=models.ResScripts)
-        self.add_api_route("/sdapi/v1/script-info", script.get_script_info, methods=["GET"], response_model=List[models.ItemScript])
+        self.add_api_route("/sdapi/v1/script-info", script.get_script_info, methods=["GET"], response_model=list[models.ItemScript])
 
         # enumerator api
-        self.add_api_route("/sdapi/v1/preprocessors", self.process.get_preprocess, methods=["GET"], response_model=List[process.ItemPreprocess])
+        self.add_api_route("/sdapi/v1/preprocessors", self.process.get_preprocess, methods=["GET"], response_model=list[process.ItemPreprocess])
         self.add_api_route("/sdapi/v1/masking", self.process.get_mask, methods=["GET"], response_model=process.ItemMask)
-        self.add_api_route("/sdapi/v1/samplers", endpoints.get_samplers, methods=["GET"], response_model=List[models.ItemSampler])
-        self.add_api_route("/sdapi/v1/upscalers", endpoints.get_upscalers, methods=["GET"], response_model=List[models.ItemUpscaler])
-        self.add_api_route("/sdapi/v1/sd-models", endpoints.get_sd_models, methods=["GET"], response_model=List[models.ItemModel])
-        self.add_api_route("/sdapi/v1/controlnets", endpoints.get_controlnets, methods=["GET"], response_model=List[str])
-        self.add_api_route("/sdapi/v1/detailers", endpoints.get_detailers, methods=["GET"], response_model=List[models.ItemDetailer])
-        self.add_api_route("/sdapi/v1/prompt-styles", endpoints.get_prompt_styles, methods=["GET"], response_model=List[models.ItemStyle])
+        self.add_api_route("/sdapi/v1/samplers", endpoints.get_samplers, methods=["GET"], response_model=list[models.ItemSampler])
+        self.add_api_route("/sdapi/v1/upscalers", endpoints.get_upscalers, methods=["GET"], response_model=list[models.ItemUpscaler])
+        self.add_api_route("/sdapi/v1/sd-models", endpoints.get_sd_models, methods=["GET"], response_model=list[models.ItemModel])
+        self.add_api_route("/sdapi/v1/controlnets", endpoints.get_controlnets, methods=["GET"], response_model=list[str])
+        self.add_api_route("/sdapi/v1/detailers", endpoints.get_detailers, methods=["GET"], response_model=list[models.ItemDetailer])
+        self.add_api_route("/sdapi/v1/prompt-styles", endpoints.get_prompt_styles, methods=["GET"], response_model=list[models.ItemStyle])
         self.add_api_route("/sdapi/v1/embeddings", endpoints.get_embeddings, methods=["GET"], response_model=models.ResEmbeddings)
-        self.add_api_route("/sdapi/v1/sd-vae", endpoints.get_sd_vaes, methods=["GET"], response_model=List[models.ItemVae])
-        self.add_api_route("/sdapi/v1/extensions", endpoints.get_extensions_list, methods=["GET"], response_model=List[models.ItemExtension])
-        self.add_api_route("/sdapi/v1/extra-networks", endpoints.get_extra_networks, methods=["GET"], response_model=List[models.ItemExtraNetwork])
+        self.add_api_route("/sdapi/v1/sd-vae", endpoints.get_sd_vaes, methods=["GET"], response_model=list[models.ItemVae])
+        self.add_api_route("/sdapi/v1/extensions", endpoints.get_extensions_list, methods=["GET"], response_model=list[models.ItemExtension])
+        self.add_api_route("/sdapi/v1/extra-networks", endpoints.get_extra_networks, methods=["GET"], response_model=list[models.ItemExtraNetwork])
 
         # functional api
         self.add_api_route("/sdapi/v1/png-info", endpoints.post_pnginfo, methods=["POST"], response_model=models.ResImageInfo)
@@ -96,7 +95,7 @@ class Api:
         self.add_api_route("/sdapi/v1/reload-checkpoint", endpoints.post_reload_checkpoint, methods=["POST"])
         self.add_api_route("/sdapi/v1/lock-checkpoint", endpoints.post_lock_checkpoint, methods=["POST"])
         self.add_api_route("/sdapi/v1/refresh-vae", endpoints.post_refresh_vae, methods=["POST"])
-        self.add_api_route("/sdapi/v1/latents", endpoints.get_latent_history, methods=["GET"], response_model=List[str])
+        self.add_api_route("/sdapi/v1/latents", endpoints.get_latent_history, methods=["GET"], response_model=list[str])
         self.add_api_route("/sdapi/v1/latents", endpoints.post_latent_history, methods=["POST"], response_model=int)
         self.add_api_route("/sdapi/v1/modules", endpoints.get_modules, methods=["GET"])
         self.add_api_route("/sdapi/v1/sampler", endpoints.get_sampler, methods=["GET"], response_model=dict)
@@ -146,7 +145,7 @@ class Api:
         shared.log.error(f'API authentication: user="{credentials.username}"')
         raise HTTPException(status_code=401, detail="Unauthorized", headers={"WWW-Authenticate": "Basic"})
 
-    def get_session_start(self, req: Request, agent: Optional[str] = None):
+    def get_session_start(self, req: Request, agent: str | None = None):
         token = req.cookies.get("access-token") or req.cookies.get("access-token-unsecure")
         user = self.app.tokens.get(token) if hasattr(self.app, 'tokens') else None
         shared.log.info(f'Browser session: user={user} client={req.client.host} agent={agent}')

@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional
 from threading import Lock
 from pydantic import BaseModel, Field # pylint: disable=no-name-in-module
 from modules import errors, shared, processing_helpers
@@ -43,9 +43,9 @@ ReqControl = models.create_model_from_signature(
         {"key": "send_images", "type": bool, "default": True},
         {"key": "save_images", "type": bool, "default": False},
         {"key": "alwayson_scripts", "type": dict, "default": {}},
-        {"key": "ip_adapter", "type": Optional[List[models.ItemIPAdapter]], "default": None, "exclude": True},
+        {"key": "ip_adapter", "type": Optional[list[models.ItemIPAdapter]], "default": None, "exclude": True},
         {"key": "face", "type": Optional[models.ItemFace], "default": None, "exclude": True},
-        {"key": "control", "type": Optional[List[ItemControl]], "default": [], "exclude": True},
+        {"key": "control", "type": Optional[list[ItemControl]], "default": [], "exclude": True},
         {"key": "xyz", "type": Optional[ItemXYZ], "default": None, "exclude": True},
         # {"key": "extra", "type": Optional[dict], "default": {}, "exclude": True},
     ]
@@ -55,13 +55,13 @@ if not hasattr(ReqControl, "__config__"):
 
 
 class ResControl(BaseModel):
-    images: List[str] = Field(default=None, title="Images", description="")
-    processed: List[str] = Field(default=None, title="Processed", description="")
+    images: list[str] = Field(default=None, title="Images", description="")
+    processed: list[str] = Field(default=None, title="Processed", description="")
     params: dict = Field(default={}, title="Settings", description="")
     info: str = Field(default="", title="Info", description="")
 
 
-class APIControl():
+class APIControl:
     def __init__(self, queue_lock: Lock):
         self.queue_lock = queue_lock
         self.default_script_arg = []

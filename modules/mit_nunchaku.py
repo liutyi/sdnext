@@ -53,8 +53,6 @@ def install_nunchaku():
         import os
         import sys
         import platform
-        import importlib
-        import importlib.metadata
         import torch
         python_ver = f'{sys.version_info.major}{sys.version_info.minor}'
         if python_ver not in ['311', '312', '313']:

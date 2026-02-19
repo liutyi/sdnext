@@ -77,7 +77,7 @@ def process_batch(p, input_files, input_dir, output_dir, inpaint_mask_dir, args)
                 caption_file = os.path.splitext(image_file)[0] + '.txt'
                 prompt_type='default'
                 if os.path.exists(caption_file):
-                    with open(caption_file, 'r', encoding='utf8') as f:
+                    with open(caption_file, encoding='utf8') as f:
                         p.prompt = f.read()
                         prompt_type='file'
                 else:

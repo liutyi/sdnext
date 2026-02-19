@@ -1,4 +1,3 @@
-from typing import Optional
 from fastapi.exceptions import HTTPException
 import gradio as gr
 from modules.api import models
@@ -36,7 +35,7 @@ def get_scripts_list():
     return models.ResScripts(txt2img = t2ilist, img2img = i2ilist, control = control)
 
 
-def get_script_info(script_name: Optional[str] = None):
+def get_script_info(script_name: str | None = None):
     res = []
     for script_list in [scripts_manager.scripts_txt2img.scripts, scripts_manager.scripts_img2img.scripts, scripts_manager.scripts_control.scripts]:
         for script in script_list:

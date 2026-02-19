@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 import torch
 from diffusers.models.modeling_outputs import Transformer2DModelOutput
 from diffusers.utils import USE_PEFT_BACKEND, scale_lora_layers, unscale_lora_layers
@@ -25,11 +25,11 @@ def ras_forward(
         encoder_hidden_states: torch.FloatTensor = None,
         pooled_projections: torch.FloatTensor = None,
         timestep: torch.LongTensor = None,
-        block_controlnet_hidden_states: List = None,
-        joint_attention_kwargs: Optional[Dict[str, Any]] = None,
+        block_controlnet_hidden_states: list = None,
+        joint_attention_kwargs: dict[str, Any] | None = None,
         return_dict: bool = True,
-        skip_layers: Optional[List[int]] = None,
-    ) -> Union[torch.FloatTensor, Transformer2DModelOutput]:
+        skip_layers: list[int] | None = None,
+    ) -> torch.FloatTensor | Transformer2DModelOutput:
     """
     The [`SD3Transformer2DModel`] forward method.
 

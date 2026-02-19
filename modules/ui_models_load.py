@@ -1,6 +1,5 @@
 import os
 import re
-import json # pylint: disable=unused-import
 import inspect
 import gradio as gr
 import torch
@@ -101,7 +100,7 @@ def process_huggingface_url(url):
     return repo, subfolder, fn, download
 
 
-class Component():
+class Component:
     def __init__(self, signature, name=None, cls=None, val=None, local=None, remote=None, typ=None, dtype=None, quant=False, loadable=None):
         self.id = len(components) + 1
         self.name = signature.name if signature else name

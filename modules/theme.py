@@ -18,7 +18,7 @@ def refresh_themes(no_update=False):
     res = []
     if os.path.exists(themes_file):
         try:
-            with open(themes_file, 'r', encoding='utf8') as f:
+            with open(themes_file, encoding='utf8') as f:
                 res = json.load(f)
         except Exception:
             modules.shared.log.error('Exception loading UI themes')

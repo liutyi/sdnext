@@ -1,4 +1,3 @@
-from typing import Optional, List
 from threading import Lock
 from pydantic import BaseModel, Field # pylint: disable=no-name-in-module
 from fastapi.responses import JSONResponse
@@ -15,7 +14,7 @@ errors.install()
 class ReqPreprocess(BaseModel):
     image: str = Field(title="Image", description="The base64 encoded image")
     model: str = Field(title="Model", description="The model to use for preprocessing")
-    params: Optional[dict] = Field(default={}, title="Settings", description="Preprocessor settings")
+    params: dict | None = Field(default={}, title="Settings", description="Preprocessor settings")
 
 class ResPreprocess(BaseModel):
     model: str = Field(default='', title="Model", description="The processor model used")
@@ -24,20 +23,20 @@ class ResPreprocess(BaseModel):
 class ReqMask(BaseModel):
     image: str = Field(title="Image", description="The base64 encoded image")
     type: str = Field(title="Mask type", description="Type of masking image to return")
-    mask: Optional[str] = Field(title="Mask", description="If optional maks image is not provided auto-masking will be performed")
-    model: Optional[str] = Field(title="Model", description="The model to use for preprocessing")
-    params: Optional[dict] = Field(default={}, title="Settings", description="Preprocessor settings")
+    mask: str | None = Field(title="Mask", description="If optional maks image is not provided auto-masking will be performed")
+    model: str | None = Field(title="Model", description="The model to use for preprocessing")
+    params: dict | None = Field(default={}, title="Settings", description="Preprocessor settings")
 
 class ReqFace(BaseModel):
     image: str = Field(title="Image", description="The base64 encoded image")
-    model: Optional[str] = Field(title="Model", description="The model to use for detection")
+    model: str | None = Field(title="Model", description="The model to use for detection")
 
 class ResFace(BaseModel):
-    classes: List[int] = Field(title="Class", description="The class of detected item")
-    labels: List[str] = Field(title="Label", description="The label of detected item")
-    boxes: List[List[int]] = Field(title="Box", description="The bounding box of detected item")
-    images: List[str] = Field(title="Image", description="The base64 encoded images of detected faces")
-    scores: List[float] = Field(title="Scores", description="The scores of the detected faces")
+    classes: list[int] = Field(title="Class", description="The class of detected item")
+    labels: list[str] = Field(title="Label", description="The label of detected item")
+    boxes: list[list[int]] = Field(title="Box", description="The bounding box of detected item")
+    images: list[str] = Field(title="Image", description="The base64 encoded images of detected faces")
+    scores: list[float] = Field(title="Scores", description="The scores of the detected faces")
 
 class ResMask(BaseModel):
     mask: str = Field(default='', title="Image", description="The processed image in base64 format")
@@ -47,13 +46,13 @@ class ItemPreprocess(BaseModel):
     params: dict = Field(title="Params")
 
 class ItemMask(BaseModel):
-    models: List[str] = Field(title="Models")
-    colormaps: List[str] = Field(title="Color maps")
+    models: list[str] = Field(title="Models")
+    colormaps: list[str] = Field(title="Color maps")
     params: dict = Field(title="Params")
-    types: List[str] = Field(title="Types")
+    types: list[str] = Field(title="Types")
 
 
-class APIProcess():
+class APIProcess:
     def __init__(self, queue_lock: Lock):
         self.queue_lock = queue_lock
 

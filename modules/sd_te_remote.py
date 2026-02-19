@@ -1,4 +1,3 @@
-from typing import List, Optional, Union
 import os
 import time
 import json
@@ -8,11 +7,11 @@ from modules import devices, errors
 
 
 def get_t5_prompt_embeds(
-    prompt: Union[str, List[str]] = None,
+    prompt: str | list[str] = None,
     num_images_per_prompt: int = 1, # pylint: disable=unused-argument
     max_sequence_length: int = 512, # pylint: disable=unused-argument
-    device: Optional[torch.device] = None,
-    dtype: Optional[torch.dtype] = None,
+    device: torch.device | None = None,
+    dtype: torch.dtype | None = None,
 ):
     device = device or devices.device
     dtype = dtype or devices.dtype

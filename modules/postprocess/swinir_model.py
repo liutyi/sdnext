@@ -4,7 +4,7 @@ from PIL import Image
 from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn, TimeElapsedColumn
 from modules.postprocess.swinir_model_arch import SwinIR as net
 from modules.postprocess.swinir_model_arch_v2 import Swin2SR as net2
-from modules import devices, script_callbacks, shared
+from modules import devices, shared
 from modules.upscaler import Upscaler, compile_upscaler
 
 

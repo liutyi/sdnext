@@ -38,7 +38,9 @@ def update_generation_info(generation_info, html_info, img_index):
     return html_info, html_info
 
 
-def plaintext_to_html(text, elem_classes=[]):
+def plaintext_to_html(text, elem_classes=None):
+    if elem_classes is None:
+        elem_classes = []
     res = f'<p class="plaintext {" ".join(elem_classes)}">' + '<br>\n'.join([f"{html.escape(x)}" for x in text.split('\n')]) + '</p>'
     return res
 

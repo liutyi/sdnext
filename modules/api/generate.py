@@ -9,7 +9,7 @@ from modules.paths import resolve_output_path
 errors.install()
 
 
-class APIGenerate():
+class APIGenerate:
     def __init__(self, queue_lock: Lock):
         self.queue_lock = queue_lock
         self.default_script_arg_txt2img = []
