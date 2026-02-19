@@ -54,6 +54,9 @@ TBD
   - refactor: all image handling to `modules/image/`  
   - refactor: captioning part-2, thanks @CalamitousFelicitousness  
   - refactor: remove face restoration, thanks @CalamitousFelicitousness  
+  - refactor: unified command line parsing  
+  - refactor: launch use threads to async execute non-critical tasks  
+  - refactor: switch from deprecated `pkg_resources` to `importlib`  
   - update `lint` rules, thanks @awsr  
   - remove requirements: `clip`, `open-clip`  
   - update `requirements`  

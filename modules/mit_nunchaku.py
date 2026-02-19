@@ -54,7 +54,7 @@ def install_nunchaku():
         import sys
         import platform
         import importlib
-        import pkg_resources
+        import importlib.metadata
         import torch
         python_ver = f'{sys.version_info.major}{sys.version_info.minor}'
         if python_ver not in ['311', '312', '313']:
@@ -81,7 +81,7 @@ def install_nunchaku():
         cmd = f'install --upgrade {url}'
         log.debug(f'Nunchaku: install="{url}"')
         pip(cmd, ignore=False, uv=False)
-        importlib.reload(pkg_resources)
+        pass
     if not check():
         log.error('Nunchaku: install failed')
         return False

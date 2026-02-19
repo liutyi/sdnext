@@ -9,14 +9,12 @@ from installer import log
 
 
 # parse args, parse again after we have the data-dir and early-read the config file
-argv = shlex.split(" ".join(sys.argv[1:])) if "USED_VSCODE_COMMAND_PICKARGS" in os.environ else sys.argv[1:]
+from modules.cmd_args import get_argv, add_core_args, add_config_arg
+argv = get_argv()
 parser = argparse.ArgumentParser(add_help=False)
-parser.add_argument("--ckpt", type=str, default=os.environ.get("SD_MODEL", None), help="Path to model checkpoint to load immediately, default: %(default)s")
-parser.add_argument("--data-dir", type=str, default=os.environ.get("SD_DATADIR", ''), help="Base path where all user data is stored, default: %(default)s")
-parser.add_argument("--models-dir", type=str, default=os.environ.get("SD_MODELSDIR", None), help="Base path where all models are stored, default: %(default)s",)
-parser.add_argument("--extensions-dir", type=str, default=os.environ.get("SD_EXTENSIONSDIR", None), help="Base path where all extensions are stored, default: %(default)s",)
+add_core_args(parser)
 cli = parser.parse_known_args(argv)[0]
-parser.add_argument("--config", type=str, default=os.environ.get("SD_CONFIG", os.path.join(cli.data_dir, 'config.json')), help="Use specific server configuration file, default: %(default)s") # twice because we want data_dir
+add_config_arg(parser, cli.data_dir)
 cli = parser.parse_known_args(argv)[0]
 config_path = cli.config if os.path.isabs(cli.config) else os.path.join(cli.data_dir, cli.config)
 

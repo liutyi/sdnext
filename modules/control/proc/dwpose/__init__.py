@@ -56,9 +56,8 @@ def check_dependencies():
         pkgs = ' '.join(packages)
         pip(cmd + pkgs, ignore=False, quiet=True, uv=False)
     try:
-        import pkg_resources
+        import importlib.metadata
         import imp # pylint: disable=deprecated-module
-        imp.reload(pkg_resources)
         import mmcv # pylint: disable=unused-import
         import mmengine # pylint: disable=unused-import
         from mmengine.registry import Registry

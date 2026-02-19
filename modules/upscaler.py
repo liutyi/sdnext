@@ -74,8 +74,11 @@ class Upscaler:
             if k != self.name:
                 continue
             for model in v:
-                local_name = os.path.join(self.user_path, modelloader.friendly_fullname(model[1]))
-                model_path = local_name if os.path.exists(local_name) else model[1]
+                if self.user_path is not None:
+                    local_name = os.path.join(self.user_path, modelloader.friendly_fullname(model[1]))
+                    model_path = local_name if os.path.exists(local_name) else model[1]
+                else:
+                    model_path = model[1]
                 scaler = UpscalerData(name=f'{k} {model[0]}', path=model_path, upscaler=self)
                 scalers.append(scaler)
                 loaded.append(model_path)

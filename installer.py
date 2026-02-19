@@ -12,6 +12,7 @@ import subprocess
 import cProfile
 import importlib
 import importlib.util
+import importlib.metadata
 
 
 class Dot(dict): # dot notation access to dictionary attributes
@@ -27,7 +28,7 @@ version = {
     'url': 'unknown',
     'kanvas': 'unknown',
 }
-pkg_resources, setuptools, distutils = None, None, None # defined via ensure_base_requirements
+setuptools, distutils = None, None # defined via ensure_base_requirements
 current_branch = None
 log = logging.getLogger("sd")
 console = None
@@ -340,25 +341,23 @@ def print_profile(profiler: cProfile.Profile, msg: str):
 
 
 def package_version(package):
-    global pkg_resources # pylint: disable=global-statement
-    if pkg_resources is None:
-        import pkg_resources # pylint: disable=redefined-outer-name
     try:
-        return pkg_resources.get_distribution(package).version
+        return importlib.metadata.version(package)
     except Exception:
         return None
 
 
 def package_spec(package):
-    global pkg_resources # pylint: disable=global-statement
-    if pkg_resources is None:
-        import pkg_resources # pylint: disable=redefined-outer-name
-    spec = pkg_resources.working_set.by_key.get(package, None) # more reliable than importlib
-    if spec is None:
-        spec = pkg_resources.working_set.by_key.get(package.lower(), None) # check name variations
-    if spec is None:
-        spec = pkg_resources.working_set.by_key.get(package.replace('_', '-'), None) # check name variations
-    return spec
+    try:
+        return importlib.metadata.distribution(package)
+    except Exception:
+        try:
+            return importlib.metadata.distribution(package.lower())
+        except Exception:
+            try:
+                return importlib.metadata.distribution(package.replace('_', '-'))
+            except Exception:
+                return None
 
 
 # check if package is installed
@@ -366,11 +365,6 @@ def installed(package, friendly: str = None, reload = False, quiet = False): # p
     t_start = time.time()
     ok = True
     try:
-        if reload:
-            try:
-                importlib.reload(pkg_resources)
-            except Exception:
-                pass
         if friendly:
             pkgs = friendly.split()
         else:
@@ -500,10 +494,7 @@ def install(package, friendly: str = None, ignore: bool = False, reinstall: bool
         isolation = '' if not no_build_isolation else '--no-build-isolation '
         cmd = f"install{' --upgrade' if not args.uv else ''}{' --force-reinstall' if force else ''} {deps}{isolation}{package}"
         res = pip(cmd, ignore=ignore, uv=package != "uv" and not package.startswith('git+'))
-        try:
-            importlib.reload(pkg_resources)
-        except Exception:
-            pass
+        pass
     ts('install', t_start)
     return res
 
@@ -693,7 +684,7 @@ def check_diffusers():
     target_commit = 'bcbbded7c3fc873343a7c8f8a63d91d5c727a4a3' # diffusers commit hash
     # if args.use_rocm or args.use_zluda or args.use_directml:
     #     sha = '043ab2520f6a19fce78e6e060a68dbc947edb9f9' # lock diffusers versions for now
-    pkg = pkg_resources.working_set.by_key.get('diffusers', None)
+    pkg = package_spec('diffusers')
     minor = int(pkg.version.split('.')[1] if pkg is not None else -1)
     current = opts.get('diffusers_version', '') if minor > -1 else ''
     if (minor == -1) or ((current != target_commit) and (not args.experimental)):
@@ -715,8 +706,8 @@ def check_transformers():
     t_start = time.time()
     if args.skip_all or args.skip_git or args.experimental:
         return
-    pkg_transformers = pkg_resources.working_set.by_key.get('transformers', None)
-    pkg_tokenizers = pkg_resources.working_set.by_key.get('tokenizers', None)
+    pkg_transformers = package_spec('transformers')
+    pkg_tokenizers = package_spec('tokenizers')
     if args.use_directml:
         target_transformers = '4.52.4'
         target_tokenizers = '0.21.4'
@@ -1072,7 +1063,7 @@ def check_torch():
             try:
                 if args.use_directml and allow_directml:
                     import torch_directml # pylint: disable=import-error
-                    dml_ver = pkg_resources.get_distribution("torch-directml")
+                    dml_ver = package_version("torch-directml")
                     log.warning(f'Torch backend: DirectML ({dml_ver})')
                     log.warning('DirectML: end-of-life')
                     for i in range(0, torch_directml.device_count()):
@@ -1165,8 +1156,7 @@ def install_extensions(force=False):
     if args.profile:
         pr = cProfile.Profile()
         pr.enable()
-    pkg_resources._initialize_master_working_set() # pylint: disable=protected-access
-    pkgs = [f'{p.project_name}=={p._version}' for p in pkg_resources.working_set] # pylint: disable=protected-access,not-an-iterable
+    pkgs = [f"{d.metadata['Name']}=={d.version}" for d in importlib.metadata.distributions()]
     log.debug(f'Installed packages: {len(pkgs)}')
     from modules.paths import extensions_builtin_dir, extensions_dir
     extensions_duplicates = []
@@ -1199,9 +1189,8 @@ def install_extensions(force=False):
                     log.debug(f'Extension force: name="{ext}" commit={commit}')
                     res.append(git(f'checkout {commit}', os.path.join(folder, ext)))
                 run_extension_installer(os.path.join(folder, ext))
-            pkg_resources._initialize_master_working_set() # pylint: disable=protected-access
             try:
-                updated = [f'{p.project_name}=={p._version}' for p in pkg_resources.working_set] # pylint: disable=protected-access,not-an-iterable
+                updated = [f"{d.metadata['Name']}=={d.version}" for d in importlib.metadata.distributions()]
                 diff = [x for x in updated if x not in pkgs]
                 pkgs = updated
                 if len(diff) > 0:
@@ -1274,11 +1263,11 @@ def ensure_base_requirements():
 
     def update_setuptools():
         local_log = logging.getLogger('sdnext.installer')
-        global pkg_resources, setuptools, distutils # pylint: disable=global-statement
+        global setuptools, distutils # pylint: disable=global-statement
         # python may ship with incompatible setuptools
         subprocess.run(f'"{sys.executable}" -m pip install setuptools=={setuptools_version}', shell=True, check=False, env=os.environ, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         # need to delete all references to modules to be able to reload them otherwise python will use cached version
-        modules = [m for m in sys.modules if m.startswith('setuptools') or m.startswith('pkg_resources') or m.startswith('distutils')]
+        modules = [m for m in sys.modules if m.startswith('setuptools') or m.startswith('distutils')]
         for m in modules:
             del sys.modules[m]
         try:
@@ -1296,16 +1285,15 @@ def ensure_base_requirements():
             local_log.critical(f'Import: distutils {e}')
             os._exit(1)
         try:
-            pkg_resources = importlib.import_module('pkg_resources')
-            sys.modules['pkg_resources'] = pkg_resources
+            distutils = importlib.import_module('distutils')
+            sys.modules['distutils'] = distutils
         except ImportError as e:
             local_log.info(f'Python: version={platform.python_version()} platform={platform.system()} bin="{sys.executable}" venv="{sys.prefix}"')
-            local_log.critical(f'Import: pkg_resources {e}')
+            local_log.critical(f'Import: distutils {e}')
             os._exit(1)
 
     try:
-        global pkg_resources, setuptools # pylint: disable=global-statement
-        import pkg_resources # pylint: disable=redefined-outer-name
+        global setuptools # pylint: disable=global-statement
         import setuptools # pylint: disable=redefined-outer-name
         if setuptools.__version__ != setuptools_version:
             update_setuptools()
@@ -1705,6 +1693,25 @@ def update_wiki():
     ts('wiki', t_start)
 
 
+def run_deferred_tasks():
+    t_start = time.time()
+    log.debug('Starting deferred tasks')
+    time.sleep(1.0) # wait for server to start
+    try:
+        check_version()
+    except Exception as e:
+        log.error(f'Deferred task error: check_version {e}')
+    try:
+        check_modified_files()
+    except Exception as e:
+        log.error(f'Deferred task error: check_modified_files {e}')
+    try:
+        update_wiki()
+    except Exception as e:
+        log.error(f'Deferred task error: update_wiki {e}')
+    log.debug(f'Deferred tasks complete: time={round(time.time() - t_start, 2)}')
+
+
 # check if we can run setup in quick mode
 def check_timestamp():
     if not quick_allowed or not os.path.isfile(log_file):
@@ -1743,6 +1750,7 @@ def check_timestamp():
     return ok
 
 
+
 def add_args(parser):
     import argparse
     group_install = parser.add_argument_group('Install')
@@ -1759,66 +1767,6 @@ def add_args(parser):
     group_install.add_argument('--skip-torch', default=os.environ.get("SD_SKIPTORCH",False), action='store_true', help="Skips running Torch checks, default: %(default)s")
     group_install.add_argument('--skip-all', default=os.environ.get("SD_SKIPALL",False), action='store_true', help="Skips running all checks, default: %(default)s")
     group_install.add_argument('--skip-env', default=os.environ.get("SD_SKIPENV",False), action='store_true', help="Skips setting of env variables during startup, default: %(default)s")
-
-    group_compute = parser.add_argument_group('Compute Engine')
-    group_compute.add_argument("--device-id", type=str, default=os.environ.get("SD_DEVICEID", None), help="Select the default GPU device to use, default: %(default)s")
-    group_compute.add_argument("--use-cuda", default=os.environ.get("SD_USECUDA",False), action='store_true', help="Force use nVidia CUDA backend, default: %(default)s")
-    group_compute.add_argument("--use-ipex", default=os.environ.get("SD_USEIPEX",False), action='store_true', help="Force use Intel OneAPI XPU backend, default: %(default)s")
-    group_compute.add_argument("--use-rocm", default=os.environ.get("SD_USEROCM",False), action='store_true', help="Force use AMD ROCm backend, default: %(default)s")
-    group_compute.add_argument('--use-zluda', default=os.environ.get("SD_USEZLUDA", False), action='store_true', help="Force use ZLUDA, AMD GPUs only, default: %(default)s")
-    group_compute.add_argument("--use-openvino", default=os.environ.get("SD_USEOPENVINO",False), action='store_true', help="Use Intel OpenVINO backend, default: %(default)s")
-    group_compute.add_argument('--use-directml', default=os.environ.get("SD_USEDIRECTML",False), action='store_true', help="Use DirectML if no compatible GPU is detected, default: %(default)s")
-    group_compute.add_argument("--use-xformers", default=os.environ.get("SD_USEXFORMERS",False), action='store_true', help="Force use xFormers cross-optimization, default: %(default)s")
-    group_compute.add_argument("--use-nightly", default=os.environ.get("SD_USENIGHTLY",False), action='store_true', help="Force use nightly torch builds, default: %(default)s")
-
-    group_paths = parser.add_argument_group('Paths')
-    group_paths.add_argument("--ckpt", type=str, default=os.environ.get("SD_MODEL", None), help="Path to model checkpoint to load immediately, default: %(default)s")
-    group_paths.add_argument("--data-dir", type=str, default=os.environ.get("SD_DATADIR", ''), help="Base path where all user data is stored, default: %(default)s")
-    group_paths.add_argument("--models-dir", type=str, default=os.environ.get("SD_MODELSDIR", 'models'), help="Base path where all models are stored, default: %(default)s",)
-    group_paths.add_argument("--extensions-dir", type=str, default=os.environ.get("SD_EXTENSIONSDIR", None), help="Base path where all extensions are stored, default: %(default)s",)
-
-    group_ui = parser.add_argument_group('UI')
-    group_ui.add_argument('--theme', type=str, default=os.environ.get("SD_THEME", None), help='Override UI theme')
-    group_ui.add_argument('--locale', type=str, default=os.environ.get("SD_LOCALE", None), help='Override UI locale')
-
-    group_http = parser.add_argument_group('HTTP')
-    group_http.add_argument("--server-name", type=str, default=os.environ.get("SD_SERVERNAME", None), help="Sets hostname of server, default: %(default)s")
-    group_http.add_argument("--tls-keyfile", type=str, default=os.environ.get("SD_TLSKEYFILE", None), help="Enable TLS and specify key file, default: %(default)s")
-    group_http.add_argument("--tls-certfile", type=str, default=os.environ.get("SD_TLSCERTFILE", None), help="Enable TLS and specify cert file, default: %(default)s")
-    group_http.add_argument("--tls-selfsign", action="store_true", default=os.environ.get("SD_TLSSELFSIGN", False), help="Enable TLS with self-signed certificates, default: %(default)s")
-    group_http.add_argument("--cors-origins", type=str, default=os.environ.get("SD_CORSORIGINS", None), help="Allowed CORS origins as comma-separated list, default: %(default)s")
-    group_http.add_argument("--cors-regex", type=str, default=os.environ.get("SD_CORSREGEX", None), help="Allowed CORS origins as regular expression, default: %(default)s")
-    group_http.add_argument('--subpath', type=str, default=os.environ.get("SD_SUBPATH", None), help='Customize the URL subpath for usage with reverse proxy')
-    group_http.add_argument("--autolaunch", default=os.environ.get("SD_AUTOLAUNCH", False), action='store_true', help="Open the UI URL in the system's default browser upon launch")
-    group_http.add_argument("--auth", type=str, default=os.environ.get("SD_AUTH", None), help='Set access authentication like "user:pwd,user:pwd""')
-    group_http.add_argument("--auth-file", type=str, default=os.environ.get("SD_AUTHFILE", None), help='Set access authentication using file, default: %(default)s')
-    group_http.add_argument("--allowed-paths", nargs='+', default=[], type=str, required=False, help="add additional paths to paths allowed for web access")
-    group_http.add_argument("--share", default=os.environ.get("SD_SHARE", False), action='store_true', help="Enable UI accessible through Gradio site, default: %(default)s")
-    group_http.add_argument("--insecure", default=os.environ.get("SD_INSECURE", False), action='store_true', help="Enable extensions tab regardless of other options, default: %(default)s")
-    group_http.add_argument("--listen", default=os.environ.get("SD_LISTEN", False), action='store_true', help="Launch web server using public IP address, default: %(default)s")
-    group_http.add_argument("--remote", default=os.environ.get("SD_REMOTE", False), action='store_true', help="Reduce client-server communication, default: %(default)s")
-    group_http.add_argument("--port", type=int, default=os.environ.get("SD_PORT", 7860), help="Launch web server with given server port, default: %(default)s")
-
-    group_diag = parser.add_argument_group('Diagnostics')
-    group_diag.add_argument('--experimental', default=os.environ.get("SD_EXPERIMENTAL",False), action='store_true', help="Allow unsupported versions of libraries, default: %(default)s")
-    group_diag.add_argument('--ignore', default=os.environ.get("SD_IGNORE",False), action='store_true', help="Ignore any errors and attempt to continue")
-    group_diag.add_argument('--new', default=os.environ.get("SD_NEW",False), action='store_true', help="Force newer/untested version of libraries, default: %(default)s")
-    group_diag.add_argument('--safe', default=os.environ.get("SD_SAFE",False), action='store_true', help="Run in safe mode with no user extensions")
-    group_diag.add_argument('--test', default=os.environ.get("SD_TEST",False), action='store_true', help="Run test only and exit")
-    group_diag.add_argument('--version', default=False, action='store_true', help="Print version information")
-    group_diag.add_argument("--monitor", default=os.environ.get("SD_MONITOR", 0), help="Run memory monitor, default: %(default)s")
-    group_diag.add_argument("--status", default=os.environ.get("SD_STATUS", 120), help="Run server is-alive status, default: %(default)s")
-
-    group_log = parser.add_argument_group('Logging')
-    group_log.add_argument("--log", type=str, default=os.environ.get("SD_LOG", None), help="Set log file, default: %(default)s")
-    group_log.add_argument('--debug', default=not os.environ.get("SD_NODEBUG",False), action='store_true', help="Run with debug logging, default: %(default)s")
-    group_log.add_argument("--trace", default=os.environ.get("SD_TRACE", False), action='store_true', help="Run with trace logging, default: %(default)s")
-    group_log.add_argument("--profile", default=os.environ.get("SD_PROFILE", False), action='store_true', help="Run profiler, default: %(default)s")
-    group_log.add_argument('--docs', default=not os.environ.get("SD_NODOCS", False), action='store_true', help = "Mount API docs, default: %(default)s")
-    group_log.add_argument("--api-log", default=not os.environ.get("SD_NOAPILOG", False), action='store_true', help="Log all API requests")
-
-    group_nargs = parser.add_argument_group('Other')
-    group_nargs.add_argument('args', type=str, nargs='*', help=argparse.SUPPRESS)
 
 
 def parse_args(parser):

@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import contextlib
+import importlib.metadata
 import torch
 from modules import rocm, attention
 from modules.errors import log, display, install as install_traceback
@@ -112,10 +113,10 @@ def get_gpu_info():
             return ''
 
     def get_package_version(pkg: str):
-        import pkg_resources
-        spec = pkg_resources.working_set.by_key.get(pkg, None) # more reliable than importlib
-        version = pkg_resources.get_distribution(pkg).version if spec is not None else None
-        return version
+        try:
+            return importlib.metadata.version(pkg)
+        except Exception:
+            return None
 
     if not torch.cuda.is_available():
         try:

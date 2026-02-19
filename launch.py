@@ -246,7 +246,6 @@ def main():
         installer.git_reset()
     if args.skip_git or args.skip_all:
         installer.log.info('Skipping GIT operations')
-    installer.check_version()
     installer.log.info(f'Platform: {installer.print_dict(installer.get_platform())}')
     installer.check_venv()
     installer.log.info(f'Args: {sys.argv[1:]}')
@@ -259,7 +258,6 @@ def main():
     installer.check_onnx()
     installer.check_transformers()
     installer.check_diffusers()
-    installer.check_modified_files()
     if args.test:
         installer.log.info('Startup: test mode')
         installer.quick_allowed = False
@@ -282,7 +280,6 @@ def main():
             init_paths()
             installer.install_extensions()
             installer.install_requirements() # redo requirements since extensions may change them
-            installer.update_wiki()
             if len(installer.errors) == 0:
                 installer.log.debug(f'Setup complete without errors: {round(time.time())}')
             else:
@@ -292,6 +289,8 @@ def main():
     args = installer.parse_args(parser)
     installer.log.info(f'Installer time: {init_summary()}')
     get_custom_args()
+    import threading
+    threading.Thread(target=installer.run_deferred_tasks, daemon=True).start()
 
     uv, instance = start_server(immediate=True, server=None)
     if installer.restart_required:
