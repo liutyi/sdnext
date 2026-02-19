@@ -60,6 +60,7 @@ TBD
   - refactor: modernize typing and type annotations  
   - refactor: improve `pydantic==2.x` compatibility  
   - refactor: entire logging into separate `modules/logger`  
+  - refactor: replace `timestamp` based startup checks with state caching  
   - update `lint` rules, thanks @awsr  
   - remove requirements: `clip`, `open-clip`  
   - remove `normalbae` pre-processor  
