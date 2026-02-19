@@ -81,7 +81,7 @@ data_path = paths.data_path
 backend = Backend.DIFFUSERS
 if cmd_opts.use_openvino: # override for openvino
     os.environ.setdefault('PYTORCH_TRACING_MODE', 'TORCHFX')
-    from modules.intel.openvino import get_device_list as get_openvino_device_list # pylint: disable=ungrouped-imports
+    from modules.intel.openvino import get_device_list as get_openvino_device_list # pylint: disable=ungrouped-imports,unused-import
 elif cmd_opts.use_ipex or devices.has_xpu():
     from modules.intel.ipex import ipex_init
     ok, e = ipex_init()

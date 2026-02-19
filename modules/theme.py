@@ -3,7 +3,6 @@ import json
 import gradio as gr
 import modules.shared
 import modules.extensions
-from modules.logger import log
 
 
 gradio_theme = gr.themes.Base()

@@ -80,7 +80,6 @@ def install_nunchaku():
         cmd = f'install --upgrade {url}'
         log.debug(f'Nunchaku: install="{url}"')
         pip(cmd, ignore=False, uv=False)
-        pass
     if not check():
         log.error('Nunchaku: install failed')
         return False
