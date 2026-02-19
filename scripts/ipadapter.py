@@ -1,7 +1,7 @@
 import json
 from PIL import Image
 import gradio as gr
-from modules import scripts_manager, processing, shared, ipadapter, ui_common
+from modules import scripts_manager, processing, ipadapter, ui_common
 from modules.logger import log
 
 

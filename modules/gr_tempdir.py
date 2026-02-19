@@ -3,7 +3,7 @@ import tempfile
 from collections import namedtuple
 from pathlib import Path
 from PIL import Image, PngImagePlugin
-from modules import shared, errors, paths
+from modules import shared, paths
 from modules.logger import log
 
 

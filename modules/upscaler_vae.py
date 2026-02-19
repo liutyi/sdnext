@@ -1,6 +1,6 @@
-from modules.logger import log
 import time
 from PIL import Image
+from modules.logger import log
 from modules.upscaler import Upscaler, UpscalerData
 
 

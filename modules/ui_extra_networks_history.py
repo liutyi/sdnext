@@ -2,7 +2,6 @@ import time
 import json
 import html
 from modules import shared, ui_extra_networks
-from modules.logger import log
 
 
 class ExtraNetworksPageHistory(ui_extra_networks.ExtraNetworksPage):

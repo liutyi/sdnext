@@ -5,7 +5,7 @@ lib: https://github.com/homm/pillow-lut-tools
 import os
 import gradio as gr
 from installer import install
-from modules import scripts_manager, shared, processing
+from modules import scripts_manager, processing
 from modules.logger import log
 
 

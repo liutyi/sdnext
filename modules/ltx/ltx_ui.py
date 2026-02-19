@@ -1,6 +1,6 @@
 import os
 import gradio as gr
-from modules import shared, ui_sections
+from modules import ui_sections
 from modules.logger import log
 from modules.video_models.models_def import models
 from modules.ltx import ltx_process

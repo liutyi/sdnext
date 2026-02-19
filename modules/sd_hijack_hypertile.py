@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from modules.logger import log
 from functools import wraps, cache
 from contextlib import contextmanager, nullcontext
 import random
@@ -11,6 +10,7 @@ import math
 import torch
 import torch.nn as nn
 from einops import rearrange
+from modules.logger import log
 if TYPE_CHECKING:
     from collections.abc import Callable
 

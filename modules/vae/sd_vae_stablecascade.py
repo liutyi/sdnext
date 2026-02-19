@@ -56,7 +56,6 @@ def download_model(model_path):
     model_url = 'https://huggingface.co/stabilityai/stable-cascade/resolve/main/previewer.safetensors?download=true'
     if not os.path.exists(model_path):
         import torch
-        from modules.logger import log
         os.makedirs(os.path.dirname(model_path), exist_ok=True)
         log.info(f'Downloading Stable Cascade previewer: {model_path}')
         torch.hub.download_url_to_file(model_url, model_path)
@@ -69,7 +68,6 @@ def load_model(model_path):
     return checkpoint
 
 def decode(latents):
-    from modules import shared
     global preview_model # pylint: disable=global-statement
     if preview_model is None:
         model_path = os.path.join(paths.models_path, "VAE-approx", "sd_cascade_previewer.safetensors")

@@ -15,7 +15,6 @@ original_Blocks_get_config_file = None
 
 def process_kanvas(self, x): # only used when kanvas overrides gr.Image object
     import numpy as np
-    from modules import errors
     t0 = time.time()
     image_data = list(x.get('image', {}).values())
     image = None

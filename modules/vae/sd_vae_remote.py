@@ -1,4 +1,3 @@
-from modules.logger import log
 import io
 import time
 import json
@@ -6,6 +5,7 @@ import torch
 import requests
 from PIL import Image
 from safetensors.torch import _tobytes
+from modules.logger import log
 
 
 hf_decode_endpoints = {

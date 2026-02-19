@@ -2,7 +2,6 @@ import re
 import inspect
 from typing import Any, Optional, Union
 from collections.abc import Callable
-import pydantic
 from pydantic import BaseModel, Field, create_model
 try:
     from pydantic import ConfigDict

@@ -5,7 +5,7 @@ https://huggingface.co/blog/TimothyAlexisVass/explaining-the-sdxl-latent-space
 
 import os
 import torch
-from modules import shared, devices
+from modules import devices
 from modules.logger import log
 from modules.vae import sd_vae_taesd
 

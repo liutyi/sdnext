@@ -3,7 +3,7 @@ import re
 import json
 import piexif
 from PIL import Image, ExifTags
-from modules import shared, errors, sd_samplers
+from modules import sd_samplers
 from modules.logger import log
 from modules.image.watermark import get_watermark
 

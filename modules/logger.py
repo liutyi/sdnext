@@ -2,7 +2,6 @@ import os
 import sys
 import logging
 import socket
-import time
 from functools import partial, partialmethod
 from logging.handlers import RotatingFileHandler
 
@@ -66,7 +65,7 @@ def install_traceback(suppress: list = None):
 _log_config = {'debug': False, 'trace': False, 'log_filename': None}
 
 def setup_logging(debug=None, trace=None, filename=None):
-    global log_file, console, log_rolled, _log_config # pylint: disable=global-statement
+    global log_file, console, log_rolled # pylint: disable=global-statement
 
     if debug is not None:
         _log_config['debug'] = debug

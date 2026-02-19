@@ -16,14 +16,14 @@ import modules.memmon
 import modules.paths as paths
 from modules.json_helpers import readfile # pylint: disable=W0611
 from modules.shared_helpers import listdir, req # pylint: disable=W0611
-from modules import errors, devices, shared_state, cmd_args, theme, history, files_cache
+from modules import errors, devices, shared_state, cmd_args, theme, history, files_cache # pylint: disable=unused-import
 from modules.shared_defaults import get_default_modes
 from modules.memstats import memory_stats # pylint: disable=unused-import
 
 log.debug('Initializing: pipelines')
-from modules import shared_items
-from modules.caption.openclip import get_clip_models, refresh_clip_models
-from modules.caption.vqa import vlm_models, vlm_prompts, vlm_system, vlm_default
+from modules import shared_items # pylint: disable=unused-import
+from modules.caption.openclip import get_clip_models, refresh_clip_models # pylint: disable=unused-import
+from modules.caption.vqa import vlm_models, vlm_prompts, vlm_system, vlm_default # pylint: disable=unused-import
 
 
 if TYPE_CHECKING:
@@ -156,7 +156,7 @@ startup_offload_mode, startup_offload_min_gpu, startup_offload_max_gpu, startup_
 
 log.debug('Initializing: settings')
 from modules import ui_definitions
-from modules.ui_definitions import OptionInfo, options_section
+from modules.ui_definitions import OptionInfo, options_section # pylint: disable=unused-import
 options_templates = ui_definitions.create_settings(cmd_opts)
 from modules.shared_legacy import get_legacy_options
 options_templates.update(get_legacy_options())

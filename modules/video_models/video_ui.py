@@ -1,6 +1,6 @@
 import os
 import gradio as gr
-from modules import shared, sd_models, ui_common, ui_sections, ui_symbols, ui_video_vlm, call_queue
+from modules import sd_models, ui_common, ui_sections, ui_symbols, ui_video_vlm, call_queue
 from modules.logger import log
 from modules.ui_components import ToolButton
 from modules.video_models import models_def, video_utils

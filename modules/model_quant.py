@@ -1,4 +1,3 @@
-from modules.logger import log
 import os
 import re
 import sys
@@ -8,6 +7,7 @@ import time
 import diffusers
 import transformers
 from installer import installed, install, setup_logging
+from modules.logger import log
 
 
 ao = None

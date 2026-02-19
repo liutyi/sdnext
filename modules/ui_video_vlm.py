@@ -1,6 +1,5 @@
 import gradio as gr
 from PIL import Image
-from modules import shared
 from modules.logger import log
 
 

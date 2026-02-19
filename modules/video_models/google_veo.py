@@ -175,7 +175,7 @@ def load_veo(model_name): # pylint: disable=unused-argument
 
 
 if __name__ == "__main__":
-    from installer import setup_logging
+    from installer import setup_logging # pylint: disable=ungrouped-imports
     setup_logging()
     log.info('test')
     model = GoogleVeoVideoPipeline('veo-3.1-generate-preview')

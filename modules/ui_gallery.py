@@ -2,7 +2,7 @@ import os
 from urllib.parse import unquote
 import gradio as gr
 from PIL import Image
-from modules import shared, ui_symbols, ui_common, images, video, modelstats
+from modules import ui_symbols, ui_common, images, video, modelstats
 from modules.logger import log
 from modules.ui_components import ToolButton
 
@@ -19,7 +19,7 @@ def read_media(fn):
         geninfo = ''
         try:
             frames, fps, duration, w, h, codec, _frame = video.get_video_params(fn)
-            log = f'''
+            info_html = f'''
                 <p>Video <b>{w} x {h}</b>
                 | Codec <b>{codec}</b>
                 | Frames <b>{frames:,}</b>
@@ -30,7 +30,7 @@ def read_media(fn):
                 '''
         except Exception as e:  # keep preview even if probing fails
             log.warning(f'Video probe failed: file="{fn}" {e}')
-            log = f'''
+            info_html = f'''
                 <p>Video
                 | Size <b>{stat_size:,}</b>
                 | Modified <b>{stat_mtime}</b></p><br>
@@ -38,20 +38,20 @@ def read_media(fn):
         return [
             gr.update(visible=False, value=[]),          # hide image gallery preview
             gr.update(visible=True, value=fn),           # show video player
-            geninfo, geninfo, log
+            geninfo, geninfo, info_html
         ]
     else:  # image
         image = Image.open(fn)
         image.already_saved_as = fn
         geninfo, _items = images.read_info_from_image(image)
-        log = f'''
+        info_html = f'''
             <p>Image <b>{image.width} x {image.height}</b>
             | Format <b>{image.format}</b>
             | Mode <b>{image.mode}</b>
             | Size <b>{stat_size:,}</b>
             | Modified <b>{stat_mtime}</b></p><br>
             '''
-        return [gr.update(visible=True, value=[image]), gr.update(visible=False), geninfo, geninfo, log]
+        return [gr.update(visible=True, value=[image]), gr.update(visible=False), geninfo, geninfo, info_html]
 
 
 def create_ui():
