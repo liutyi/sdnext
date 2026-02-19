@@ -11,9 +11,9 @@ def get_app(mp_name, threshold=0.5, resolution=640):
     global insightface_app, instightface_mp # pylint: disable=global-statement
 
     from installer import install, installed, install_insightface
-    if not installed('insightface', reload=False, quiet=True):
+    if not installed('insightface', quiet=True):
         install_insightface()
-    if not installed('ip_adapter', reload=False, quiet=True):
+    if not installed('ip_adapter', quiet=True):
         install('git+https://github.com/tencent-ailab/IP-Adapter.git', 'ip_adapter', ignore=False)
 
     if insightface_app is None or mp_name != instightface_mp:

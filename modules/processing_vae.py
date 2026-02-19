@@ -2,7 +2,7 @@ import os
 import time
 import numpy as np
 import torch
-from modules import shared, devices, sd_models, sd_vae, errors
+from modules import shared, devices, errors, sd_models, sd_models_utils, sd_vae
 from modules.logger import log
 from modules.vae import sd_vae_taesd
 
@@ -71,7 +71,7 @@ def full_vqgan_decode(latents, model):
     if 'VAE' in shared.opts.cuda_compile and shared.opts.cuda_compile_backend == "openvino_fx" and shared.compiled_model_state.first_pass_vae:
         shared.compiled_model_state.first_pass_vae = False
         if not shared.opts.openvino_disable_memory_cleanup and hasattr(shared.sd_model, "vqgan"):
-            model.vqgan.apply(sd_models.convert_to_faketensors)
+            model.vqgan.apply(sd_models_utils.convert_to_faketensors)
             devices.torch_gc(force=True)
 
     if shared.opts.diffusers_offload_mode == "balanced":
@@ -166,7 +166,7 @@ def full_vae_decode(latents, model):
     if 'VAE' in shared.opts.cuda_compile and shared.opts.cuda_compile_backend == "openvino_fx" and shared.compiled_model_state.first_pass_vae:
         shared.compiled_model_state.first_pass_vae = False
         if not shared.opts.openvino_disable_memory_cleanup and hasattr(shared.sd_model, "vae"):
-            model.vae.apply(sd_models.convert_to_faketensors)
+            model.vae.apply(sd_models_utils.convert_to_faketensors)
             devices.torch_gc(force=True)
 
     elif shared.opts.diffusers_move_unet and not getattr(model, 'has_accelerate', False) and base_device is not None:

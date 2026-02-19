@@ -52,7 +52,6 @@ TBD
   - refactor: reorganize `cli` scripts  
   - refactor: move tests to dedicated `/test/`  
   - refactor: all image handling to `modules/image/`  
-  - refactor: captioning part-2, thanks @CalamitousFelicitousness  
   - refactor: remove face restoration, thanks @CalamitousFelicitousness  
   - refactor: unified command line parsing  
   - refactor: launch use threads to async execute non-critical tasks  
@@ -61,11 +60,13 @@ TBD
   - refactor: improve `pydantic==2.x` compatibility  
   - refactor: entire logging into separate `modules/logger`  
   - refactor: replace `timestamp` based startup checks with state caching  
-  - refactor: split monolithic `shared` module and introduce `ui_definitions`
-  - update `lint` rules, thanks @awsr  
+  - refactor: split monolithic `shared` module and introduce `ui_definitions`  
+  - use `threading` for deferable operatios  
+  - use `threading` for io-independent parallel operations  
   - remove requirements: `clip`, `open-clip`  
   - remove `normalbae` pre-processor  
-  - update `requirements`  
+  - refactor: captioning part-2, thanks @CalamitousFelicitousness  
+  - update `lint` rules, thanks @awsr  
 - **Fixes**
   - handle `clip` installer doing unwanted `setuptools` update  
   - cleanup for `uv` installer fallback  

@@ -14,7 +14,7 @@ def check_dependencies():
         ('ligo-segments', 'ligo-segments'),
     ]
     for pkg in packages:
-        if not installed(pkg[1], reload=True, quiet=True):
+        if not installed(pkg[1], quiet=True):
             install(pkg[0], pkg[1], ignore=False)
     try:
         from ligo.segments import segment # pylint: disable=unused-import

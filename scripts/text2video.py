@@ -7,7 +7,7 @@ TODO text2video items:
 """
 
 import gradio as gr
-from modules import scripts_manager, processing, shared, images, sd_models, modelloader
+from modules import scripts_manager, processing, shared, images, video, sd_models, modelloader
 from modules.logger import log
 
 
@@ -92,5 +92,5 @@ class Script(scripts_manager.Script):
         processed = processing.process_images(p)
 
         if video_type != 'None':
-            images.save_video(p, filename=None, images=processed.images, video_type=video_type, duration=duration, loop=gif_loop, pad=mp4_pad, interpolate=mp4_interpolate)
+            video.save_video(p, filename=None, images=processed.images, video_type=video_type, duration=duration, loop=gif_loop, pad=mp4_pad, interpolate=mp4_interpolate)
         return processed

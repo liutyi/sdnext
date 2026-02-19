@@ -19,7 +19,7 @@ from types import MappingProxyType
 from hashlib import sha256
 import functools
 
-from modules import shared, devices, sd_models
+from modules import shared, devices, sd_models, sd_models_utils
 from modules.logger import log
 
 
@@ -527,7 +527,7 @@ def openvino_fx(subgraph, example_inputs, options=None):
                 pass
             else:
                 # Delete unused subgraphs
-                subgraph = subgraph.apply(sd_models.convert_to_faketensors)
+                subgraph = subgraph.apply(sd_models_utils.convert_to_faketensors)
                 devices.torch_gc(force=True, reason='openvino')
 
             # Model is fully supported and already cached. Run the cached OV model directly.

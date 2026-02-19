@@ -11,7 +11,7 @@ import gradio as gr
 from scripts.xyz.xyz_grid_shared import str_permutations, list_to_csv_string, restore_comma, re_range, re_plain_comma # pylint: disable=no-name-in-module
 from scripts.xyz.xyz_grid_classes import axis_options, AxisOption, SharedSettingsStackHelper # pylint: disable=no-name-in-module
 from scripts.xyz.xyz_grid_draw import draw_xyz_grid # pylint: disable=no-name-in-module
-from modules import shared, errors, scripts_manager, images, processing
+from modules import shared, errors, scripts_manager, images, video, processing
 from modules.ui_components import ToolButton
 from modules.ui_sections import create_video_inputs
 import modules.ui_symbols as symbols
@@ -440,7 +440,7 @@ class Script(scripts_manager.Script):
             debug(f'XYZ grid remove subgrids: total={processed.images}')
 
         if create_video and video_type != 'None' and not shared.state.interrupted:
-            images.save_video(p, filename=None, images=have_images, video_type=video_type, duration=video_duration, loop=video_loop, pad=video_pad, interpolate=video_interpolate)
+            video.save_video(p, filename=None, images=have_images, video_type=video_type, duration=video_duration, loop=video_loop, pad=video_pad, interpolate=video_interpolate)
 
         p.do_not_save_grid = True
         p.do_not_save_samples = True

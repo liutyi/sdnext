@@ -30,7 +30,7 @@ class Script(scripts_manager.Script):
 
     def dependencies(self):
         from installer import installed, install, install_insightface
-        if not installed('insightface', reload=False, quiet=True):
+        if not installed('insightface', quiet=True):
             install_insightface()
         if not installed('torchdiffeq'):
             install('torchdiffeq')

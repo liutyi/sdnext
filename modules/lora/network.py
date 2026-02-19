@@ -1,7 +1,7 @@
 import os
 import enum
 from collections import namedtuple
-from modules import sd_models, hashes, shared
+from modules import hashes, shared, sd_models, sd_checkpoint
 
 
 NetworkWeights = namedtuple('NetworkWeights', ['network_key', 'sd_key', 'w', 'sd_module'])
@@ -33,7 +33,7 @@ class NetworkOnDisk:
         self.metadata = {}
         self.is_safetensors = os.path.splitext(filename)[1].lower() == ".safetensors"
         if self.is_safetensors:
-            self.metadata = sd_models.read_metadata_from_safetensors(filename)
+            self.metadata = sd_checkpoint.read_metadata_from_safetensors(filename)
         if self.metadata:
             m = {}
             for k, v in sorted(self.metadata.items(), key=lambda x: metadata_tags_order.get(x[0], 999)):

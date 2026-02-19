@@ -1,15 +1,16 @@
 import time
 from copy import copy
 from PIL import Image
+from modues.images.grid import GridAnnotation
 from modules import shared, images, processing
 from modules.logger import log
 from modules.image.util import draw_text
 
 
 def draw_xyz_grid(p, xs, ys, zs, x_labels, y_labels, z_labels, cell, draw_legend, include_lone_images, include_sub_grids, first_axes_processed, second_axes_processed, margin_size, no_grid: False, include_time: False, include_text: False): # pylint: disable=unused-argument
-    x_texts = [[images.GridAnnotation(x)] for x in x_labels]
-    y_texts = [[images.GridAnnotation(y)] for y in y_labels]
-    z_texts = [[images.GridAnnotation(z)] for z in z_labels]
+    x_texts = [[GridAnnotation(x)] for x in x_labels]
+    y_texts = [[GridAnnotation(y)] for y in y_labels]
+    z_texts = [[GridAnnotation(z)] for z in z_labels]
     list_size = (len(xs) * len(ys) * len(zs))
     processed_result = None
 

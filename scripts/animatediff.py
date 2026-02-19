@@ -263,7 +263,7 @@ class Script(scripts_manager.Script):
 
 
     def after(self, p: processing.StableDiffusionProcessing, processed: processing.Processed, adapter_index, frames, lora_index, strength, latent_mode, video_type, duration, gif_loop, mp4_pad, mp4_interpolate, override_scheduler, fi_method, fi_iters, fi_order, fi_spatial, fi_temporal): # pylint: disable=arguments-differ, unused-argument
-        from modules.images import save_video
+        from modules.video import save_video
         if video_type != 'None':
             log.debug(f'AnimateDiff video: type={video_type} duration={duration} loop={gif_loop} pad={mp4_pad} interpolate={mp4_interpolate}')
             save_video(p, filename=None, images=processed.images, video_type=video_type, duration=duration, loop=gif_loop, pad=mp4_pad, interpolate=mp4_interpolate)

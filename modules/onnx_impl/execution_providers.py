@@ -99,7 +99,6 @@ def install_execution_provider(ep: ExecutionProvider):
     from installer import installed, install, uninstall
     res = "<br><pre>"
     res += uninstall(["onnxruntime", "onnxruntime-directml", "onnxruntime-gpu", "onnxruntime-training", "onnxruntime-openvino"], quiet=True)
-    installed("onnxruntime", reload=True)
     packages = ["onnxruntime"] # Failed to load olive: cannot import name '__version__' from 'onnxruntime'
     if ep == ExecutionProvider.DirectML:
         packages.append("onnxruntime-directml")

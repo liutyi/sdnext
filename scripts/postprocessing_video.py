@@ -1,6 +1,5 @@
 import gradio as gr
-import modules.images
-from modules import scripts_postprocessing
+from modules import video, scripts_postprocessing
 
 
 class ScriptPostprocessingUpscale(scripts_postprocessing.ScriptPostprocessing):
@@ -47,4 +46,4 @@ class ScriptPostprocessingUpscale(scripts_postprocessing.ScriptPostprocessing):
         filename = filename.strip() if filename is not None else ''
         if video_type == 'None' or len(filename) == 0 or images is None or len(images) < 2:
             return
-        modules.images.save_video(p=None, filename=filename, images=images, video_type=video_type, duration=duration, loop=loop, pad=pad, interpolate=interpolate, scale=scale, change=change)
+        video.save_video(p=None, filename=filename, images=images, video_type=video_type, duration=duration, loop=loop, pad=pad, interpolate=interpolate, scale=scale, change=change)

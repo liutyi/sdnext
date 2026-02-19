@@ -18,6 +18,7 @@ from PIL import Image
 from starlette.responses import FileResponse, JSONResponse
 from modules import paths, shared, files_cache, errors, infotext, ui_symbols, ui_components, modelstats
 from modules.logger import log
+from modules.json_helpers import writefile
 
 
 allowed_dirs = []
@@ -838,7 +839,7 @@ def create_ui(container, button_parent, tabname, skip_indexing = False):
 
     def fn_save_info(info):
         fn = os.path.splitext(ui.last_item.filename)[0] + '.json'
-        shared.writefile(info, fn, silent=True)
+        writefile(info, fn, silent=True)
         log.debug(f'Network save info: item="{ui.last_item.name}" filename="{fn}"')
         return info
 
@@ -851,7 +852,7 @@ def create_ui(container, button_parent, tabname, skip_indexing = False):
         fn = os.path.splitext(ui.last_item.filename)[0] + '.json'
         if hasattr(ui.last_item, 'type') and ui.last_item.type == 'Style':
             info.update(**{ 'description': description, 'prompt': prompt, 'negative': negative, 'extra': extra, 'wildcards': wildcards })
-            shared.writefile(info, fn, silent=True)
+            writefile(info, fn, silent=True)
             log.debug(f'Network save style: item="{ui.last_item.name}" filename="{fn}"')
         return info
 
@@ -1077,7 +1078,7 @@ def create_ui(container, button_parent, tabname, skip_indexing = False):
             "negative": negative,
             "extra": '',
         }
-        shared.writefile(item, fn, silent=True)
+        writefile(item, fn, silent=True)
         if len(prompt) > 0:
             log.debug(f'Networks type=style quicksave style: item="{name}" filename="{fn}" prompt="{prompt}"')
         else:

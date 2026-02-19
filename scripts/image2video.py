@@ -1,7 +1,7 @@
 import torch
 import gradio as gr
 import diffusers
-from modules import scripts_manager, processing, shared, images, sd_models, devices
+from modules import scripts_manager, processing, shared, images, video, sd_models, devices
 from modules.logger import log
 
 
@@ -110,5 +110,5 @@ class Script(scripts_manager.Script):
 
         shared.sd_model = orig_pipeline
         if video_type != 'None' and processed is not None:
-            images.save_video(p, filename=None, images=processed.images, video_type=video_type, duration=duration, loop=gif_loop, pad=mp4_pad, interpolate=mp4_interpolate)
+            video.save_video(p, filename=None, images=processed.images, video_type=video_type, duration=duration, loop=gif_loop, pad=mp4_pad, interpolate=mp4_interpolate)
         return processed

@@ -5,6 +5,7 @@ from modules import processing, shared, images, devices, scripts_manager
 from modules.processing import get_processed
 from modules.shared import opts, state, log
 from modules.image.util import flatten
+from modules.images.grid import split_grid
 
 
 class Script(scripts_manager.Script):
@@ -48,7 +49,7 @@ class Script(scripts_manager.Script):
         else:
             img = init_img
         devices.torch_gc()
-        grid = images.split_grid(img, tile_w=init_img.width, tile_h=init_img.height, overlap=overlap)
+        grid = split_grid(img, tile_w=init_img.width, tile_h=init_img.height, overlap=overlap)
         batch_size = p.batch_size
         upscale_count = p.n_iter
         p.n_iter = 1

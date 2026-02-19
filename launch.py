@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-from modules.logger import log
+from functools import lru_cache
 import os
 import sys
 import time
 import shlex
 import subprocess
-from functools import lru_cache
 import installer
+from modules.logger import log
 
 
 debug_install = log.debug if os.environ.get('SD_INSTALL_DEBUG', None) is not None else lambda *args, **kwargs: None

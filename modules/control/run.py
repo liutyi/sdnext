@@ -12,7 +12,7 @@ from modules.control.units import lite # Kohya ControlLLLite
 from modules.control.units import t2iadapter # TencentARC T2I-Adapter
 from modules.control.units import reference # ControlNet-Reference
 from modules.control.processor import preprocess_image
-from modules import devices, shared, errors, processing, images, sd_models, sd_vae, scripts_manager, masking
+from modules import devices, shared, errors, processing, images, video, sd_models, sd_vae, scripts_manager, masking
 from modules.logger import log
 from modules.processing_class import StableDiffusionProcessingControl
 from modules.ui_common import infotext_to_html
@@ -679,7 +679,7 @@ def control_run(state: str = '', # pylint: disable=keyword-arg-before-vararg
 
     if video_type != 'None' and isinstance(output_images, list) and 'video' in p.ops:
         p.do_not_save_grid = True # pylint: disable=attribute-defined-outside-init
-        output_filename = images.save_video(p, filename=None, images=output_images, video_type=video_type, duration=video_duration, loop=video_loop, pad=video_pad, interpolate=video_interpolate, sync=True)
+        output_filename = video.save_video(p, filename=None, images=output_images, video_type=video_type, duration=video_duration, loop=video_loop, pad=video_pad, interpolate=video_interpolate, sync=True)
         if shared.opts.gradio_skip_video:
             output_filename = ''
         image_txt = f'| Frames {len(output_images)} | Size {output_images[0].width}x{output_images[0].height}'

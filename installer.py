@@ -1,4 +1,3 @@
-from typing import overload
 from functools import lru_cache
 import os
 import sys
@@ -14,7 +13,7 @@ import cProfile
 import importlib
 import importlib.util
 import importlib.metadata
-from modules.logger import setup_logging, get_console, get_log, install_traceback, log, console
+from modules.logger import setup_logging, log
 
 
 class Dot(dict): # dot notation access to dictionary attributes
@@ -141,7 +140,7 @@ def package_spec(package):
 
 
 # check if package is installed
-def installed(package, friendly: str = None, reload = False, quiet = False): # pylint: disable=redefined-outer-name
+def installed(package, friendly: str = None, quiet = False): # pylint: disable=redefined-outer-name
     t_start = time.time()
     ok = True
     try:
@@ -275,7 +274,6 @@ def install(package, friendly: str = None, ignore: bool = False, reinstall: bool
         isolation = '' if not no_build_isolation else '--no-build-isolation '
         cmd = f"install{' --upgrade' if not args.uv else ''}{' --force-reinstall' if force else ''} {deps}{isolation}{package}"
         res = pip(cmd, ignore=ignore, uv=package != "uv" and not package.startswith('git+'))
-        pass
     ts('install', t_start)
     return res
 
@@ -1095,10 +1093,11 @@ def install_gradio():
     # aiofiles-23.2.1 altair-5.5.0 annotated-types-0.7.0 anyio-4.9.0 attrs-25.3.0 certifi-2025.6.15 charset_normalizer-3.4.2 click-8.2.1 contourpy-1.3.2 cycler-0.12.1 fastapi-0.115.14 ffmpy-0.6.0 filelock-3.18.0 fonttools-4.58.4 fsspec-2025.5.1 gradio-3.43.2 gradio-client-0.5.0 h11-0.16.0 hf-xet-1.1.5 httpcore-1.0.9 httpx-0.28.1 huggingface-hub-0.33.1 idna-3.10 importlib-resources-6.5.2 jinja2-3.1.6 jsonschema-4.24.0 jsonschema-specifications-2025.4.1 kiwisolver-1.4.8 markupsafe-2.1.5 matplotlib-3.10.3 narwhals-1.45.0 numpy-1.26.4 orjson-3.10.18 packaging-25.0 pandas-2.3.0 pillow-10.4.0 pydantic-2.11.7 pydantic-core-2.33.2 pydub-0.25.1 pyparsing-3.2.3 python-dateutil-2.9.0.post0 python-multipart-0.0.20 pytz-2025.2 pyyaml-6.0.2 referencing-0.36.2 requests-2.32.4 rpds-py-0.25.1 semantic-version-2.10.0 six-1.17.0 sniffio-1.3.1 starlette-0.46.2 tqdm-4.67.1 typing-extensions-4.14.0 typing-inspection-0.4.1 tzdata-2025.2 urllib3-2.5.0 uvicorn-0.35.0 websockets-11.0.3
     install('gradio==3.43.2', no_deps=True)
     install('gradio-client==0.5.0', no_deps=True, quiet=True)
-    pkgs = ['fastapi', 'websockets', 'aiofiles', 'ffmpy', 'pydub', 'uvicorn', 'semantic-version', 'altair', 'python-multipart', 'matplotlib']
-    for pkg in pkgs:
-        if not installed(pkg, quiet=True):
-            install(pkg, quiet=True)
+    if not quick_allowed: # on quick path these are guaranteed installed by the state file
+        pkgs = ['fastapi', 'websockets', 'aiofiles', 'ffmpy', 'pydub', 'uvicorn', 'semantic-version', 'altair', 'python-multipart', 'matplotlib']
+        for pkg in pkgs:
+            if not installed(pkg, quiet=True):
+                install(pkg, quiet=True)
 
 
 def install_pydantic():
@@ -1178,7 +1177,6 @@ def install_requirements():
     if args.optional:
         quick_allowed = False
         install_optional()
-    installed('torch', reload=True) # reload packages cache
     log.info('Install: verifying requirements')
     if args.new:
         log.debug('Install: flag=new')
@@ -1481,6 +1479,11 @@ def run_deferred_tasks():
     log.debug('Starting deferred tasks')
     time.sleep(1.0) # wait for server to start
     try:
+        from modules.sd_models import write_metadata
+        write_metadata()
+    except Exception as e:
+        log.error(f'Deferred task error: write_metadata {e}')
+    try:
         check_version()
     except Exception as e:
         log.error(f'Deferred task error: check_version {e}')
@@ -1514,20 +1517,28 @@ def get_state():
     except Exception:
         pass
     try:
+        from concurrent.futures import ThreadPoolExecutor
         from modules.paths import extensions_builtin_dir, extensions_dir
         extension_folders = [extensions_builtin_dir] if args.safe else [extensions_builtin_dir, extensions_dir]
+        ext_dirs = []
         for folder in extension_folders:
             if not os.path.isdir(folder):
                 continue
-            extensions = list_extensions_folder(folder, quiet=True)
-            for ext in extensions:
-                extension_dir = os.path.join(folder, ext)
-                try:
-                    res = subprocess.run('git rev-parse HEAD', capture_output=True, shell=True, check=False, cwd=extension_dir)
-                    commit = res.stdout.decode(encoding='utf8', errors='ignore').strip()
+            for ext in list_extensions_folder(folder, quiet=True):
+                ext_dirs.append((ext, os.path.join(folder, ext)))
+
+        def _get_commit(item):
+            ext, ext_dir = item
+            try:
+                res = subprocess.run('git rev-parse HEAD', capture_output=True, shell=True, check=False, cwd=ext_dir)
+                return ext, res.stdout.decode(encoding='utf8', errors='ignore').strip()
+            except Exception:
+                return ext, ''
+
+        with ThreadPoolExecutor(max_workers=min(len(ext_dirs), 8), thread_name_prefix='sdnext-git') as pool:
+            for ext, commit in pool.map(_get_commit, ext_dirs):
+                if commit:
                     state['extensions'][ext] = commit
-                except Exception:
-                    pass
     except Exception:
         pass
     return state

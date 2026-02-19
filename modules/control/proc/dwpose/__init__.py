@@ -49,7 +49,7 @@ def check_dependencies():
         'mmpose==1.3.2',
         'mmdet==3.3.0',
     ]
-    status = [installed(p, reload=False, quiet=True) for p in packages]
+    status = [installed(p, quiet=True) for p in packages]
     debug(f'DWPose required={packages} status={status}')
     if not all(status):
         log.info(f'Installing dependencies: for=dwpose packages={packages}')

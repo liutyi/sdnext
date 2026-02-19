@@ -271,7 +271,8 @@ class State:
     def do_set_current_image(self):
         if (self.current_latent is None) or self.disable_preview or (self.preview_job == self.job_no):
             return False
-        from modules import shared, sd_samplers
+        from modules import shared, sd_samplers, sd_samplers_common
+        from modules.sd_samplers_common import samples_to_image_grid, sample_to_image
         self.preview_job = self.job_no
         try:
             sample = self.current_latent
@@ -285,7 +286,7 @@ class State:
                         sample = self.current_noise_pred * (-self.current_sigma / (self.current_sigma**2 + 1) ** 0.5) + (original_sample / (self.current_sigma**2 + 1)) # pylint: disable=invalid-unary-operand-type
             except Exception:
                 pass # ignore sigma errors
-            image = sd_samplers.samples_to_image_grid(sample) if shared.opts.show_progress_grid else sd_samplers.sample_to_image(sample)
+            image = samples_to_image_grid(sample) if shared.opts.show_progress_grid else sample_to_image(sample)
             self.assign_current_image(image)
             self.preview_job = -1
             return True

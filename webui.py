@@ -74,6 +74,7 @@ fastapi_args = {
 
 def initialize():
     log.debug('Initializing: modules')
+    from concurrent.futures import ThreadPoolExecutor, as_completed
 
     modules.sd_checkpoint.init_metadata()
     modules.hashes.init_cache()
@@ -81,22 +82,32 @@ def initialize():
     modules.sd_samplers.list_samplers()
     timer.startup.record("samplers")
 
-    modules.sd_vae.refresh_vae_list()
-    timer.startup.record("vae")
+    # run independent filesystem scans in parallel
+    def _scan_vae():
+        modules.sd_vae.refresh_vae_list()
+    def _scan_unet():
+        modules.sd_unet.refresh_unet_list()
+    def _scan_te():
+        modules.model_te.refresh_te_list()
+    def _scan_models():
+        modules.modelloader.cleanup_models()
+        modules.sd_checkpoint.setup_model()
+    def _scan_lora():
+        from modules.lora import lora_load
+        lora_load.list_available_networks()
+    def _scan_upscalers():
+        modules.modelloader.load_upscalers()
 
-    modules.sd_unet.refresh_unet_list()
-    timer.startup.record("unet")
-
-    modules.model_te.refresh_te_list()
-    timer.startup.record("te")
-
-    modules.modelloader.cleanup_models()
-    modules.sd_checkpoint.setup_model()
-    timer.startup.record("models")
-
-    from modules.lora import lora_load
-    lora_load.list_available_networks()
-    timer.startup.record("lora")
+    scans = [_scan_vae, _scan_unet, _scan_te, _scan_models, _scan_lora, _scan_upscalers]
+    with ThreadPoolExecutor(max_workers=len(scans), thread_name_prefix='sdnext-scan') as pool:
+        futures = {pool.submit(fn): fn.__name__ for fn in scans}
+        for future in as_completed(futures):
+            name = futures[future]
+            try:
+                future.result()
+            except Exception as e:
+                log.error(f'Scan error: {name} {e}')
+    timer.startup.record("scans")
 
     shared.prompt_styles.reload()
     timer.startup.record("styles")
@@ -115,9 +126,6 @@ def initialize():
     timer.startup.records["extensions"] = t_total # scripts can reset the time
     log.debug(f'Extensions init time: {t_timer.summary()}')
 
-    modules.modelloader.load_upscalers()
-    timer.startup.record("upscalers")
-
     modules.ui_extra_networks.initialize()
     modules.ui_extra_networks.register_pages()
     modules.extra_networks.initialize()
@@ -127,6 +135,7 @@ def initialize():
     from modules.models_hf import hf_init, hf_check_cache
     hf_init()
     hf_check_cache()
+
 
     if shared.cmd_opts.tls_keyfile is not None and shared.cmd_opts.tls_certfile is not None:
         try:
@@ -374,7 +383,6 @@ def webui(restart=False):
     start_common()
     app = start_ui()
     modules.script_callbacks.after_ui_callback()
-    modules.sd_models.write_metadata()
 
     load_model()
     mount_subpath(app)

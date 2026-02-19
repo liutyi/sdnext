@@ -15,7 +15,7 @@ orig_pipeline, orig_prompt_attention = None, None
 
 def verify_insightface():
     from installer import installed, install_insightface
-    if not installed('insightface', reload=False, quiet=True):
+    if not installed('insightface', quiet=True):
         install_insightface()
 
 

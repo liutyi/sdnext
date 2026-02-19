@@ -5,7 +5,7 @@ Additional params for StableVideoDiffusion
 import os
 import torch
 import gradio as gr
-from modules import scripts_manager, processing, shared, sd_models, images, modelloader
+from modules import scripts_manager, processing, shared, sd_models, images, modelloader, video
 from modules.logger import log
 
 
@@ -121,5 +121,5 @@ class Script(scripts_manager.Script):
         # run processing
         processed = processing.process_images(p)
         if video_type != 'None':
-            images.save_video(p, filename=None, images=processed.images, video_type=video_type, duration=duration, loop=gif_loop, pad=mp4_pad, interpolate=mp4_interpolate)
+            video.save_video(p, filename=None, images=processed.images, video_type=video_type, duration=duration, loop=gif_loop, pad=mp4_pad, interpolate=mp4_interpolate)
         return processed
