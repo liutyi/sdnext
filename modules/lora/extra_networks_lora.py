@@ -178,6 +178,8 @@ class ExtraNetworkLora(extra_networks.ExtraNetwork):
             debug_log(f'Network check: type=LoRA requested={requested} status=forced')
             return True
         sd_model = shared.sd_model.pipe if hasattr(shared.sd_model, 'pipe') else shared.sd_model
+        if sd_model is None:
+            return False
         if not hasattr(sd_model, 'loaded_loras'):
             sd_model.loaded_loras = {}
         if include is None or len(include) == 0:

@@ -212,6 +212,7 @@ def start_server(immediate=True, server=None):
     log.debug(f'Starting module: {server}')
     module_spec.loader.exec_module(server)
     threading.Thread(target=installer.run_deferred_tasks, daemon=True).start()
+
     uvicorn = None
     if args.test:
         log.info("Test only")

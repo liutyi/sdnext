@@ -167,47 +167,46 @@ class ModelData:
             self.sd_refiner = v
 
 
+model_data = ModelData()
+
+
 # provides shared.sd_model field as a property
 class Shared(sys.modules[__name__].__class__):
     @property
     def sd_loaded(self):
-        import modules.sd_models # pylint: disable=W0621
-        return modules.sd_models.model_data.sd_model is not None
+        return model_data.sd_model is not None
 
     @property
     def sd_model(self):
-        import modules.sd_models # pylint: disable=W0621
-        if modules.sd_models.model_data.sd_model is None:
+        if model_data.sd_model is None:
             fn = f'{os.path.basename(sys._getframe(2).f_code.co_filename)}:{sys._getframe(2).f_code.co_name}:{sys._getframe(1).f_code.co_name}' # pylint: disable=protected-access
-            log.debug(f'Model requested: fn={fn}') # pylint: disable=protected-access
-        return modules.sd_models.model_data.get_sd_model()
+            log.debug(f'Model requested: fn={fn}')
+        model = model_data.get_sd_model()
+        return model
 
     @sd_model.setter
     def sd_model(self, value):
-        import modules.sd_models # pylint: disable=W0621
         if value is None:
             fn = f'{os.path.basename(sys._getframe(2).f_code.co_filename)}:{sys._getframe(2).f_code.co_name}:{sys._getframe(1).f_code.co_name}' # pylint: disable=protected-access
-            log.debug(f'Model unloaded: fn={fn}') # pylint: disable=protected-access
-        modules.sd_models.model_data.set_sd_model(value)
+            if model_data.sd_model is not None:
+                log.debug(f'Model unloaded: fn={fn}')
+        model_data.set_sd_model(value)
 
     @property
     def sd_refiner(self):
-        import modules.sd_models # pylint: disable=W0621
-        return modules.sd_models.model_data.get_sd_refiner()
+        return model_data.get_sd_refiner()
 
     @sd_refiner.setter
     def sd_refiner(self, value):
-        import modules.sd_models # pylint: disable=W0621
-        modules.sd_models.model_data.set_sd_refiner(value)
+        model_data.set_sd_refiner(value)
 
     @property
     def sd_model_type(self):
         try:
-            import modules.sd_models # pylint: disable=W0621
-            if modules.sd_models.model_data.sd_model is None:
+            if model_data.sd_model is None:
                 model_type = 'none'
                 return model_type
-            model_type = get_model_type(modules.sd_models.model_data.sd_model)
+            model_type = get_model_type(model_data.sd_model)
         except Exception:
             model_type = 'unknown'
         return model_type
@@ -215,11 +214,10 @@ class Shared(sys.modules[__name__].__class__):
     @property
     def sd_refiner_type(self):
         try:
-            import modules.sd_models # pylint: disable=W0621
-            if modules.sd_models.model_data.sd_refiner is None:
+            if model_data.sd_refiner is None:
                 model_type = 'none'
                 return model_type
-            model_type = get_model_type(modules.sd_models.model_data.sd_refiner)
+            model_type = get_model_type(model_data.sd_refiner)
         except Exception:
             model_type = 'unknown'
         return model_type
@@ -231,6 +229,3 @@ class Shared(sys.modules[__name__].__class__):
             return get_console()
         except ImportError:
             return None
-
-
-model_data = ModelData()

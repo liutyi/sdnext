@@ -14,7 +14,6 @@ from modules.processing_class import ( # pylint: disable=unused-import
     StableDiffusionProcessingControl,
 )
 from modules.processing_info import create_infotext
-from modules.modeldata import model_data
 
 
 opt_C = 4
@@ -39,7 +38,7 @@ processed = None # last known processed results
 
 class Processed:
     def __init__(self, p: StableDiffusionProcessing, images_list, seed=-1, info=None, subseed=None, all_prompts=None, all_negative_prompts=None, all_seeds=None, all_subseeds=None, index_of_first_image=0, infotexts=None, comments="", binary=None, audio=None):
-        self.sd_model_hash = getattr(shared.sd_model, 'sd_model_hash', '') if model_data.sd_model is not None else ''
+        self.sd_model_hash = getattr(shared.sd_model, 'sd_model_hash', '') if shared.sd_loaded is not None else ''
 
         self.prompt = p.prompt or ''
         self.negative_prompt = p.negative_prompt or ''
@@ -139,8 +138,11 @@ def get_processed(*args, **kwargs):
 def process_images(p: StableDiffusionProcessing) -> Processed:
     timer.process.reset()
     debug(f'Process images: class={p.__class__.__name__} {vars(p)}')
-    if not hasattr(p.sd_model, 'sd_checkpoint_info'):
-        log.error('Processing: incomplete model')
+    if shared.sd_model is None:
+        log.warning('Aborted: op=process model not loaded')
+        return None
+    if not hasattr(shared.sd_model, 'sd_checkpoint_info'):
+        log.error('Aborted: op=process incomplete model')
         return None
     if p.abort:
         log.debug('Processing: aborted')

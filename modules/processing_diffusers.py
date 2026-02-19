@@ -70,8 +70,10 @@ def restore_state(p: processing.StableDiffusionProcessing):
 
 def process_pre(p: processing.StableDiffusionProcessing):
     from modules import ipadapter, sd_hijack_freeu, para_attention, teacache, hidiffusion, ras, pag, cfgzero, transformer_cache, token_merge, linfusion, cachedit
+    if shared.sd_model is None:
+        log.warning('Processing modifiers: model not loaded')
+        return
     log.info('Processing modifiers: apply')
-
     try:
         # apply-with-unapply
         sd_models_compile.check_deepcache(enable=True)
@@ -505,19 +507,25 @@ def process_decode(p: processing.StableDiffusionProcessing, output):
 
 
 def update_pipeline(sd_model, p: processing.StableDiffusionProcessing):
+    if sd_model is None:
+        sd_model = shared.sd_model
+    if sd_model is None:
+        shared.log.warning('Processing: op=update model not loaded')
+        return None
+    updated_model = sd_model
     if sd_models.get_diffusers_task(sd_model) == sd_models.DiffusersTaskType.INPAINTING and getattr(p, 'image_mask', None) is None and p.task_args.get('image_mask', None) is None and getattr(p, 'mask', None) is None:
         log.warning('Processing: mode=inpaint mask=None')
-        sd_model = sd_models.set_diffuser_pipe(sd_model, sd_models.DiffusersTaskType.IMAGE_2_IMAGE)
+        updated_model = sd_models.set_diffuser_pipe(sd_model, sd_models.DiffusersTaskType.IMAGE_2_IMAGE)
     if shared.opts.cuda_compile_backend == "olive-ai":
-        sd_model = olive_check_parameters_changed(p, is_refiner_enabled(p))
+        updated_model = olive_check_parameters_changed(p, is_refiner_enabled(p))
     if sd_model.__class__.__name__ == "OnnxRawPipeline":
-        sd_model = preprocess_onnx_pipeline(p)
+        updated_model = preprocess_onnx_pipeline(p)
         global orig_pipeline # pylint: disable=global-statement
-        orig_pipeline = sd_model # processed ONNX pipeline should not be replaced with original pipeline.
-    if getattr(sd_model, "current_attn_name", None) != shared.opts.cross_attention_optimization:
+        orig_pipeline = updated_model # processed ONNX pipeline should not be replaced with original pipeline.
+    if getattr(updated_model, "current_attn_name", None) != shared.opts.cross_attention_optimization:
         log.info(f"Setting attention optimization: {shared.opts.cross_attention_optimization}")
-        attention.set_diffusers_attention(sd_model)
-    return sd_model
+        attention.set_diffusers_attention(updated_model)
+    return updated_model
 
 
 def validate_pipeline(p: processing.StableDiffusionProcessing):

@@ -2,6 +2,8 @@ import os
 import sys
 import cv2
 from PIL import Image
+from modules.logger import log
+from modules import devices, shared, errors, processing, sd_models, sd_vae, scripts_manager, masking
 from modules.control import util # helper functions
 from modules.control import unit # control units
 from modules.control import processors # image preprocessors
@@ -12,8 +14,6 @@ from modules.control.units import lite # Kohya ControlLLLite
 from modules.control.units import t2iadapter # TencentARC T2I-Adapter
 from modules.control.units import reference # ControlNet-Reference
 from modules.control.processor import preprocess_image
-from modules import devices, shared, errors, processing, sd_models, sd_vae, scripts_manager, masking
-from modules.logger import log
 from modules.processing_class import StableDiffusionProcessingControl
 from modules.ui_common import infotext_to_html
 from modules.api import script
@@ -449,8 +449,8 @@ def control_run(state: str = '', # pylint: disable=keyword-arg-before-vararg
         setattr(p, k, v)
     p_extra_args = {}
 
-    if shared.sd_model is None:
-        log.warning('Aborted: op=control model not loaded')
+    if shared.sd_model is None: # triggers load if not loaded
+        log.warning('Aborted: op=generate model not loaded')
         return [], '', '', 'Error: model not loaded'
 
     unit_type = unit_type.strip().lower() if unit_type is not None else ''

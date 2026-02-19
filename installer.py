@@ -1427,7 +1427,7 @@ def run_deferred_tasks():
     log.debug('Starting deferred tasks')
     time.sleep(1.0) # wait for server to start
     try:
-        from modules.sd_models import write_metadata
+        from modules.sd_checkpoint import write_metadata
         write_metadata()
     except Exception as e:
         log.error(f'Deferred task error: write_metadata {e}')
@@ -1444,7 +1444,6 @@ def run_deferred_tasks():
     except Exception as e:
         log.error(f'Deferred task error: update_wiki {e}')
     log.debug(f'Deferred tasks complete: time={round(time.time() - t_start, 2)}')
-
 
 
 @lru_cache

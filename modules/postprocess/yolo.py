@@ -76,8 +76,10 @@ class YoloRestorer(Detailer):
         return list(self.list)
 
     def dependencies(self):
-        import installer
-        installer.install('ultralytics==8.3.40', ignore=True, quiet=True)
+        from installer import install
+        install('ultralytics==8.3.40', ignore=True, quiet=True)
+        install('omegaconf')
+        install('antlr4-python3-runtime')
 
     def predict(
             self,

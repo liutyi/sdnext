@@ -478,9 +478,10 @@ def apply_balanced_offload(sd_model=None, exclude:list[str]=None, force:bool=Fal
         return sd_model
     if exclude is None:
         exclude = []
-    t0 = time.time()
     if sd_model.__class__.__name__ in balanced_offload_exclude:
         return sd_model
+
+    t0 = time.time()
     cached = True
     checkpoint_name = sd_model.sd_checkpoint_info.name if getattr(sd_model, "sd_checkpoint_info", None) is not None else sd_model.__class__.__name__
     if force or (offload_hook_instance is None) or (offload_hook_instance.min_watermark != shared.opts.diffusers_offload_min_gpu_memory) or (offload_hook_instance.max_watermark != shared.opts.diffusers_offload_max_gpu_memory) or (checkpoint_name != offload_hook_instance.checkpoint_name):

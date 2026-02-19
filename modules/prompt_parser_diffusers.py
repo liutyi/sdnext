@@ -79,7 +79,7 @@ class PromptEmbedder:
         earlyout = self.checkcache(p)
         if earlyout:
             return
-        self.pipe = prepare_model(p.sd_model)
+        self.pipe = prepare_model(shared.sd_model)
         if self.pipe is None:
             log.error("Prompt encode: cannot find text encoder in model")
             return

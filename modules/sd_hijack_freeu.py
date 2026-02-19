@@ -146,15 +146,15 @@ def ratio_to_region(width: float, offset: float, n: int):
 
 def apply_freeu(p):
     global state_enabled # pylint: disable=global-statement
-    if hasattr(p.sd_model, 'enable_freeu'):
+    if hasattr(shared.sd_model, 'enable_freeu'):
         if shared.opts.freeu_enabled:
             freeu_device = get_fft_device()
             if freeu_device != devices.cpu:
                 p.extra_generation_params['FreeU'] = f'b1={shared.opts.freeu_b1} b2={shared.opts.freeu_b2} s1={shared.opts.freeu_s1} s2={shared.opts.freeu_s2}'
-                p.sd_model.enable_freeu(s1=shared.opts.freeu_s1, s2=shared.opts.freeu_s2, b1=shared.opts.freeu_b1, b2=shared.opts.freeu_b2)
+                shared.sd_model.enable_freeu(s1=shared.opts.freeu_s1, s2=shared.opts.freeu_s2, b1=shared.opts.freeu_b1, b2=shared.opts.freeu_b2)
                 state_enabled = True
         elif state_enabled:
-            p.sd_model.disable_freeu()
+            shared.sd_model.disable_freeu()
             state_enabled = False
     if shared.opts.freeu_enabled and state_enabled:
         log.info(f'Applying Free-U: b1={shared.opts.freeu_b1} b2={shared.opts.freeu_b2} s1={shared.opts.freeu_s1} s2={shared.opts.freeu_s2}')

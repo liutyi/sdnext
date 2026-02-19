@@ -235,7 +235,7 @@ def face_id(
                 faceid_model_name = None
             devices.torch_gc()
 
-        ipadapter.unapply(p.sd_model)
+        ipadapter.unapply(shared.sd_model)
         extra_networks.deactivate(p, p.network_data)
 
         p.extra_generation_params["IP Adapter"] = f"{basename}:{scale}"
@@ -243,7 +243,7 @@ def face_id(
         if faceid_model is not None and original_load_ip_adapter is not None:
             faceid_model.__class__.load_ip_adapter = original_load_ip_adapter
         if shared.opts.cuda_compile_backend == 'none':
-            token_merge.remove_token_merging(p.sd_model)
+            token_merge.remove_token_merging(shared.sd_model)
         script_callbacks.after_process_callback(p)
 
     return processed_images
