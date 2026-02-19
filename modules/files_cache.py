@@ -1,9 +1,9 @@
+from typing import Union
 import itertools
 import os
 from collections import UserDict
-from dataclasses import dataclass, field
-from typing import Union
 from collections.abc import Callable, Iterator
+from dataclasses import dataclass, field
 from modules.logger import log
 
 

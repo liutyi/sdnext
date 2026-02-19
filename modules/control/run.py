@@ -12,7 +12,7 @@ from modules.control.units import lite # Kohya ControlLLLite
 from modules.control.units import t2iadapter # TencentARC T2I-Adapter
 from modules.control.units import reference # ControlNet-Reference
 from modules.control.processor import preprocess_image
-from modules import devices, shared, errors, processing, images, video, sd_models, sd_vae, scripts_manager, masking
+from modules import devices, shared, errors, processing, sd_models, sd_vae, scripts_manager, masking
 from modules.logger import log
 from modules.processing_class import StableDiffusionProcessingControl
 from modules.ui_common import infotext_to_html
@@ -495,16 +495,16 @@ def control_run(state: str = '', # pylint: disable=keyword-arg-before-vararg
                         log.warning('Control: separate init video not support for video input')
                         input_type = 1
                 try:
-                    video = cv2.VideoCapture(inputs)
-                    if not video.isOpened():
+                    cap = cv2.VideoCapture(inputs)
+                    if not cap.isOpened():
                         if is_generator:
                             yield terminate(f'Video open failed: path={inputs}')
                         return [], '', '', 'Error: video open failed'
-                    frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
-                    fps = int(video.get(cv2.CAP_PROP_FPS))
-                    w, h = int(video.get(cv2.CAP_PROP_FRAME_WIDTH)), int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
-                    codec = util.decode_fourcc(video.get(cv2.CAP_PROP_FOURCC))
-                    status, frame = video.read()
+                    frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                    fps = int(cap.get(cv2.CAP_PROP_FPS))
+                    w, h = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                    codec = util.decode_fourcc(cap.get(cv2.CAP_PROP_FOURCC))
+                    status, frame = cap.read()
                     if status:
                         shared.state.frame_count = 1 + frames // (video_skip_frames + 1)
                         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -662,8 +662,8 @@ def control_run(state: str = '', # pylint: disable=keyword-arg-before-vararg
                 else:
                     status = False
 
-            if video is not None:
-                video.release()
+            if cap is not None:
+                cap.release()
 
             debug_log(f'Control: pipeline units={len(active_model)} process={len(active_process)} outputs={len(output_images)}')
     except Exception as e:

@@ -44,7 +44,7 @@ def list_extensions():
     global extensions_list # pylint: disable=global-statement
     extensions_list = shared.readfile(extensions_data_file, silent=True, as_type="list")
     if len(extensions_list) == 0:
-        log.info("Extension list: No information found. Refresh required.")
+        log.info("Extension list: No information found - refresh required")
     found = []
     for ext in extensions.extensions:
         ext.read_info()

@@ -4,6 +4,7 @@ import rich.progress as p
 from PIL import Image
 from modules import shared, errors, paths
 from modules.logger import log, console
+from modules.json_helpers import writefile
 
 
 pbar = None
@@ -33,7 +34,7 @@ def download_civit_meta(model_path: str, model_id):
     if r.status_code == 200:
         try:
             data = r.json()
-            shared.writefile(data, filename=fn, mode='w', silent=True)
+            writefile(data, filename=fn, mode='w', silent=True)
             log.info(f'CivitAI download: id={model_id} url={url} file="{fn}"')
             return r.status_code, len(data), '' # code/size/note
         except Exception as e:

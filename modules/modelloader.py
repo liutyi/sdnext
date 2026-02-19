@@ -9,6 +9,7 @@ import huggingface_hub as hf
 from installer import install
 from modules.logger import log, console
 from modules import shared, errors, files_cache
+from modules.json_helpers import writefile
 from modules.upscaler import Upscaler
 from modules import paths
 
@@ -108,7 +109,7 @@ def download_diffusers_model(hub_id: str, cache_dir: str = None, download_config
         with open(os.path.join(download_dir, "hidden"), "w", encoding="utf-8") as f: # mark prior as hidden
             f.write("True")
     if pipeline_dir is not None:
-        shared.writefile(model_info_dict, os.path.join(pipeline_dir, "model_info.json"))
+        writefile(model_info_dict, os.path.join(pipeline_dir, "model_info.json"))
     shared.state.end(jobid)
     return pipeline_dir
 

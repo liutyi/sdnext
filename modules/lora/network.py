@@ -1,7 +1,7 @@
 import os
 import enum
 from collections import namedtuple
-from modules import hashes, shared, sd_models, sd_checkpoint
+from modules import hashes, shared, sd_checkpoint
 
 
 NetworkWeights = namedtuple('NetworkWeights', ['network_key', 'sd_key', 'w', 'sd_module'])

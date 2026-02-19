@@ -1,7 +1,7 @@
 import hashlib
 import os.path
 from rich import progress, errors
-from installer import console
+from modules.logger import console
 from modules.logger import log
 from modules.json_helpers import readfile, writefile
 from modules.paths import data_path

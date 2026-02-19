@@ -8,6 +8,7 @@ import collections
 from PIL import Image
 from modules import shared, paths, modelloader, hashes, sd_hijack_accelerate
 from modules.logger import log
+from modules.json_helpers import writefile
 
 
 checkpoints_list = {}
@@ -426,6 +427,6 @@ def write_metadata():
     if sd_metadata_pending == 0:
         log.debug(f'Model metadata: file="{sd_metadata_file}" no changes')
         return
-    shared.writefile(sd_metadata, sd_metadata_file)
+    writefile(sd_metadata, sd_metadata_file)
     log.info(f'Model metadata saved: file="{sd_metadata_file}" items={sd_metadata_pending} time={sd_metadata_timer:.2f}')
     sd_metadata_pending = 0

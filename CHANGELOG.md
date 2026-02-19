@@ -61,6 +61,7 @@ TBD
   - refactor: entire logging into separate `modules/logger`  
   - refactor: replace `timestamp` based startup checks with state caching  
   - refactor: split monolithic `shared` module and introduce `ui_definitions`  
+  - refactor: modularize all imports and avoid re-imports  
   - use `threading` for deferable operatios  
   - use `threading` for io-independent parallel operations  
   - remove requirements: `clip`, `open-clip`  

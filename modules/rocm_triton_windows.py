@@ -55,15 +55,15 @@ if sys.platform == "win32":
 
     _cuda_getCurrentRawStream = torch._C._cuda_getCurrentRawStream # pylint: disable=protected-access
     def torch__C__cuda_getCurrentRawStream(device):
-        from modules import zluda
-        return zluda.core.to_hip_stream(_cuda_getCurrentRawStream(device))
+        from modules import zluda_installer
+        return zluda_installer.core.to_hip_stream(_cuda_getCurrentRawStream(device))
 
     def get_default_agent() -> Agent | None:
         if shared.devices.has_rocm():
             return devices.get_hip_agent()
         else:
-            from modules import zluda
-            return zluda.default_agent
+            from modules import zluda_installer
+            return zluda_installer.default_agent
 
     def apply_triton_patches():
         agent = get_default_agent()

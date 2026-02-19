@@ -12,7 +12,7 @@
     "platform": "linux",
     "requirements": "48d1c48d0709cdb9cad3c0da88b582783f02f0ecaf3499c4a81d9e1a1e453c40",
     "extensions": {
-        "stable-diffusion-webui-rembg": "f3e21bb70e5f8a665b066c5d0ece99bfcff272f3",
+        "stable-diffusion-webui-rembg": "cfceed7243ce97cf8fd64a43df0291448c22a9dd",
         "sd-extension-chainner": "2a7005fbcf8985644b66121365fa7228a65f34b0",
         "sd-extension-system-info": "1a35ac4d73ce1f55527f7a95fc61b0915795c21b",
         "sdnext-kanvas": "79cae1944646e57cfbfb126a971a04e44e45d776",

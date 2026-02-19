@@ -123,7 +123,7 @@ class UiLoadsave:
         return readfile(self.filename, as_type="dict")
 
     def write_to_file(self, current_ui_settings):
-        from modules.shared import writefile
+        from modules.json_helpers import writefile
         writefile(current_ui_settings, self.filename)
 
     def dump_defaults(self):

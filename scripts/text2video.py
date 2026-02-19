@@ -7,7 +7,7 @@ TODO text2video items:
 """
 
 import gradio as gr
-from modules import scripts_manager, processing, shared, images, video, sd_models, modelloader
+from modules import scripts_manager, processing, shared, video, sd_models, modelloader
 from modules.logger import log
 
 

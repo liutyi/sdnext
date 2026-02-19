@@ -1,7 +1,7 @@
 import torch
 import gradio as gr
 import diffusers
-from modules import scripts_manager, processing, shared, images, video, sd_models, devices
+from modules import scripts_manager, processing, shared, video, sd_models, devices
 from modules.logger import log
 
 

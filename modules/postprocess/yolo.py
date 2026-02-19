@@ -6,9 +6,10 @@ from copy import copy
 import numpy as np
 import gradio as gr
 from PIL import Image, ImageDraw
-from modules import shared, processing, devices, processing_class, ui_common, ui_components, ui_symbols, images, extra_networks, sd_models
+from modules import shared, processing, devices, processing_class, ui_common, ui_components, ui_symbols, extra_networks, sd_models
 from modules.logger import log
 from modules.detailer import Detailer
+from modules.image.grid import get_font
 
 
 predefined = [ # <https://huggingface.co/vladmandic/yolo-detailers/tree/main>
@@ -244,7 +245,7 @@ class YoloRestorer(Detailer):
             image = Image.fromarray(image)
         image = image.convert('RGBA')
         size = min(image.width, image.height) // 32
-        font = images.get_font(size)
+        font = get_font(size)
         color = (0, 190, 190)
         log.debug(f'Detailer: draw={items}')
         for i, item in enumerate(items):

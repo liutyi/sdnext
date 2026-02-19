@@ -7,6 +7,7 @@ import piexif.helper
 from PIL import Image, PngImagePlugin
 from modules import shared, script_callbacks, errors, paths
 from modules.logger import log
+from modules.json_helpers import writefile
 from modules.image.grid import check_grid_size
 from modules.image.namegen import FilenameGenerator
 from modules.image.watermark import set_watermark
@@ -114,7 +115,7 @@ def atomically_save_image():
             idx = len(entries)
             entry = { 'id': idx, 'filename': filename, 'time': datetime.datetime.now().isoformat(), 'info': exifinfo }
             entries.append(entry)
-            shared.writefile(entries, fn, mode='w', silent=True)
+            writefile(entries, fn, mode='w', silent=True)
             log.info(f'Save: json="{fn}" records={len(entries)}')
         shared.state.outputs(filename)
         shared.state.end(jobid)

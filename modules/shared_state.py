@@ -271,7 +271,7 @@ class State:
     def do_set_current_image(self):
         if (self.current_latent is None) or self.disable_preview or (self.preview_job == self.job_no):
             return False
-        from modules import shared, sd_samplers, sd_samplers_common
+        from modules import shared
         from modules.sd_samplers_common import samples_to_image_grid, sample_to_image
         self.preview_job = self.job_no
         try:

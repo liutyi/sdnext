@@ -1,7 +1,7 @@
 import time
 from copy import copy
 from PIL import Image
-from modues.images.grid import GridAnnotation
+from modules.image.grid import GridAnnotation
 from modules import shared, images, processing
 from modules.logger import log
 from modules.image.util import draw_text

@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import shlex
+import threading
 import subprocess
 import installer
 from modules.logger import log
@@ -209,6 +210,7 @@ def start_server(immediate=True, server=None):
     server = importlib.util.module_from_spec(module_spec)
     log.debug(f'Starting module: {server}')
     module_spec.loader.exec_module(server)
+    threading.Thread(target=installer.run_deferred_tasks, daemon=True).start()
     uvicorn = None
     if args.test:
         log.info("Test only")
@@ -292,8 +294,6 @@ def main():
     args = installer.parse_args(parser)
     log.info(f'Installer time: {init_summary()}')
     get_custom_args()
-    import threading
-    threading.Thread(target=installer.run_deferred_tasks, daemon=True).start()
 
     uv, instance = start_server(immediate=True, server=None)
     if installer.restart_required:

@@ -4,7 +4,7 @@ from PIL import Image
 from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn, TimeElapsedColumn
 import modules.postprocess.esrgan_model_arch as arch
 from modules import images, devices, shared
-from modules.images.grid import split_grid
+from modules.image.grid import split_grid
 from modules.logger import log, console
 from modules.upscaler import Upscaler, UpscalerData, compile_upscaler
 

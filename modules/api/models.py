@@ -36,6 +36,12 @@ if not hasattr(BaseModel, "__config__"):
     BaseModel.__config__ = DummyConfig
 
 
+class PydanticConfig:
+    arbitrary_types_allowed = True
+    orm_mode = True
+    allow_population_by_field_name = True
+
+
 def underscore(name: str) -> str: # Convert CamelCase or PascalCase string to underscore_case (snake_case).
     # use instead of inflection.underscore
     s1 = re.sub('([a-z0-9])([A-Z])', r'\1_\2', name)
@@ -92,11 +98,7 @@ class PydanticModelGenerator:
         if PYDANTIC_V2:
             config = ConfigDict(arbitrary_types_allowed=True, from_attributes=True, populate_by_name=True)
         else:
-            class Config:
-                arbitrary_types_allowed = True
-                orm_mode = True
-                allow_population_by_field_name = True
-            config = Config
+            config = PydanticConfig
         DynamicModel = create_model(self._model_name, __config__=config, **model_fields)
         return DynamicModel
 
@@ -405,14 +407,10 @@ for key, metadata in shared.opts.data_labels.items():
         fields.update({key: (Optional[optType], Field())})
 
 if PYDANTIC_V2:
-    config = ConfigDict(arbitrary_types_allowed=True, from_attributes=True, populate_by_name=True)
+    pydantic_config = ConfigDict(arbitrary_types_allowed=True, from_attributes=True, populate_by_name=True)
 else:
-    class Config:
-        arbitrary_types_allowed = True
-        orm_mode = True
-        allow_population_by_field_name = True
-    config = Config
-OptionsModel = create_model("Options", __config__=config, **fields)
+    pydantic_config = PydanticConfig
+OptionsModel = create_model("Options", __config__=pydantic_config, **fields)
 
 flags = {}
 _options = vars(shared.parser)['_option_string_actions']
@@ -425,14 +423,10 @@ for key in _options:
         flags.update({flag.dest: (_type, Field(default=flag.default, description=flag.help))})
 
 if PYDANTIC_V2:
-    config = ConfigDict(arbitrary_types_allowed=True, from_attributes=True, populate_by_name=True)
+    pydantic_config = ConfigDict(arbitrary_types_allowed=True, from_attributes=True, populate_by_name=True)
 else:
-    class Config:
-        arbitrary_types_allowed = True
-        orm_mode = True
-        allow_population_by_field_name = True
-    config = Config
-FlagsModel = create_model("Flags", __config__=config, **flags)
+    pydantic_config = PydanticConfig
+FlagsModel = create_model("Flags", __config__=pydantic_config, **flags)
 
 class ResEmbeddings(BaseModel):
     loaded: list = Field(default=None, title="loaded", description="List of loaded embeddings")
@@ -499,12 +493,9 @@ def create_model_from_signature(func: Callable, model_name: str, base_model: typ
     if PYDANTIC_V2:
         config = ConfigDict(arbitrary_types_allowed=True, from_attributes=True, populate_by_name=True, extra='allow' if varkw else 'ignore')
     else:
-        class Config:
-            arbitrary_types_allowed = True
-            orm_mode = True
-            allow_population_by_field_name = True
+        class CustomConfig(PydanticConfig):
             extra = 'allow' if varkw else 'ignore'
-        config = Config
+        config = CustomConfig
 
     model = create_model(
         model_name,

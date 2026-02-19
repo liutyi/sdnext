@@ -4,9 +4,13 @@ from typing import Any
 from fastapi import Request, Depends
 from fastapi.exceptions import HTTPException
 from fastapi.responses import FileResponse
+import installer
 from modules import shared
 from modules.logger import log
 from modules.api import models, helpers
+
+def _get_version():
+    return installer.get_version()
 
 
 def post_shutdown():
@@ -43,7 +47,7 @@ def get_js(request: Request):
 def get_motd():
     import requests
     motd = ''
-    ver = shared.get_version()
+    ver = _get_version()
     if ver.get('updated', None) is not None:
         motd = f"version <b>{ver['commit']} {ver['updated']}</b> <span style='color: var(--primary-500)'>{ver['url'].split('/')[-1]}</span><br>" # pylint: disable=use-maxsplit-arg
     if shared.opts.motd:
@@ -60,7 +64,7 @@ def get_motd():
     return motd
 
 def get_version():
-    return shared.get_version()
+    return _get_version()
 
 def get_platform():
     from installer import get_platform as installer_get_platform

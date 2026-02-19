@@ -4,7 +4,7 @@ from PIL import Image, ImageDraw
 from modules import images, devices, scripts_manager
 from modules.processing import get_processed, process_images
 from modules.shared import opts, state, log
-from modules.images.grid import split_grid
+from modules.image.grid import split_grid
 
 
 class Script(scripts_manager.Script):

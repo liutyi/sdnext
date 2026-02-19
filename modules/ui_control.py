@@ -6,6 +6,7 @@ from modules import errors, shared, progress, generation_parameters_copypaste, c
 from modules import ui_common, ui_sections, ui_guidance
 from modules import ui_control_helpers as helpers
 from modules.logger import log
+from modules.memstats import ram_stats
 import installer
 
 
@@ -39,7 +40,7 @@ def return_stats(t: float = None):
             gpu += f"| GPU {peak} MB"
             gpu += f" {used}%" if used > 0 else ''
             gpu += f" | retries {retries} oom {ooms}" if retries > 0 or ooms > 0 else ''
-    ram = shared.ram_stats()
+    ram = ram_stats()
     if ram['used'] > 0:
         cpu += f"| RAM {ram['used']} GB"
         cpu += f" {round(100.0 * ram['used'] / ram['total'])}%" if ram['total'] > 0 else ''

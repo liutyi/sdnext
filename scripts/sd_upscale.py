@@ -5,7 +5,7 @@ from modules import processing, shared, images, devices, scripts_manager
 from modules.processing import get_processed
 from modules.shared import opts, state, log
 from modules.image.util import flatten
-from modules.images.grid import split_grid
+from modules.image.grid import split_grid
 
 
 class Script(scripts_manager.Script):

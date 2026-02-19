@@ -4,6 +4,7 @@ import gradio as gr
 import modules.shared
 import modules.extensions
 from modules.logger import log
+from modules.json_helpers import writefile
 
 
 gradio_theme = gr.themes.Base()
@@ -29,7 +30,7 @@ def refresh_themes(no_update=False):
             r = modules.shared.req('https://huggingface.co/datasets/freddyaboulton/gradio-theme-subdomains/resolve/main/subdomains.json')
             if r.status_code == 200:
                 res = r.json()
-                modules.shared.writefile(res, themes_file)
+                writefile(res, themes_file)
             else:
                 log.error('Error refreshing UI themes')
         except Exception:

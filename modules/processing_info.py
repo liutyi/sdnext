@@ -1,8 +1,9 @@
 import os
 from installer import git_commit
-from modules import shared, sd_samplers_common, sd_vae, generation_parameters_copypaste
+from modules import shared, sd_samplers_common, sd_vae
 from modules.logger import log
 from modules.processing_class import StableDiffusionProcessing
+from modules.infotext import quote
 
 
 args = {} # maintain history
@@ -194,7 +195,7 @@ def create_infotext(p: StableDiffusionProcessing, all_prompts=None, all_seeds=No
             if len(v) == 0 or v == '0x0':
                 del args[k]
     debug(f'Infotext: args={args}')
-    params_text = ", ".join([k if k == v else f'{k}: {generation_parameters_copypaste.quote(v)}' for k, v in args.items()])
+    params_text = ", ".join([k if k == v else f'{k}: {quote(v)}' for k, v in args.items()])
 
     if hasattr(p, 'original_prompt'):
         args['Original prompt'] = p.original_prompt
