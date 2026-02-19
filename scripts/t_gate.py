@@ -1,5 +1,6 @@
 import gradio as gr
 from modules import scripts_manager, processing, shared, sd_models, devices
+from modules import logger
 from installer import install
 
 
@@ -31,14 +32,14 @@ class Script(scripts_manager.Script):
         elif shared.sd_model_type == 'sdxl':
             cls = tgate.TgateSDXLLoader
         else:
-            shared.log.warning(f'T-Gate: pipeline={shared.sd_model_type} required=sd or sdxl')
+            logger.log.warning(f'T-Gate: pipeline={shared.sd_model_type} required=sd or sdxl')
             return None
         old_pipe = shared.sd_model
         shared.sd_model = cls(shared.sd_model, gate_step=p.gate_step)
         sd_models.copy_diffuser_options(shared.sd_model, old_pipe)
         sd_models.move_model(shared.sd_model, devices.device) # move pipeline to device
         sd_models.set_diffuser_options(shared.sd_model, vae=None, op='model')
-        shared.log.debug(f'T-Gate: pipeline={shared.sd_model.__class__.__name__} steps={p.gate_step}')
+        logger.log.debug(f'T-Gate: pipeline={shared.sd_model.__class__.__name__} steps={p.gate_step}')
         processed = processing.process_images(p)
         shared.sd_model = old_pipe
         del shared.sd_model.tgate

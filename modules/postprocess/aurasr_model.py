@@ -1,6 +1,7 @@
 import torch
 from PIL import Image
 from modules import shared, devices
+from modules import logger
 from modules.upscaler import Upscaler, UpscalerData
 
 
@@ -28,6 +29,6 @@ class UpscalerAuraSR(Upscaler):
 
         if shared.opts.upscaler_unload:
             self.model = None
-            shared.log.debug(f"Upscaler unloaded: type={self.name} model={selected_model}")
+            logger.log.debug(f"Upscaler unloaded: type={self.name} model={selected_model}")
             devices.torch_gc(force=True)
         return image

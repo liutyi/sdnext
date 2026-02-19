@@ -4,6 +4,7 @@ import tempfile
 from PIL import Image
 
 from modules import shared, images, devices, scripts_manager, scripts_postprocessing, infotext
+from modules import logger
 from modules.shared import opts
 from modules.paths import resolve_output_path
 
@@ -28,14 +29,14 @@ def run_postprocessing(extras_mode, image, image_folder: list[tempfile.NamedTemp
                 try:
                     image = Image.open(os.path.abspath(img.name))
                 except Exception as e:
-                    shared.log.error(f'Failed to open image: file="{img.name}" {e}')
+                    logger.log.error(f'Failed to open image: file="{img.name}" {e}')
                     continue
                 fn, ext = os.path.splitext(img.orig_name)
                 image_fullnames.append(img.name)
             image_data.append(image)
             image_names.append(fn)
             image_ext.append(ext)
-        shared.log.debug(f'Process: mode=batch inputs={len(image_folder)} images={len(image_data)}')
+        logger.log.debug(f'Process: mode=batch inputs={len(image_folder)} images={len(image_data)}')
     elif extras_mode == 2:
         assert input_dir, 'input directory not selected'
         image_list = os.listdir(input_dir)
@@ -44,13 +45,13 @@ def run_postprocessing(extras_mode, image, image_folder: list[tempfile.NamedTemp
             try:
                 image = Image.open(fn)
             except Exception as e:
-                shared.log.error(f'Failed to open image: file="{fn}" {e}')
+                logger.log.error(f'Failed to open image: file="{fn}" {e}')
                 continue
             image_fullnames.append(fn)
             image_data.append(image)
             image_names.append(fn)
             image_ext.append(None)
-        shared.log.debug(f'Process: mode=folder inputs={input_dir} files={len(image_list)} images={len(image_data)}')
+        logger.log.debug(f'Process: mode=folder inputs={input_dir} files={len(image_list)} images={len(image_data)}')
     else:
         image_data.append(image)
         image_names.append(None)
@@ -61,10 +62,10 @@ def run_postprocessing(extras_mode, image, image_folder: list[tempfile.NamedTemp
         outpath = resolve_output_path(opts.outdir_samples, opts.outdir_extras_samples)
     processed_images = []
     for image, name, ext in zip(image_data, image_names, image_ext, strict=False): # pylint: disable=redefined-argument-from-local
-        shared.log.debug(f'Process: image={image} {args}')
+        logger.log.debug(f'Process: image={image} {args}')
         info = ''
         if shared.state.interrupted:
-            shared.log.debug('Postprocess interrupted')
+            logger.log.debug('Postprocess interrupted')
             break
         if image is None:
             continue

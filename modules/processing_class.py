@@ -7,11 +7,12 @@ from dataclasses import dataclass, field
 import numpy as np
 from PIL import Image, ImageOps
 from modules import shared, images, scripts_manager, masking, sd_models, sd_vae, processing_helpers
+from modules import logger
 from modules.paths import resolve_output_path
 from modules.image.util import flatten
 
 
-debug = shared.log.trace if os.environ.get('SD_PROCESS_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug = logger.log.trace if os.environ.get('SD_PROCESS_DEBUG', None) is not None else lambda *args, **kwargs: None
 
 
 @dataclass(repr=False)
@@ -314,7 +315,7 @@ class StableDiffusionProcessing:
         try:
             self.override_settings = {k: v for k, v in (override_settings or {}).items() if k not in shared.restricted_opts}
         except Exception as e:
-            shared.log.error(f'Override: {override_settings} {e}')
+            logger.log.error(f'Override: {override_settings} {e}')
             self.override_settings = {}
 
         self.prompts = []
@@ -388,7 +389,7 @@ class StableDiffusionProcessing:
         if sd_model_checkpoint is not None and len(sd_model_checkpoint) > 0:
             from modules import sd_checkpoint
             if sd_checkpoint.select_checkpoint(op='model', sd_model_checkpoint=sd_model_checkpoint) is None:
-                shared.log.error(f'Processing: model="{sd_model_checkpoint}" not found')
+                logger.log.error(f'Processing: model="{sd_model_checkpoint}" not found')
                 self.abort = True
             else:
                 shared.opts.sd_model_checkpoint = sd_model_checkpoint
@@ -479,7 +480,7 @@ class StableDiffusionProcessingTxt2Img(StableDiffusionProcessing):
             elif self.hr_resize_x > 0 and self.hr_resize_y > 0:
                 self.hr_upscale_to_x = int(self.hr_resize_x)
                 self.hr_upscale_to_y = int(self.hr_resize_y)
-        shared.log.debug(f'Init hires: upscaler="{self.hr_upscaler}" sampler="{self.hr_sampler_name}" resize={self.hr_resize_x}x{self.hr_resize_y} upscale={self.hr_upscale_to_x}x{self.hr_upscale_to_y}')
+        logger.log.debug(f'Init hires: upscaler="{self.hr_upscaler}" sampler="{self.hr_sampler_name}" resize={self.hr_resize_x}x{self.hr_resize_y} upscale={self.hr_upscale_to_x}x{self.hr_upscale_to_y}')
 
 
 class StableDiffusionProcessingImg2Img(StableDiffusionProcessing):

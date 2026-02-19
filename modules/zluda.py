@@ -21,7 +21,7 @@ def test(device) -> Exception | None:
 def zluda_init():
     try:
         import torch
-        from installer import log
+        from modules.logger import log
         from modules import devices, zluda_installer
         from modules.shared import cmd_opts
         from modules.rocm_triton_windows import apply_triton_patches

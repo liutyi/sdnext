@@ -8,11 +8,12 @@ import threading
 import numpy as np
 from PIL import Image
 from modules import shared, devices, errors
+from modules import logger
 
 
 # Debug logging - enable with SD_CAPTION_DEBUG environment variable
 debug_enabled = os.environ.get('SD_CAPTION_DEBUG', None) is not None
-debug_log = shared.log.trace if debug_enabled else lambda *args, **kwargs: None
+debug_log = logger.log.trace if debug_enabled else lambda *args, **kwargs: None
 
 re_special = re.compile(r'([\\()])')
 load_lock = threading.Lock()
@@ -56,7 +57,7 @@ class WaifuDiffusionTagger:
         if model_name is None:
             model_name = shared.opts.waifudiffusion_model
         if model_name not in WAIFUDIFFUSION_MODELS:
-            shared.log.error(f'WaifuDiffusion: unknown model "{model_name}"')
+            logger.log.error(f'WaifuDiffusion: unknown model "{model_name}"')
             return False
 
         with load_lock:
@@ -71,7 +72,7 @@ class WaifuDiffusionTagger:
 
             repo_id = WAIFUDIFFUSION_MODELS[model_name]
             t0 = time.time()
-            shared.log.info(f'WaifuDiffusion load: model="{model_name}" repo="{repo_id}"')
+            logger.log.info(f'WaifuDiffusion load: model="{model_name}" repo="{repo_id}"')
 
             try:
                 # Download only ONNX model and tags CSV (skip safetensors/msgpack variants)
@@ -86,7 +87,7 @@ class WaifuDiffusionTagger:
                 # Load ONNX model
                 model_file = os.path.join(self.model_path, "model.onnx")
                 if not os.path.exists(model_file):
-                    shared.log.error(f'WaifuDiffusion load: model file not found: {model_file}')
+                    logger.log.error(f'WaifuDiffusion load: model file not found: {model_file}')
                     return False
 
                 import onnxruntime as ort
@@ -104,12 +105,12 @@ class WaifuDiffusionTagger:
                 self._load_tags()
 
                 load_time = time.time() - t0
-                shared.log.debug(f'WaifuDiffusion load: time={load_time:.2f} tags={len(self.tags)}')
+                logger.log.debug(f'WaifuDiffusion load: time={load_time:.2f} tags={len(self.tags)}')
                 debug_log(f'WaifuDiffusion load: input_name={self.session.get_inputs()[0].name} output_name={self.session.get_outputs()[0].name}')
                 return True
 
             except Exception as e:
-                shared.log.error(f'WaifuDiffusion load: failed error={e}')
+                logger.log.error(f'WaifuDiffusion load: failed error={e}')
                 errors.display(e, 'WaifuDiffusion load')
                 self.unload()
                 return False
@@ -120,7 +121,7 @@ class WaifuDiffusionTagger:
 
         csv_path = os.path.join(self.model_path, "selected_tags.csv")
         if not os.path.exists(csv_path):
-            shared.log.error(f'WaifuDiffusion load: tags file not found: {csv_path}')
+            logger.log.error(f'WaifuDiffusion load: tags file not found: {csv_path}')
             return
 
         self.tags = []
@@ -141,7 +142,7 @@ class WaifuDiffusionTagger:
     def unload(self):
         """Unload the model and free resources."""
         if self.session is not None:
-            shared.log.debug(f'WaifuDiffusion unload: model="{self.model_name}"')
+            logger.log.debug(f'WaifuDiffusion unload: model="{self.model_name}"')
             self.session = None
             self.tags = None
             self.tag_categories = None
@@ -240,7 +241,7 @@ class WaifuDiffusionTagger:
         if isinstance(image, dict) and 'name' in image:
             image = Image.open(image['name'])
         if image is None:
-            shared.log.error('WaifuDiffusion predict: no image provided')
+            logger.log.error('WaifuDiffusion predict: no image provided')
             return ''
 
         # Load model if needed
@@ -374,19 +375,19 @@ def tag(image: Image.Image, model_name: str = None, **kwargs) -> str:
     """
     t0 = time.time()
     jobid = shared.state.begin('WaifuDiffusion Tag')
-    shared.log.info(f'WaifuDiffusion: model="{model_name or tagger.model_name or shared.opts.waifudiffusion_model}" image_size={image.size if image else None}')
+    logger.log.info(f'WaifuDiffusion: model="{model_name or tagger.model_name or shared.opts.waifudiffusion_model}" image_size={image.size if image else None}')
 
     try:
         if model_name and model_name != tagger.model_name:
             tagger.load(model_name)
         result = tagger.predict(image, **kwargs)
-        shared.log.debug(f'WaifuDiffusion: complete time={time.time()-t0:.2f} tags={len(result.split(", ")) if result else 0}')
+        logger.log.debug(f'WaifuDiffusion: complete time={time.time()-t0:.2f} tags={len(result.split(", ")) if result else 0}')
         # Offload model if setting enabled
         if shared.opts.caption_offload:
             tagger.unload()
     except Exception as e:
         result = f"Exception {type(e)}"
-        shared.log.error(f'WaifuDiffusion: {e}')
+        logger.log.error(f'WaifuDiffusion: {e}')
         errors.display(e, 'WaifuDiffusion Tag')
 
     shared.state.end(jobid)
@@ -479,19 +480,19 @@ def batch(
     image_files = unique_files
 
     if not image_files:
-        shared.log.warning('WaifuDiffusion batch: no images found')
+        logger.log.warning('WaifuDiffusion batch: no images found')
         return ''
 
     t0 = time.time()
     jobid = shared.state.begin('WaifuDiffusion Batch')
-    shared.log.info(f'WaifuDiffusion batch: model="{tagger.model_name}" images={len(image_files)} write={save_output} append={save_append} recursive={recursive}')
+    logger.log.info(f'WaifuDiffusion batch: model="{tagger.model_name}" images={len(image_files)} write={save_output} append={save_append} recursive={recursive}')
     debug_log(f'WaifuDiffusion batch: files={[str(f) for f in image_files[:5]]}{"..." if len(image_files) > 5 else ""}')
 
     results = []
 
     # Progress bar
     import rich.progress as rp
-    pbar = rp.Progress(rp.TextColumn('[cyan]WaifuDiffusion:'), rp.BarColumn(), rp.MofNCompleteColumn(), rp.TaskProgressColumn(), rp.TimeRemainingColumn(), rp.TimeElapsedColumn(), rp.TextColumn('[cyan]{task.description}'), console=shared.console)
+    pbar = rp.Progress(rp.TextColumn('[cyan]WaifuDiffusion:'), rp.BarColumn(), rp.MofNCompleteColumn(), rp.TaskProgressColumn(), rp.TimeRemainingColumn(), rp.TimeElapsedColumn(), rp.TextColumn('[cyan]{task.description}'), console=logger.console)
 
     with pbar:
         task = pbar.add_task(total=len(image_files), description='starting...')
@@ -499,7 +500,7 @@ def batch(
             pbar.update(task, advance=1, description=str(img_path.name))
             try:
                 if shared.state.interrupted:
-                    shared.log.info('WaifuDiffusion batch: interrupted')
+                    logger.log.info('WaifuDiffusion batch: interrupted')
                     break
 
                 image = Image.open(img_path)
@@ -512,11 +513,11 @@ def batch(
                 results.append(f'{img_path.name}: {tags_str[:100]}...' if len(tags_str) > 100 else f'{img_path.name}: {tags_str}')
 
             except Exception as e:
-                shared.log.error(f'WaifuDiffusion batch: file="{img_path}" error={e}')
+                logger.log.error(f'WaifuDiffusion batch: file="{img_path}" error={e}')
                 results.append(f'{img_path.name}: ERROR - {e}')
 
     elapsed = time.time() - t0
-    shared.log.info(f'WaifuDiffusion batch: complete images={len(results)} time={elapsed:.1f}s')
+    logger.log.info(f'WaifuDiffusion batch: complete images={len(results)} time={elapsed:.1f}s')
     shared.state.end(jobid)
 
     return '\n'.join(results)

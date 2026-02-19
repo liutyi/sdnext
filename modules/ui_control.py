@@ -5,6 +5,7 @@ from modules.control import unit
 from modules import errors, shared, progress, generation_parameters_copypaste, call_queue, scripts_manager, masking, images, processing_vae, timer # pylint: disable=ungrouped-imports
 from modules import ui_common, ui_sections, ui_guidance
 from modules import ui_control_helpers as helpers
+from modules import logger
 import installer
 
 
@@ -12,7 +13,7 @@ gr_height = 512
 max_units = shared.opts.control_max_units
 units: list[unit.Unit] = [] # main state variable
 controls: list[gr.components.Component] = [] # list of gr controls
-debug = shared.log.trace if os.environ.get('SD_CONTROL_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug = logger.log.trace if os.environ.get('SD_CONTROL_DEBUG', None) is not None else lambda *args, **kwargs: None
 debug('Trace: CONTROL')
 
 
@@ -105,9 +106,9 @@ def generate_click(job_id: str, state: str, active_tab: str, *args):
                 progress.record_results(job_id, results)
                 yield return_controls(results, t)
         except GeneratorExit:
-            shared.log.error("Control: generator exit")
+            logger.log.error("Control: generator exit")
         except Exception as e:
-            shared.log.error(f"Control exception: {e}")
+            logger.log.error(f"Control exception: {e}")
             errors.display(e, 'Control')
             yield [None, None, None, None, f'Control: Exception: {e}', '']
         finally:
@@ -132,9 +133,9 @@ def generate_click_alt(job_id: str, state: str, active_tab: str, *args):
             for results in control_run(state, units, helpers.input_source, helpers.input_init, helpers.input_mask, active_tab, True, *args):
                 progress.record_results(job_id, results)
         except GeneratorExit:
-            shared.log.error("Control: generator exit")
+            logger.log.error("Control: generator exit")
         except Exception as e:
-            shared.log.error(f"Control exception: {e}")
+            logger.log.error(f"Control exception: {e}")
             errors.display(e, 'Control')
             return [None, None, None, None, f'Control: Exception: {e}', '']
         finally:
@@ -221,7 +222,7 @@ def create_ui(_blocks: gr.Blocks=None):
                         input_mode = gr.Label(value='select', visible=False)
                         with gr.Tab('Image', id='in-image') as tab_image:
                             if (installer.version['kanvas'] == 'disabled') or (installer.version['kanvas'] == 'unavailable'):
-                                shared.log.warning(f'Kanvas: status={installer.version["kanvas"]}')
+                                logger.log.warning(f'Kanvas: status={installer.version["kanvas"]}')
                                 input_image = gr.Image(label="Input", show_label=False, type="pil", interactive=True, tool="editor", height=gr_height, image_mode='RGB', elem_id='control_input_select', elem_classes=['control-image'])
                             else:
                                 input_image = gr.HTML(value='<h1 style="text-align:center;color:var(--color-error);margin:1em;">Kanvas not initialized</h1>', elem_id='kanvas-container')

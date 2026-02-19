@@ -1,6 +1,7 @@
 import gradio as gr
 from modules import timer, shared, call_queue, generation_parameters_copypaste, processing_vae
 from modules import ui_common, ui_sections, ui_guidance
+from modules import logger
 
 
 def process_caption(mode, ii_input_files, ii_input_dir, ii_output_dir, *ii_singles):
@@ -17,7 +18,7 @@ def process_caption(mode, ii_input_files, ii_input_dir, ii_output_dir, *ii_singl
             images = [f.name for f in ii_input_files]
         else:
             if not os.path.isdir(ii_input_dir):
-                shared.log.error(f"Caption: Input directory not found: {ii_input_dir}")
+                logger.log.error(f"Caption: Input directory not found: {ii_input_dir}")
                 return [gr.update(), None]
             images = os.listdir(ii_input_dir)
         if ii_output_dir != "":
@@ -33,7 +34,7 @@ def process_caption(mode, ii_input_files, ii_input_dir, ii_output_dir, *ii_singl
 
 
 def create_ui():
-    shared.log.debug('UI initialize: tab=img2img')
+    logger.log.debug('UI initialize: tab=img2img')
     import modules.img2img # pylint: disable=redefined-outer-name
     modules.scripts_manager.scripts_current = modules.scripts_manager.scripts_img2img
     modules.scripts_manager.scripts_img2img.initialize_scripts(is_img2img=True, is_control=False)

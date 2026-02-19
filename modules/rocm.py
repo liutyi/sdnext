@@ -293,7 +293,7 @@ if sys.platform == "win32":
         try:
             import torch
             import numpy as np
-            from installer import log
+            from modules.logger import log
             from modules.devices import get_hip_agent
             from modules.rocm_triton_windows import apply_triton_patches
 
@@ -364,7 +364,6 @@ else: # sys.platform != "win32"
 
     def rocm_init():
         try:
-            from installer import log
             from modules.devices import get_hip_agent
 
             agent = get_hip_agent()

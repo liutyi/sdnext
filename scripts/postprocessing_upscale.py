@@ -3,6 +3,7 @@ import gradio as gr
 from modules import scripts_postprocessing, shared
 from modules.ui_components import ToolButton
 import modules.ui_symbols as symbols
+from modules import logger
 
 
 class ScriptPostprocessingUpscale(scripts_postprocessing.ScriptPostprocessing):
@@ -69,7 +70,7 @@ class ScriptPostprocessingUpscale(scripts_postprocessing.ScriptPostprocessing):
         upscaler1 = next(iter([x for x in shared.sd_upscalers if x.name == upscaler_1_name]), None)
         if not upscaler1:
             if upscaler_1_name is not None:
-                shared.log.warning(f"Could not find upscaler: {upscaler_1_name or '<empty string>'}")
+                logger.log.warning(f"Could not find upscaler: {upscaler_1_name or '<empty string>'}")
             return
         upscaled_image = self.upscale(pp.image, pp.info, upscaler1, upscale_mode, upscale_by, upscale_to_width, upscale_to_height, upscale_crop)
         pp.info["Postprocess upscaler"] = upscaler1.name
@@ -78,7 +79,7 @@ class ScriptPostprocessingUpscale(scripts_postprocessing.ScriptPostprocessing):
             upscaler_2_name = None
         upscaler2 = next(iter([x for x in shared.sd_upscalers if x.name == upscaler_2_name and x.name != "None"]), None)
         if not upscaler2 and (upscaler_2_name is not None):
-            shared.log.warning(f"Could not find upscaler: {upscaler_2_name or '<empty string>'}")
+            logger.log.warning(f"Could not find upscaler: {upscaler_2_name or '<empty string>'}")
         if upscaler2 and upscaler_2_visibility > 0:
             second_upscale = self.upscale(pp.image, pp.info, upscaler2, upscale_mode, upscale_by, upscale_to_width, upscale_to_height, upscale_crop)
             upscaled_image = Image.blend(upscaled_image, second_upscale, upscaler_2_visibility)
@@ -108,6 +109,6 @@ class ScriptPostprocessingUpscaleSimple(ScriptPostprocessingUpscale):
             return
         upscaler1 = next(iter([x for x in shared.sd_upscalers if x.name == upscaler_name]), None)
         if upscaler1 is None:
-            shared.log.debug(f"Upscaler not found: {upscaler_name}")
+            logger.log.debug(f"Upscaler not found: {upscaler_name}")
         pp.image = self.upscale(pp.image, pp.info, upscaler1, 0, upscale_by, 0, 0, False)
         pp.info["Postprocess upscaler"] = upscaler1.name

@@ -10,7 +10,8 @@ os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 import cv2
 import numpy as np
 from PIL import Image
-from installer import installed, pip, log
+from installer import installed, pip
+from modules.logger import log
 from modules.control.util import HWC3, resize_image
 from .draw import draw_bodypose, draw_handpose, draw_facepose
 checked_ok = False

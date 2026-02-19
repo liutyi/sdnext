@@ -5,6 +5,7 @@ import numpy as np
 import torch
 from PIL import Image
 from modules import shared, devices, processing, sd_models, errors, sd_hijack_hypertile, processing_vae, sd_models_compile, timer, modelstats, extra_networks, attention
+from modules import logger
 from modules.processing_helpers import resize_hires, calculate_base_steps, calculate_hires_steps, calculate_refiner_steps, save_intermediate, update_sampler, is_txt2img, is_refiner_enabled, get_job_name
 from modules.processing_args import set_pipeline_args
 from modules.onnx_impl import preprocess_pipeline as preprocess_onnx_pipeline, check_parameters_changed as olive_check_parameters_changed
@@ -22,13 +23,13 @@ def restore_state(p: processing.StableDiffusionProcessing):
     if p.state in ['reprocess_refine', 'reprocess_detail']:
         # validate
         if last_p is None:
-            shared.log.warning(f'Restore state: op={p.state} last state missing')
+            logger.log.warning(f'Restore state: op={p.state} last state missing')
             return p
         if p.__class__ != last_p.__class__:
-            shared.log.warning(f'Restore state: op={p.state} last state is different type')
+            logger.log.warning(f'Restore state: op={p.state} last state is different type')
             return p
         if shared.history.count == 0:
-            shared.log.warning(f'Restore state: op={p.state} last latents missing')
+            logger.log.warning(f'Restore state: op={p.state} last latents missing')
             return p
         state = p.state
 
@@ -63,13 +64,13 @@ def restore_state(p: processing.StableDiffusionProcessing):
         if state == 'reprocess_detail':
             p.skip = ['encode', 'base', 'hires']
             p.detailer_enabled = True
-        shared.log.info(f'Restore state: op={p.state} skip={p.skip}')
+        logger.log.info(f'Restore state: op={p.state} skip={p.skip}')
     return p
 
 
 def process_pre(p: processing.StableDiffusionProcessing):
     from modules import ipadapter, sd_hijack_freeu, para_attention, teacache, hidiffusion, ras, pag, cfgzero, transformer_cache, token_merge, linfusion, cachedit
-    shared.log.info('Processing modifiers: apply')
+    logger.log.info('Processing modifiers: apply')
 
     try:
         # apply-with-unapply
@@ -89,7 +90,7 @@ def process_pre(p: processing.StableDiffusionProcessing):
         para_attention.apply_first_block_cache()
         teacache.apply_teacache(p)
     except Exception as e:
-        shared.log.error(f'Processing apply: {e}')
+        logger.log.error(f'Processing apply: {e}')
         errors.display(e, 'apply')
 
     shared.sd_model = sd_models.apply_balanced_offload(shared.sd_model)
@@ -112,7 +113,7 @@ def process_pre(p: processing.StableDiffusionProcessing):
 
 def process_post(p: processing.StableDiffusionProcessing):
     from modules import ipadapter, hidiffusion, ras, pag, cfgzero, token_merge, linfusion, cachedit
-    shared.log.info('Processing modifiers: unapply')
+    logger.log.info('Processing modifiers: unapply')
 
     try:
         sd_models_compile.check_deepcache(enable=False)
@@ -125,7 +126,7 @@ def process_post(p: processing.StableDiffusionProcessing):
         linfusion.unapply(shared.sd_model)
         cachedit.unapply_cache_dir(shared.sd_model)
     except Exception as e:
-        shared.log.error(f'Processing unapply: {e}')
+        logger.log.error(f'Processing unapply: {e}')
         errors.display(e, 'unapply')
     timer.process.record('post')
 
@@ -195,24 +196,24 @@ def process_base(p: processing.StableDiffusionProcessing):
         sd_models_compile.openvino_post_compile(op="base") # only executes on compiled vino models
         if shared.cmd_opts.profile:
             t1 = time.time()
-            shared.log.debug(f'Profile: pipeline call: {t1-t0:.2f}')
+            logger.log.debug(f'Profile: pipeline call: {t1-t0:.2f}')
         if not hasattr(output, 'images') and hasattr(output, 'frames'):
             if hasattr(output.frames[0], 'shape'):
-                shared.log.debug(f'Generated: frames={output.frames[0].shape[1]}')
+                logger.log.debug(f'Generated: frames={output.frames[0].shape[1]}')
             else:
-                shared.log.debug(f'Generated: frames={len(output.frames[0])}')
+                logger.log.debug(f'Generated: frames={len(output.frames[0])}')
             output.images = output.frames[0]
         if hasattr(output, 'images') and isinstance(output.images, np.ndarray):
             output.images = torch.from_numpy(output.images)
     except AssertionError as e:
-        shared.log.info(e)
+        logger.log.info(e)
     except ValueError as e:
         shared.state.interrupted = True
         err_args = base_args.copy()
         for k, v in base_args.items():
             if isinstance(v, torch.Tensor):
                 err_args[k] = f'{v.device}:{v.dtype}:{v.shape}'
-        shared.log.error(f'Processing: args={err_args} {e}')
+        logger.log.error(f'Processing: args={err_args} {e}')
         if shared.cmd_opts.debug:
             errors.display(e, 'Processing')
     except RuntimeError as e:
@@ -221,7 +222,7 @@ def process_base(p: processing.StableDiffusionProcessing):
         for k, v in base_args.items():
             if isinstance(v, torch.Tensor):
                 err_args[k] = f'{v.device}:{v.dtype}:{v.shape}'
-        shared.log.error(f'Processing: step=base args={err_args} {e}')
+        logger.log.error(f'Processing: step=base args={err_args} {e}')
         errors.display(e, 'Processing')
         modelstats.analyze()
     finally:
@@ -257,12 +258,12 @@ def process_hires(p: processing.StableDiffusionProcessing, output):
         if hasattr(shared.sd_model, 'restore_pipeline') and (shared.sd_model.restore_pipeline is not None) and (not shared.opts.control_hires):
             shared.sd_model.restore_pipeline()
         if (getattr(shared.sd_model, 'controlnet', None) is not None) and (((isinstance(shared.sd_model.controlnet, list) and len(shared.sd_model.controlnet) > 1)) or ('Multi' in type(shared.sd_model.controlnet).__name__)):
-            shared.log.warning(f'Process: control={type(shared.sd_model.controlnet)} not supported in hires')
+            logger.log.warning(f'Process: control={type(shared.sd_model.controlnet)} not supported in hires')
             return output
 
         # upscale
         if hasattr(p, 'height') and hasattr(p, 'width') and p.hr_resize_mode > 0 and (p.hr_upscaler != 'None' or p.hr_resize_mode == 5):
-            shared.log.info(f'Upscale: mode={p.hr_resize_mode} upscaler="{p.hr_upscaler}" context="{p.hr_resize_context}" resize={p.hr_resize_x}x{p.hr_resize_y} upscale={p.hr_upscale_to_x}x{p.hr_upscale_to_y}')
+            logger.log.info(f'Upscale: mode={p.hr_resize_mode} upscaler="{p.hr_upscaler}" context="{p.hr_resize_context}" resize={p.hr_resize_x}x{p.hr_resize_y} upscale={p.hr_upscale_to_x}x{p.hr_upscale_to_y}')
             p.ops.append('upscale')
             if shared.opts.samples_save and not p.do_not_save_samples and shared.opts.save_images_before_highres_fix and hasattr(shared.sd_model, 'vae'):
                 save_intermediate(p, latents=output.images, suffix="-before-hires")
@@ -284,7 +285,7 @@ def process_hires(p: processing.StableDiffusionProcessing, output):
 
         # hires
         if p.hr_force and strength == 0:
-            shared.log.warning('Hires skip: denoising=0')
+            logger.log.warning('Hires skip: denoising=0')
             p.hr_force = False
         if p.hr_force:
             shared.sd_model = sd_models.set_diffuser_pipe(shared.sd_model, sd_models.DiffusersTaskType.IMAGE_2_IMAGE)
@@ -339,10 +340,10 @@ def process_hires(p: processing.StableDiffusionProcessing, output):
                 sd_models_compile.check_deepcache(enable=False)
                 sd_models_compile.openvino_post_compile(op="base")
             except AssertionError as e:
-                shared.log.info(e)
+                logger.log.info(e)
             except RuntimeError as e:
                 shared.state.interrupted = True
-                shared.log.error(f'Processing step=hires: args={hires_args} {e}')
+                logger.log.error(f'Processing step=hires: args={hires_args} {e}')
                 errors.display(e, 'Processing')
                 modelstats.analyze()
             finally:
@@ -367,7 +368,7 @@ def process_refine(p: processing.StableDiffusionProcessing, output):
         if shared.opts.samples_save and not p.do_not_save_samples and shared.opts.save_images_before_refiner and hasattr(shared.sd_model, 'vae'):
             save_intermediate(p, latents=output.images, suffix="-before-refiner")
         if shared.opts.diffusers_move_base:
-            shared.log.debug('Moving to CPU: model=base')
+            logger.log.debug('Moving to CPU: model=base')
             sd_models.move_model(shared.sd_model, devices.cpu)
         if shared.state.interrupted or shared.state.skipped:
             shared.sd_model = orig_pipeline
@@ -426,17 +427,17 @@ def process_refine(p: processing.StableDiffusionProcessing, output):
                     shared.history.add(output.images, info=processing.create_infotext(p), ops=p.ops)
                 sd_models_compile.openvino_post_compile(op="refiner")
             except AssertionError as e:
-                shared.log.info(e)
+                logger.log.info(e)
             except RuntimeError as e:
                 shared.state.interrupted = True
-                shared.log.error(f'Processing step=refine: args={refiner_args} {e}')
+                logger.log.error(f'Processing step=refine: args={refiner_args} {e}')
                 errors.display(e, 'Processing')
                 modelstats.analyze()
 
         if shared.opts.diffusers_offload_mode == "balanced":
             shared.sd_refiner = sd_models.apply_balanced_offload(shared.sd_refiner)
         elif shared.opts.diffusers_move_refiner:
-            shared.log.debug('Moving to CPU: model=refiner')
+            logger.log.debug('Moving to CPU: model=refiner')
             sd_models.move_model(shared.sd_refiner, devices.cpu)
         shared.state.end(jobid)
         shared.state.nextjob()
@@ -449,10 +450,10 @@ def process_decode(p: processing.StableDiffusionProcessing, output):
     shared.sd_model = sd_models.apply_balanced_offload(shared.sd_model, exclude=['vae'])
     if output is not None:
         if hasattr(output, 'bytes') and output.bytes is not None:
-            shared.log.debug(f'Generated: bytes={len(output.bytes)}')
+            logger.log.debug(f'Generated: bytes={len(output.bytes)}')
             return output
         if not hasattr(output, 'images') and hasattr(output, 'frames'):
-            shared.log.debug(f'Generated: frames={len(output.frames[0])}')
+            logger.log.debug(f'Generated: frames={len(output.frames[0])}')
             output.images = output.frames[0]
         if output.images is not None and len(output.images) > 0 and isinstance(output.images[0], Image.Image):
             return output.images
@@ -495,17 +496,17 @@ def process_decode(p: processing.StableDiffusionProcessing, output):
         elif hasattr(output, 'images'):
             results = output.images
         else:
-            shared.log.warning('Processing: no results')
+            logger.log.warning('Processing: no results')
             results = []
     else:
-        shared.log.warning('Processing: no results')
+        logger.log.warning('Processing: no results')
         results = []
     return results
 
 
 def update_pipeline(sd_model, p: processing.StableDiffusionProcessing):
     if sd_models.get_diffusers_task(sd_model) == sd_models.DiffusersTaskType.INPAINTING and getattr(p, 'image_mask', None) is None and p.task_args.get('image_mask', None) is None and getattr(p, 'mask', None) is None:
-        shared.log.warning('Processing: mode=inpaint mask=None')
+        logger.log.warning('Processing: mode=inpaint mask=None')
         sd_model = sd_models.set_diffuser_pipe(sd_model, sd_models.DiffusersTaskType.IMAGE_2_IMAGE)
     if shared.opts.cuda_compile_backend == "olive-ai":
         sd_model = olive_check_parameters_changed(p, is_refiner_enabled(p))
@@ -514,7 +515,7 @@ def update_pipeline(sd_model, p: processing.StableDiffusionProcessing):
         global orig_pipeline # pylint: disable=global-statement
         orig_pipeline = sd_model # processed ONNX pipeline should not be replaced with original pipeline.
     if getattr(sd_model, "current_attn_name", None) != shared.opts.cross_attention_optimization:
-        shared.log.info(f"Setting attention optimization: {shared.opts.cross_attention_optimization}")
+        logger.log.info(f"Setting attention optimization: {shared.opts.cross_attention_optimization}")
         attention.set_diffusers_attention(sd_model)
     return sd_model
 
@@ -532,10 +533,10 @@ def validate_pipeline(p: processing.StableDiffusionProcessing):
     override_video_pipelines = ['WanPipeline', 'WanImageToVideoPipeline', 'WanVACEPipeline']
     is_video_pipeline = ('video' in p.__class__.__name__.lower()) or (shared.sd_model.__class__.__name__ in override_video_pipelines)
     if is_video_model and not is_video_pipeline:
-        shared.log.error(f'Mismatch: type={shared.sd_model_type} cls={shared.sd_model.__class__.__name__} request={p.__class__.__name__} video model with non-video pipeline')
+        logger.log.error(f'Mismatch: type={shared.sd_model_type} cls={shared.sd_model.__class__.__name__} request={p.__class__.__name__} video model with non-video pipeline')
         return False
     elif not is_video_model and is_video_pipeline:
-        shared.log.error(f'Mismatch: type={shared.sd_model_type} cls={shared.sd_model.__class__.__name__} request={p.__class__.__name__} non-video model with video pipeline')
+        logger.log.error(f'Mismatch: type={shared.sd_model_type} cls={shared.sd_model.__class__.__name__} request={p.__class__.__name__} non-video model with video pipeline')
         return False
     return True
 
@@ -543,7 +544,7 @@ def validate_pipeline(p: processing.StableDiffusionProcessing):
 def process_diffusers(p: processing.StableDiffusionProcessing):
     results = []
     if debug:
-        shared.log.trace(f'Process diffusers args: {vars(p)}')
+        logger.log.trace(f'Process diffusers args: {vars(p)}')
     if not validate_pipeline(p):
         return results
 
@@ -591,7 +592,7 @@ def process_diffusers(p: processing.StableDiffusionProcessing):
 
     if (output is None or (hasattr(output, 'images') and len(output.images) == 0)) and has_images:
         if output is not None:
-            shared.log.debug('Processing: using input as base output')
+            logger.log.debug('Processing: using input as base output')
             output.images = p.init_images
 
     if shared.state.interrupted or shared.state.skipped:

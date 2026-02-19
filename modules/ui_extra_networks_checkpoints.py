@@ -4,6 +4,7 @@ import json
 import concurrent
 from datetime import datetime
 from modules import shared, ui_extra_networks, sd_models, modelstats, paths, devices
+from modules import logger
 from modules.json_helpers import readfile
 
 
@@ -39,7 +40,7 @@ class ExtraNetworksPageCheckpoints(ui_extra_networks.ExtraNetworksPage):
             return any(model.endswith(url) for model in existing)
 
         if not shared.opts.sd_checkpoint_autodownload or not shared.opts.extra_network_reference_enable:
-            shared.log.debug(f'Networks: type="reference" autodownload={shared.opts.sd_checkpoint_autodownload} enable={shared.opts.extra_network_reference_enable}')
+            logger.log.debug(f'Networks: type="reference" autodownload={shared.opts.sd_checkpoint_autodownload} enable={shared.opts.extra_network_reference_enable}')
             return []
         count = { 'total': 0, 'ready': 0, 'hidden': 0, 'experimental': 0, 'base': 0 }
 
@@ -66,7 +67,7 @@ class ExtraNetworksPageCheckpoints(ui_extra_networks.ExtraNetworksPage):
             experimental = v.get('experimental', False)
             if experimental:
                 if shared.cmd_opts.experimental:
-                    shared.log.debug(f'Networks: experimental model="{k}"')
+                    logger.log.debug(f'Networks: experimental model="{k}"')
                     count['experimental'] += 1
                 else:
                     continue
@@ -125,7 +126,7 @@ class ExtraNetworksPageCheckpoints(ui_extra_networks.ExtraNetworksPage):
                 "version": version,
                 "tags": tag,
             }
-        shared.log.debug(f'Networks: type="reference" {count}')
+        logger.log.debug(f'Networks: type="reference" {count}')
 
     def create_item(self, name):
         record = None
@@ -155,7 +156,7 @@ class ExtraNetworksPageCheckpoints(ui_extra_networks.ExtraNetworksPage):
             record['version'] = version_map.get(record['version'], record['version'])
 
         except Exception as e:
-            shared.log.debug(f'Networks error: type=model file="{name}" {e}')
+            logger.log.debug(f'Networks error: type=model file="{name}" {e}')
         return record
 
     def list_items(self):

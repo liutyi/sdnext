@@ -17,6 +17,7 @@ import einops
 from einops.layers.torch import Rearrange
 import huggingface_hub
 from modules import shared, devices, sd_models
+from modules import logger
 from modules.image import convert
 
 
@@ -1049,7 +1050,7 @@ def load():
         model.eval()  # required: custom loader, not from_pretrained
         with open(os.path.join(folder, 'top_tags.txt'), encoding='utf8') as f:
             tags = [line.strip() for line in f.readlines() if line.strip()]
-        shared.log.info(f'Caption: type=vlm model="JoyTag" repo="{MODEL_REPO}" tags={len(tags)}')
+        logger.log.info(f'Caption: type=vlm model="JoyTag" repo="{MODEL_REPO}" tags={len(tags)}')
     sd_models.move_model(model, devices.device)
 
 
@@ -1057,13 +1058,13 @@ def unload():
     """Release JoyTag model from GPU/memory."""
     global model, tags  # pylint: disable=global-statement
     if model is not None:
-        shared.log.debug('JoyTag unload')
+        logger.log.debug('JoyTag unload')
         sd_models.move_model(model, devices.cpu, force=True)
         model = None
         tags = None
         devices.torch_gc(force=True)
     else:
-        shared.log.debug('JoyTag unload: no model loaded')
+        logger.log.debug('JoyTag unload: no model loaded')
 
 
 def predict(image: Image.Image):

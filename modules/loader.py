@@ -7,13 +7,27 @@ import logging
 import warnings
 import urllib3
 from modules import timer, errors
+from modules import logger
+
+
+try:
+    import math
+    cores = os.cpu_count()
+    affinity = len(os.sched_getaffinity(0)) # pylint: disable=no-member
+    threads = torch.get_num_threads()
+    if threads < (affinity / 2):
+        torch.set_num_threads(math.floor(affinity / 2))
+        threads = torch.get_num_threads()
+    logger.log.debug(f'System: cores={cores} affinity={affinity} threads={threads}')
+except Exception:
+    pass
 
 
 initialized = False
 errors.install()
 logging.getLogger("DeepSpeed").disabled = True
 timer.startup.record("loader")
-errors.log.debug('Initializing: libraries')
+logger.log.debug('Initializing: libraries')
 
 np = None
 try:
@@ -32,8 +46,8 @@ try:
             return npwarn_decorator
         np._no_nep50_warning = getattr(np, '_no_nep50_warning', dummy_npwarn_decorator_factory) # pylint: disable=protected-access
 except Exception as e:
-    errors.log.error(f'Loader: numpy=={np.__version__ if np is not None else None} {e}')
-    errors.log.error('Please restart the app to fix this issue')
+    logger.log.error(f'Loader: numpy=={np.__version__ if np is not None else None} {e}')
+    logger.log.error('Please restart the app to fix this issue')
     sys.exit(1)
 timer.startup.record("numpy")
 
@@ -41,8 +55,8 @@ scipy = None
 try:
     import scipy # pylint: disable=W0611,C0411
 except Exception as e:
-    errors.log.error(f'Loader: scipy=={scipy.__version__ if scipy is not None else None} {e}')
-    errors.log.error('Please restart the app to fix this issue')
+    logger.log.error(f'Loader: scipy=={scipy.__version__ if scipy is not None else None} {e}')
+    logger.log.error('Please restart the app to fix this issue')
     sys.exit(1)
 timer.startup.record("scipy")
 
@@ -55,17 +69,17 @@ except Exception:
 
 import torch # pylint: disable=C0411
 if torch.__version__.startswith('2.5.0'):
-    errors.log.warning(f'Disabling cuDNN for SDP on torch={torch.__version__}')
+    logger.log.warning(f'Disabling cuDNN for SDP on torch={torch.__version__}')
     torch.backends.cuda.enable_cudnn_sdp(False)
 try:
     import intel_extension_for_pytorch as ipex # pylint: disable=import-error,unused-import
-    errors.log.debug(f'Load IPEX=={ipex.__version__}')
+    logger.log.debug(f'Load IPEX=={ipex.__version__}')
 except Exception:
     pass
 try:
     pass # pylint: disable=unused-import,ungrouped-imports
 except Exception:
-    errors.log.warning('Loader: torch is not built with distributed support')
+    logger.log.warning('Loader: torch is not built with distributed support')
 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -74,10 +88,10 @@ torchvision = None
 try:
     import torchvision # pylint: disable=W0611,C0411
 except Exception as e:
-    errors.log.error(f'Loader: torchvision=={torchvision.__version__ if "torchvision" in sys.modules else None} {e}')
+    logger.log.error(f'Loader: torchvision=={torchvision.__version__ if "torchvision" in sys.modules else None} {e}')
     if '_no_nep' in str(e):
-        errors.log.error('Loaded versions of packaged are not compatible')
-        errors.log.error('Please restart the app to fix this issue')
+        logger.log.error('Loaded versions of packaged are not compatible')
+        logger.log.error('Please restart the app to fix this issue')
 logging.getLogger("xformers").addFilter(lambda record: 'A matching Triton is not available' not in record.getMessage())
 logging.getLogger("pytorch_lightning").disabled = True
 warnings.filterwarnings(action="ignore", category=DeprecationWarning)
@@ -92,7 +106,7 @@ try:
     torch._dynamo.config.verbose = False # pylint: disable=protected-access
     torch._dynamo.config.suppress_errors = True # pylint: disable=protected-access
 except Exception as e:
-    errors.log.warning(f'Torch logging: {e}')
+    logger.log.warning(f'Torch logging: {e}')
 if ".dev" in torch.__version__ or "+git" in torch.__version__:
     torch.__long_version__ = torch.__version__
     torch.__version__ = re.search(r'[\d.]+[\d]', torch.__version__).group(0)
@@ -128,7 +142,7 @@ try:
     onnxruntime.set_default_logger_verbosity(1)
     onnxruntime.disable_telemetry_events()
 except Exception as e:
-    errors.log.warning(f'Torch onnxruntime: {e}')
+    logger.log.warning(f'Torch onnxruntime: {e}')
 timer.startup.record("onnx")
 
 timer.startup.record("fastapi")
@@ -154,8 +168,8 @@ try:
     diffusers.loaders.single_file.logging.tqdm = partial(tqdm, unit='C')
     timer.startup.record("diffusers")
 except Exception as e:
-    errors.log.error(f'Loader: diffusers=={diffusers.__version__ if "diffusers" in sys.modules else None} {e}')
-    errors.log.error('Please restart re-run the installer')
+    logger.log.error(f'Loader: diffusers=={diffusers.__version__ if "diffusers" in sys.modules else None} {e}')
+    logger.log.error('Please restart re-run the installer')
     sys.exit(1)
 
 try:
@@ -197,18 +211,6 @@ def get_packages():
     }
 
 try:
-    import math
-    cores = os.cpu_count()
-    affinity = len(os.sched_getaffinity(0)) # pylint: disable=no-member
-    threads = torch.get_num_threads()
-    if threads < (affinity / 2):
-        torch.set_num_threads(math.floor(affinity / 2))
-        threads = torch.get_num_threads()
-    errors.log.debug(f'System: cores={cores} affinity={affinity} threads={threads}')
-except Exception:
-    pass
-
-try:
     import torchvision.transforms.functional_tensor # pylint: disable=unused-import, ungrouped-imports
 except ImportError:
     try:
@@ -223,7 +225,7 @@ def deprecate_warn(*args, **kwargs):
     try:
         deprecate_diffusers(*args, **kwargs)
     except Exception as e:
-        errors.log.warning(f'Deprecation: {e}')
+        logger.log.warning(f'Deprecation: {e}')
 diffusers.utils.deprecation_utils.deprecate = deprecate_warn
 diffusers.utils.deprecate = deprecate_warn
 
@@ -238,5 +240,5 @@ class VersionString(str): # support both string and tuple for version check
 
 
 torch.__version__ = VersionString(torch.__version__)
-errors.log.info(f'Torch: torch=={torch.__version__} torchvision=={torchvision.__version__}')
-errors.log.info(f'Packages: diffusers=={diffusers.__version__} transformers=={transformers.__version__} accelerate=={accelerate.__version__} gradio=={gradio.__version__} pydantic=={pydantic.__version__} numpy=={np.__version__} cv2=={cv2.__version__}')
+logger.log.info(f'Torch: torch=={torch.__version__} torchvision=={torchvision.__version__}')
+logger.log.info(f'Packages: diffusers=={diffusers.__version__} transformers=={transformers.__version__} accelerate=={accelerate.__version__} gradio=={gradio.__version__} pydantic=={pydantic.__version__} numpy=={np.__version__} cv2=={cv2.__version__}')

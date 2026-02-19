@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from modules import logger
 import os
 import sys
 import time
@@ -9,7 +10,7 @@ from functools import lru_cache
 import installer
 
 
-debug_install = installer.log.debug if os.environ.get('SD_INSTALL_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug_install = logger.log.debug if os.environ.get('SD_INSTALL_DEBUG', None) is not None else lambda *args, **kwargs: None
 commandline_args = os.environ.get('COMMANDLINE_ARGS', "")
 sys.argv += shlex.split(commandline_args)
 args = None
@@ -58,17 +59,17 @@ def get_custom_args():
         current = getattr(args, arg)
         if current != default:
             custom[arg] = getattr(args, arg)
-    installer.log.info(f'Command line args: {sys.argv[1:]} {installer.print_dict(custom)}')
+    logger.log.info(f'Command line args: {sys.argv[1:]} {installer.print_dict(custom)}')
     if os.environ.get('SD_ENV_DEBUG', None) is not None:
         env = os.environ.copy()
         if 'PATH' in env:
             del env['PATH']
         if 'PS1' in env:
             del env['PS1']
-        installer.log.trace(f'Environment: {installer.print_dict(env)}')
+        logger.log.trace(f'Environment: {installer.print_dict(env)}')
     env = [f'{k}={v}' for k, v in os.environ.items() if k.startswith('SD_')]
     ld = [f'{k}={v}' for k, v in os.environ.items() if k.startswith('LD_')]
-    installer.log.debug(f'Flags: sd={env} ld={ld}')
+    logger.log.debug(f'Flags: sd={env} ld={ld}')
     rec('args')
 
 
@@ -88,7 +89,7 @@ def commit_hash(): # compatbility function
 @lru_cache
 def run(command, desc=None, errdesc=None, custom_env=None, live=False): # compatbility function
     if desc is not None:
-        installer.log.info(desc)
+        logger.log.info(desc)
     if live:
         result = subprocess.run(command, check=False, shell=True, env=os.environ if custom_env is None else custom_env)
         if result.returncode != 0:
@@ -183,9 +184,9 @@ def clean_server():
     modules_sorted = {}
     for module_key in modules_keys:
         modules_sorted[module_key] = len([m for m in modules_cleaned if m.startswith(module_key)])
-    installer.log.trace(f'Server modules: {modules_sorted}')
+    logger.log.trace(f'Server modules: {modules_sorted}')
     t1 = time.time()
-    installer.log.trace(f'Server modules: total={len(modules_loaded)} unloaded={len(removed_removed)} remaining={len(modules_cleaned)} gc={collected} time={t1-t0:.2f}')
+    logger.log.trace(f'Server modules: total={len(modules_loaded)} unloaded={len(removed_removed)} remaining={len(modules_cleaned)} gc={collected} time={t1-t0:.2f}')
 
 
 def start_server(immediate=True, server=None):
@@ -202,20 +203,20 @@ def start_server(immediate=True, server=None):
     if not immediate:
         time.sleep(3)
     if collected > 0:
-        installer.log.debug(f'Memory: {get_memory_stats()} collected={collected}')
+        logger.log.debug(f'Memory: {get_memory_stats()} collected={collected}')
     module_spec = importlib.util.spec_from_file_location('webui', 'webui.py')
     server = importlib.util.module_from_spec(module_spec)
-    installer.log.debug(f'Starting module: {server}')
+    logger.log.debug(f'Starting module: {server}')
     module_spec.loader.exec_module(server)
     uvicorn = None
     if args.test:
-        installer.log.info("Test only")
-        installer.log.critical('Logging: level=critical')
-        installer.log.error('Logging: level=error')
-        installer.log.warning('Logging: level=warning')
-        installer.log.info('Logging: level=info')
-        installer.log.debug('Logging: level=debug')
-        installer.log.trace('Logging: level=trace')
+        logger.log.info("Test only")
+        logger.log.critical('Logging: level=critical')
+        logger.log.error('Logging: level=error')
+        logger.log.warning('Logging: level=warning')
+        logger.log.info('Logging: level=info')
+        logger.log.debug('Logging: level=debug')
+        logger.log.trace('Logging: level=trace')
         server.wants_restart = False
     else:
         uvicorn = server.webui(restart=not immediate)
@@ -231,8 +232,8 @@ def main():
     installer.ensure_base_requirements()
     init_args() # setup argparser and default folders
     installer.args = args
-    installer.setup_logging()
-    installer.log.info('Starting SD.Next')
+    installer.setup_logging(debug=args.debug, trace=args.trace, log_filename=args.log)
+    logger.log.info('Starting SD.Next')
     installer.get_logfile()
     try:
         sys.excepthook = installer.custom_excepthook
@@ -245,10 +246,10 @@ def main():
     if args.reset:
         installer.git_reset()
     if args.skip_git or args.skip_all:
-        installer.log.info('Skipping GIT operations')
-    installer.log.info(f'Platform: {installer.print_dict(installer.get_platform())}')
+        logger.log.info('Skipping GIT operations')
+    logger.log.info(f'Platform: {installer.print_dict(installer.get_platform())}')
     installer.check_venv()
-    installer.log.info(f'Args: {sys.argv[1:]}')
+    logger.log.info(f'Args: {sys.argv[1:]}')
     if not args.skip_env or args.skip_all:
         installer.set_environment()
     if args.uv:
@@ -259,42 +260,42 @@ def main():
     installer.check_transformers()
     installer.check_diffusers()
     if args.test:
-        installer.log.info('Startup: test mode')
+        logger.log.info('Startup: test mode')
         installer.quick_allowed = False
     if args.reinstall:
-        installer.log.info('Startup: force reinstall of all packages')
+        logger.log.info('Startup: force reinstall of all packages')
         installer.quick_allowed = False
     if args.skip_all:
-        installer.log.info('Startup: skip all')
+        logger.log.info('Startup: skip all')
         installer.quick_allowed = True
         init_paths()
     else:
         installer.install_requirements()
         if installer.check_timestamp():
-            installer.log.info('Startup: quick launch')
+            logger.log.info('Startup: quick launch')
             init_paths()
             installer.check_extensions()
         else:
-            installer.log.info('Startup: standard')
+            logger.log.info('Startup: standard')
             installer.install_submodules()
             init_paths()
             installer.install_extensions()
             installer.install_requirements() # redo requirements since extensions may change them
             if len(installer.errors) == 0:
-                installer.log.debug(f'Setup complete without errors: {round(time.time())}')
+                logger.log.debug(f'Setup complete without errors: {round(time.time())}')
             else:
-                installer.log.warning(f'Setup complete with errors: {installer.errors}')
-                installer.log.warning(f'See log file for more details: {installer.log_file}')
+                logger.log.warning(f'Setup complete with errors: {installer.errors}')
+                logger.log.warning(f'See log file for more details: {logger.log_file}')
     installer.extensions_preload(parser) # adds additional args from extensions
     args = installer.parse_args(parser)
-    installer.log.info(f'Installer time: {init_summary()}')
+    logger.log.info(f'Installer time: {init_summary()}')
     get_custom_args()
     import threading
     threading.Thread(target=installer.run_deferred_tasks, daemon=True).start()
 
     uv, instance = start_server(immediate=True, server=None)
     if installer.restart_required:
-        installer.log.warning('Restart is recommended due to packages updates...')
+        logger.log.warning('Restart is recommended due to packages updates...')
     t_server = time.time()
     t_monitor = time.time()
     while True:
@@ -308,19 +309,19 @@ def main():
         if float(args.status) > 0 and (t_current - t_server) > float(args.status):
             s = instance.state.status()
             if (s.timestamp is None) or (s.step == 0): # dont spam during active job
-                installer.log.trace(f'Server: alive={alive} requests={requests} memory={get_memory_stats()} {s}')
+                logger.log.trace(f'Server: alive={alive} requests={requests} memory={get_memory_stats()} {s}')
             t_server = t_current
         if float(args.monitor) > 0 and t_current - t_monitor > float(args.monitor):
-            installer.log.trace(f'Monitor: {get_memory_stats(detailed=True)}')
+            logger.log.trace(f'Monitor: {get_memory_stats(detailed=True)}')
             t_monitor = t_current
         if not alive:
             if uv is not None and uv.wants_restart:
                 clean_server()
-                installer.log.info('Server restarting...')
+                logger.log.info('Server restarting...')
                 # uv, instance = start_server(immediate=False, server=instance)
                 os.execv(sys.executable, ['python'] + sys.argv)
             else:
-                installer.log.info('Exiting...')
+                logger.log.info('Exiting...')
                 break
         time.sleep(1.0)
 

@@ -10,7 +10,7 @@ Non-CUDA devices fall back to PIL/torch.nn.functional automatically.
 import sys
 import torch
 from PIL import Image
-from installer import log
+from modules.logger import log
 from modules.image.convert import to_tensor, to_pil
 
 

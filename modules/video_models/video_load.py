@@ -4,6 +4,7 @@ import copy
 import time
 import diffusers
 from modules import shared, errors, sd_models, sd_checkpoint, model_quant, devices, sd_hijack_te, sd_hijack_vae
+from modules import logger
 from modules.video_models import models_def, video_utils, video_overrides, video_cache
 
 
@@ -20,7 +21,7 @@ loaded_model = None
 
 
 def load_custom(model_name: str):
-    shared.log.debug(f'Video load: module=pipe repo="{model_name}" cls=Custom')
+    logger.log.debug(f'Video load: module=pipe repo="{model_name}" cls=Custom')
     if 'veo-3.1' in model_name:
         from modules.video_models.google_veo import load_veo
         pipe = load_veo(model_name)
@@ -81,7 +82,7 @@ def load_model(selected: models_def.Model):
                 selected.te_folder = 'text_encoder'
                 selected.te_revision = None
 
-            shared.log.debug(f'Video load: module=te repo="{selected.te or selected.repo}" folder="{selected.te_folder}" cls={selected.te_cls.__name__} quant={model_quant.get_quant_type(quant_args)} loader={_loader("transformers")}')
+            logger.log.debug(f'Video load: module=te repo="{selected.te or selected.repo}" folder="{selected.te_folder}" cls={selected.te_cls.__name__} quant={model_quant.get_quant_type(quant_args)} loader={_loader("transformers")}')
             kwargs["text_encoder"] = selected.te_cls.from_pretrained(
                 pretrained_model_name_or_path=selected.te or selected.repo,
                 subfolder=selected.te_folder,
@@ -92,7 +93,7 @@ def load_model(selected: models_def.Model):
                 **offline_args,
             )
         except Exception as e:
-            shared.log.error(f'video load: module=te cls={selected.te_cls.__name__} {e}')
+            logger.log.error(f'video load: module=te cls={selected.te_cls.__name__} {e}')
             errors.display(e, 'video')
 
     # transformer
@@ -102,7 +103,7 @@ def load_model(selected: models_def.Model):
                 if dit_folder is not None and dit_folder not in kwargs:
                     # get a new quant arg on every loop to prevent the quant config classes getting entangled
                     load_args, quant_args = model_quant.get_dit_args({}, module='Model', device_map=True)
-                    shared.log.debug(f'Video load: module=transformer repo="{selected.dit or selected.repo}" module="{dit_folder}" folder="{dit_folder}" cls={selected.dit_cls.__name__} quant={model_quant.get_quant_type(quant_args)} loader={_loader("diffusers")}')
+                    logger.log.debug(f'Video load: module=transformer repo="{selected.dit or selected.repo}" module="{dit_folder}" folder="{dit_folder}" cls={selected.dit_cls.__name__} quant={model_quant.get_quant_type(quant_args)} loader={_loader("diffusers")}')
                     kwargs[dit_folder] = selected.dit_cls.from_pretrained(
                         pretrained_model_name_or_path=selected.dit or selected.repo,
                         subfolder=dit_folder,
@@ -113,7 +114,7 @@ def load_model(selected: models_def.Model):
                         **offline_args,
                     )
                 else:
-                    shared.log.debug(f'Video load: module=transformer repo="{selected.dit or selected.repo}" module="{dit_folder}" folder="{dit_folder}" cls={selected.dit_cls.__name__} loader={_loader("diffusers")} skip')
+                    logger.log.debug(f'Video load: module=transformer repo="{selected.dit or selected.repo}" module="{dit_folder}" folder="{dit_folder}" cls={selected.dit_cls.__name__} loader={_loader("diffusers")} skip')
 
             if selected.dit_folder is None:
                 selected.dit_folder = ['transformer']
@@ -123,7 +124,7 @@ def load_model(selected: models_def.Model):
             else:
                 load_dit_folder(selected.dit_folder)
         except Exception as e:
-            shared.log.error(f'video load: module=transformer cls={selected.dit_cls.__name__} {e}')
+            logger.log.error(f'video load: module=transformer cls={selected.dit_cls.__name__} {e}')
             errors.display(e, 'video')
 
     # model
@@ -131,7 +132,7 @@ def load_model(selected: models_def.Model):
         if selected.repo_cls is None:
             shared.sd_model = load_custom(selected.repo)
         else:
-            shared.log.debug(f'Video load: module=pipe repo="{selected.repo}" cls={selected.repo_cls.__name__}')
+            logger.log.debug(f'Video load: module=pipe repo="{selected.repo}" cls={selected.repo_cls.__name__}')
             shared.sd_model = selected.repo_cls.from_pretrained(
                 pretrained_model_name_or_path=selected.repo,
                 revision=selected.repo_revision,
@@ -141,12 +142,12 @@ def load_model(selected: models_def.Model):
                 **offline_args,
             )
     except Exception as e:
-        shared.log.error(f'video load: module=pipe repo="{selected.repo}" cls={selected.repo_cls.__name__} {e}')
+        logger.log.error(f'video load: module=pipe repo="{selected.repo}" cls={selected.repo_cls.__name__} {e}')
         errors.display(e, 'video')
 
     if shared.sd_model is None:
         msg = f'Video load: model="{selected.name}" failed'
-        shared.log.error(msg)
+        logger.log.error(msg)
         return msg
 
     t1 = time.time()
@@ -185,8 +186,8 @@ def load_model(selected: models_def.Model):
 
     loaded_model = selected.name
     msg = f'Video load: cls={shared.sd_model.__class__.__name__} model="{selected.name}" time={t1-t0:.2f}'
-    shared.log.info(msg)
-    shared.log.debug(f'Video hijacks: decode={decode} text={text} image={image} slicing={slicing} tiling={tiling} framewise={framewise}')
+    logger.log.info(msg)
+    logger.log.debug(f'Video hijacks: decode={decode} text={text} image={image} slicing={slicing} tiling={tiling} framewise={framewise}')
     shared.state.end(jobid)
     return msg
 
@@ -197,7 +198,7 @@ def load_upscale_vae():
     if hasattr(shared.sd_model.vae, '_asymmetric_upscale_vae'):
         return # already loaded
     if shared.sd_model.vae.__class__.__name__ != 'AutoencoderKLWan':
-        shared.log.warning('Video decode: upscale VAE unsupported')
+        logger.log.warning('Video decode: upscale VAE unsupported')
         return
 
     repo_id = 'spacepxl/Wan2.1-VAE-upscale2x'
@@ -206,7 +207,7 @@ def load_upscale_vae():
     vae_decode.requires_grad_(False)
     vae_decode = vae_decode.to(device=devices.device, dtype=devices.dtype)
     vae_decode.eval()
-    shared.log.debug(f'Decode: load="{repo_id}"')
+    logger.log.debug(f'Decode: load="{repo_id}"')
     shared.sd_model.orig_vae = shared.sd_model.vae
     shared.sd_model.vae = vae_decode
     shared.sd_model.vae._asymmetric_upscale_vae = True # pylint: disable=protected-access

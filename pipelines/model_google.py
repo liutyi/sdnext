@@ -2,7 +2,8 @@ import io
 import os
 import time
 from PIL import Image
-from installer import install, reload, log
+from installer import install, reload
+from modules.logger import log
 
 
 image_size_buckets = {

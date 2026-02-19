@@ -1,7 +1,8 @@
 import os
 import time
 import gradio as gr
-from installer import log, install
+from installer import install
+from modules.logger import log
 from modules.shared import opts
 
 

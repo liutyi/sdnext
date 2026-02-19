@@ -1,6 +1,7 @@
 import transformers
 import diffusers
 from modules import shared, devices, sd_models, model_quant, sd_hijack_te
+from modules import logger
 from pipelines import generic
 
 
@@ -9,7 +10,7 @@ def load_nunchaku():
     nunchaku_precision = nunchaku.utils.get_precision()
     nunchaku_rank = 128
     nunchaku_repo = f"nunchaku-ai/nunchaku-z-image-turbo/svdq-{nunchaku_precision}_r{nunchaku_rank}-z-image-turbo.safetensors"
-    shared.log.debug(f'Load module: quant=Nunchaku module=transformer repo="{nunchaku_repo}" attention={shared.opts.nunchaku_attention}')
+    logger.log.debug(f'Load module: quant=Nunchaku module=transformer repo="{nunchaku_repo}" attention={shared.opts.nunchaku_attention}')
     transformer = nunchaku.NunchakuZImageTransformer2DModel.from_pretrained(
         nunchaku_repo,
         torch_dtype=devices.dtype,
@@ -25,7 +26,7 @@ def load_z_image(checkpoint_info, diffusers_load_config=None):
     sd_models.hf_auth_check(checkpoint_info)
 
     load_args, _quant_args = model_quant.get_dit_args(diffusers_load_config, allow_quant=False)
-    shared.log.debug(f'Load model: type=ZImage repo="{repo_id}" config={diffusers_load_config} offload={shared.opts.diffusers_offload_mode} dtype={devices.dtype} args={diffusers_load_config}')
+    logger.log.debug(f'Load model: type=ZImage repo="{repo_id}" config={diffusers_load_config} offload={shared.opts.diffusers_offload_mode} dtype={devices.dtype} args={diffusers_load_config}')
 
     if model_quant.check_nunchaku('Model'): # only available model
         transformer = load_nunchaku()

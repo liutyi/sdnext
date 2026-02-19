@@ -3,13 +3,14 @@ from urllib.parse import unquote
 import gradio as gr
 from PIL import Image
 from modules import shared, ui_symbols, ui_common, images, video, modelstats
+from modules import logger
 from modules.ui_components import ToolButton
 
 
 def read_media(fn):
     fn = unquote(fn).replace('%3A', ':')
     if not os.path.isfile(fn):
-        shared.log.error(f'Gallery not found: file="{fn}"')
+        logger.log.error(f'Gallery not found: file="{fn}"')
         return [[], None, '', '', f'Media not found: {fn}']
     stat_size, stat_mtime = modelstats.stat(fn)
     # Treat common containers as video for preview; Gradio/HTML5 will handle codec support.
@@ -28,7 +29,7 @@ def read_media(fn):
                 | Modified <b>{stat_mtime}</b></p><br>
                 '''
         except Exception as e:  # keep preview even if probing fails
-            shared.log.warning(f'Video probe failed: file="{fn}" {e}')
+            logger.log.warning(f'Video probe failed: file="{fn}" {e}')
             log = f'''
                 <p>Video
                 | Size <b>{stat_size:,}</b>
@@ -54,7 +55,7 @@ def read_media(fn):
 
 
 def create_ui():
-    shared.log.debug('UI initialize: tab=gallery')
+    logger.log.debug('UI initialize: tab=gallery')
     with gr.Blocks() as tab:
         with gr.Row(elem_id='tab-gallery-sort-buttons'):
             sort_buttons = []

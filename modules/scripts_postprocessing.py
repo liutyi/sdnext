@@ -1,6 +1,7 @@
 import os
 import gradio as gr
 from modules import errors, shared
+from modules import logger
 
 
 class PostprocessedImage:
@@ -103,7 +104,7 @@ class ScriptPostprocessingRunner:
             process_args = {}
             for (name, _component), value in zip(script.controls.items(), script_args, strict=False):
                 process_args[name] = value
-            shared.log.debug(f'Process: script="{script.name}" args={process_args}')
+            logger.log.debug(f'Process: script="{script.name}" args={process_args}')
             script.process(pp, **process_args)
             shared.state.end(jobid)
 
@@ -133,6 +134,6 @@ class ScriptPostprocessingRunner:
             process_args = {}
             for (name, _component), value in zip(script.controls.items(), script_args, strict=False):
                 process_args[name] = value
-            shared.log.debug(f'Postprocess: script={script.name} args={process_args}')
+            logger.log.debug(f'Postprocess: script={script.name} args={process_args}')
             script.postprocess(filenames, **process_args)
             shared.state.end(jobid)

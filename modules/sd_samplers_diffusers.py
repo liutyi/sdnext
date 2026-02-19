@@ -4,11 +4,12 @@ import copy
 import inspect
 import diffusers
 from modules import shared, errors
+from modules import logger
 from modules.sd_samplers_common import SamplerData, flow_models
 
 
 debug = os.environ.get('SD_SAMPLER_DEBUG', None) is not None
-debug_log = shared.log.trace if debug else lambda *args, **kwargs: None
+debug_log = logger.log.trace if debug else lambda *args, **kwargs: None
 
 # Diffusers schedulers
 try:
@@ -44,7 +45,7 @@ try:
         TCDScheduler,
     )
 except Exception as e:
-    shared.log.error(f'Sampler import: version={diffusers.__version__} error: {e}')
+    logger.log.error(f'Sampler import: version={diffusers.__version__} error: {e}')
     if os.environ.get('SD_SAMPLER_DEBUG', None) is not None:
         errors.display(e, 'Samplers')
 
@@ -61,7 +62,7 @@ try:
     from modules.schedulers.scheduler_flashflow import FlashFlowMatchEulerDiscreteScheduler # pylint: disable=ungrouped-imports
     from modules.schedulers.perflow import PeRFlowScheduler # pylint: disable=ungrouped-imports
 except Exception as e:
-    shared.log.error(f'Sampler import: version={diffusers.__version__} error: {e}')
+    logger.log.error(f'Sampler import: version={diffusers.__version__} error: {e}')
     if os.environ.get('SD_SAMPLER_DEBUG', None) is not None:
         errors.display(e, 'Samplers')
 
@@ -93,7 +94,7 @@ try:
         # SimpleExponentialScheduler,
     )
 except Exception as e:
-    shared.log.error(f'Sampler import: version={diffusers.__version__} error: {e}')
+    logger.log.error(f'Sampler import: version={diffusers.__version__} error: {e}')
     if os.environ.get('SD_SAMPLER_DEBUG', None) is not None:
         errors.display(e, 'Samplers')
 
@@ -466,7 +467,7 @@ class DiffusionSampler:
         try:
             sampler = constructor(**self.config)
         except Exception as e:
-            shared.log.error(f'Sampler: "{name}" {e}')
+            logger.log.error(f'Sampler: "{name}" {e}')
             if debug:
                 errors.display(e, 'Samplers')
             self.sampler = None
@@ -478,11 +479,11 @@ class DiffusionSampler:
             accept_scale_noise = hasattr(sampler, "scale_noise")
             debug_log(f'Sampler: "{name}" sigmas={accept_sigmas} timesteps={accepts_timesteps}')
             if ('Flux' in model.__class__.__name__) and (not accept_sigmas):
-                shared.log.warning(f'Sampler: "{name}" does not accept sigmas')
+                logger.log.warning(f'Sampler: "{name}" does not accept sigmas')
                 self.sampler = None
                 return
             if ('StableDiffusion3' in model.__class__.__name__) and (not accept_scale_noise):
-                shared.log.warning(f'Sampler: "{name}" does not implement scale noise')
+                logger.log.warning(f'Sampler: "{name}" does not implement scale noise')
                 self.sampler = None
                 return
 
@@ -494,5 +495,5 @@ class DiffusionSampler:
 
         self.sampler = sampler
 
-        # shared.log.debug_log(f'Sampler: class="{self.sampler.__class__.__name__}" config={self.sampler.config}')
+        # logger.log.debug_log(f'Sampler: class="{self.sampler.__class__.__name__}" config={self.sampler.config}')
         self.sampler.name = name

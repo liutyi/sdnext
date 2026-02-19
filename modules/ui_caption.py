@@ -1,5 +1,6 @@
 import gradio as gr
 from modules import shared, ui_common, generation_parameters_copypaste
+from modules import logger
 from modules.caption import openclip
 
 
@@ -146,7 +147,7 @@ def update_default_caption_type(caption_type):
 
 
 def create_ui():
-    shared.log.debug('UI initialize: tab=caption')
+    logger.log.debug('UI initialize: tab=caption')
     with gr.Row(equal_height=False, variant='compact', elem_classes="caption", elem_id="caption_tab"):
         with gr.Column(variant='compact', elem_id='caption_input'):
             with gr.Row():

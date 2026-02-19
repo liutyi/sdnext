@@ -1,5 +1,6 @@
 import gradio as gr
 from modules import scripts_manager, processing, shared, sd_models
+from modules import logger
 
 
 supported_models = ['sdxl']
@@ -73,12 +74,12 @@ class Script(scripts_manager.Script):
             from ligo.segments import segment # pylint: disable=unused-import
             return True
         except Exception as e:
-            shared.log.error(f'MoD: {e}')
+            logger.log.error(f'MoD: {e}')
         return False
 
     def run(self, p: processing.StableDiffusionProcessing, *args): # pylint: disable=arguments-differ, unused-argument
         if shared.sd_model_type not in supported_models:
-            shared.log.warning(f'MoD: class={shared.sd_model.__class__.__name__} model={shared.sd_model_type} required={supported_models}')
+            logger.log.warning(f'MoD: class={shared.sd_model.__class__.__name__} model={shared.sd_model_type} required={supported_models}')
             return None
         if not self.check_dependencies():
             return None
@@ -108,7 +109,7 @@ class Script(scripts_manager.Script):
         p.extra_generation_params["MoD Y"] = f'{y_tiles}/{p.task_args["tile_height"]}/{p.task_args["tile_row_overlap"]}'
         p.keep_prompts = True
         shared.opts.prompt_attention = 'fixed'
-        shared.log.info(f'MoD: xtiles={x_tiles} ytiles={y_tiles} xoverlap={p.task_args["tile_col_overlap"]} yoverlap={p.task_args["tile_row_overlap"]} xsize={p.task_args["tile_width"]} ysize={p.task_args["tile_height"]}')
+        logger.log.info(f'MoD: xtiles={x_tiles} ytiles={y_tiles} xoverlap={p.task_args["tile_col_overlap"]} yoverlap={p.task_args["tile_row_overlap"]} xsize={p.task_args["tile_width"]} ysize={p.task_args["tile_height"]}')
 
         shared.sd_model = sd_models.switch_pipe(StableDiffusionXLTilingPipeline, shared.sd_model)
         sd_models.set_diffuser_options(shared.sd_model)

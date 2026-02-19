@@ -5,7 +5,8 @@ from diffusers.models.attention import Attention
 import torch
 from torch.nn import Linear
 from einops import rearrange
-from installer import install, log
+from installer import install
+from modules.logger import log
 
 
 def init():

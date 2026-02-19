@@ -2,6 +2,7 @@ import os
 import diffusers
 import transformers
 from modules import shared, devices, sd_models, model_quant, sd_hijack_te
+from modules import logger
 from pipelines import generic
 
 
@@ -29,12 +30,12 @@ def load_flux(checkpoint_info, diffusers_load_config=None):
     flux_lora.apply_patch()
 
     load_args, _quant_args = model_quant.get_dit_args(diffusers_load_config, allow_quant=False)
-    shared.log.debug(f'Load model: type=Flux repo="{repo_id}" cls={cls_name.__name__} offload={shared.opts.diffusers_offload_mode} dtype={devices.dtype} args={load_args}')
+    logger.log.debug(f'Load model: type=Flux repo="{repo_id}" cls={cls_name.__name__} offload={shared.opts.diffusers_offload_mode} dtype={devices.dtype} args={load_args}')
 
     # optional teacache patch
     if shared.opts.teacache_enabled and not model_quant.check_nunchaku('Model'):
         from modules import teacache
-        shared.log.debug(f'Transformers cache: type=teacache patch=forward cls={diffusers.FluxTransformer2DModel.__name__}')
+        logger.log.debug(f'Transformers cache: type=teacache patch=forward cls={diffusers.FluxTransformer2DModel.__name__}')
         diffusers.FluxTransformer2DModel.forward = teacache.teacache_flux_forward # patch must be done before transformer is loaded
 
     transformer = None
@@ -73,7 +74,7 @@ def load_flux(checkpoint_info, diffusers_load_config=None):
 
     if os.environ.get('SD_REMOTE_T5', None) is not None:
         from modules import sd_te_remote
-        shared.log.warning('Remote-TE: applying patch')
+        logger.log.warning('Remote-TE: applying patch')
         pipe._get_t5_prompt_embeds = sd_te_remote.get_t5_prompt_embeds # pylint: disable=protected-access
         pipe.text_encoder_2 = None
 

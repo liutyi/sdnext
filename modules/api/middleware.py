@@ -10,7 +10,7 @@ from starlette.responses import JSONResponse
 from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import HTTPException
 from fastapi.encoders import jsonable_encoder
-from installer import log
+from modules.logger import log
 import modules.errors as errors
 
 

@@ -2,7 +2,8 @@ from dataclasses import dataclass
 import os
 import json
 import time
-from installer import install, log
+from installer import install
+from modules.logger import log
 
 
 full_dct = False

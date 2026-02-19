@@ -3,6 +3,7 @@ from PIL import Image
 import gradio as gr
 import gradio.processing_utils
 from modules import scripts_manager, patches, gr_tempdir
+from modules import logger
 
 
 hijacked = False
@@ -35,7 +36,7 @@ def process_kanvas(self, x): # only used when kanvas overrides gr.Image object
         # mask = Image.merge("RGB", [alpha, alpha, alpha])
         mask = mask.convert('L')
     t1 = time.time()
-    errors.log.debug(f'Kanvas: image={image} mask={mask} time={t1-t0:.2f}')
+    logger.log.debug(f'Kanvas: image={image} mask={mask} time={t1-t0:.2f}')
     if image is None:
         return None
     if mask is None:

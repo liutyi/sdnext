@@ -8,7 +8,8 @@ import contextlib
 from enum import Enum
 from typing import TYPE_CHECKING
 import gradio as gr
-from installer import log, print_dict # pylint: disable=unused-import
+from installer import print_dict # pylint: disable=unused-import
+from modules.logger import log
 log.debug('Initializing: shared module')
 
 import modules.memmon

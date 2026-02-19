@@ -2,7 +2,8 @@ import os
 import time
 import gradio as gr
 from modules import ui_symbols, ui_components
-from installer import install, log
+from installer import install
+from modules.logger import log
 
 
 class Page:

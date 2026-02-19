@@ -9,7 +9,8 @@ import logging
 import importlib
 import contextlib
 from threading import Thread
-from installer import log, git_commit, custom_excepthook, version
+from installer import git_commit, custom_excepthook, version
+from modules.logger import log
 from modules import timer
 import modules.loader
 import modules.hashes
@@ -45,6 +46,7 @@ import modules.ui_extra_networks
 import modules.textual_inversion
 import modules.script_callbacks
 import modules.api.middleware
+from modules import logger
 
 
 if not modules.loader.initialized:
@@ -240,7 +242,7 @@ def start_common():
     async_policy()
     initialize()
     if shared.cmd_opts.backend == 'original':
-        shared.log.error('Legacy option: backend=original is no longer supported')
+        logger.log.error('Legacy option: backend=original is no longer supported')
         shared.cmd_opts.backend = 'diffusers'
     try:
         from installer import diffusers_commit
@@ -262,7 +264,7 @@ def mount_subpath(app):
     if not shared.opts.subpath.startswith('/'):
         shared.opts.subpath = f'/{shared.opts.subpath}'
     gradio.mount_gradio_app(app, shared.demo, path=shared.opts.subpath)
-    shared.log.info(f'Mounted: subpath="{shared.opts.subpath}"')
+    logger.log.info(f'Mounted: subpath="{shared.opts.subpath}"')
 
 
 def start_ui():
@@ -300,7 +302,7 @@ def start_ui():
         allowed_paths.append(shared.cmd_opts.models_dir)
     if shared.cmd_opts.allowed_paths is not None:
         allowed_paths += [p for p in shared.cmd_opts.allowed_paths if os.path.isdir(p)]
-    shared.log.debug(f'Root paths: {allowed_paths}')
+    logger.log.debug(f'Root paths: {allowed_paths}')
     with contextlib.redirect_stdout(stdout):
         app, local_url, share_url = shared.demo.launch( # app is FastAPI(Starlette) instance
             share=shared.cmd_opts.share,
@@ -322,25 +324,25 @@ def start_ui():
         )
     if shared.cmd_opts.data_dir is not None:
         modules.gr_tempdir.register_tmp_file(shared.demo, os.path.join(shared.cmd_opts.data_dir, 'x'))
-    shared.log.info(f'Local URL: {local_url}')
+    logger.log.info(f'Local URL: {local_url}')
     if shared.cmd_opts.listen:
         if not gradio_auth_creds:
-            shared.log.warning('Public URL: enabled without authentication')
+            logger.log.warning('Public URL: enabled without authentication')
         if shared.cmd_opts.insecure:
-            shared.log.warning('Public URL: enabled with insecure flag')
+            logger.log.warning('Public URL: enabled with insecure flag')
         proto = 'https' if shared.cmd_opts.tls_keyfile is not None else 'http'
         external_ip = get_external_ip()
         if external_ip is not None:
-            shared.log.info(f'External URL: {proto}://{external_ip}:{shared.cmd_opts.port}')
+            logger.log.info(f'External URL: {proto}://{external_ip}:{shared.cmd_opts.port}')
         public_ip = get_remote_ip()
         if public_ip is not None:
-            shared.log.info(f'Public URL: {proto}://{public_ip}:{shared.cmd_opts.port}')
+            logger.log.info(f'Public URL: {proto}://{public_ip}:{shared.cmd_opts.port}')
     if shared.cmd_opts.docs:
-        shared.log.info(f'API docs: {local_url[:-1]}/docs') # pylint: disable=unsubscriptable-object
-        shared.log.info(f'API redocs: {local_url[:-1]}/redocs') # pylint: disable=unsubscriptable-object
+        logger.log.info(f'API docs: {local_url[:-1]}/docs') # pylint: disable=unsubscriptable-object
+        logger.log.info(f'API redocs: {local_url[:-1]}/redocs') # pylint: disable=unsubscriptable-object
     if share_url is not None:
-        shared.log.info(f'Share URL: {share_url}')
-    # shared.log.debug(f'Gradio functions: registered={len(shared.demo.fns)}')
+        logger.log.info(f'Share URL: {share_url}')
+    # logger.log.debug(f'Gradio functions: registered={len(shared.demo.fns)}')
     shared.demo.server.wants_restart = False
     modules.api.middleware.setup_middleware(app, shared.cmd_opts)
 
@@ -358,10 +360,10 @@ def start_ui():
     time_sorted = sorted(modules.scripts_manager.time_setup.items(), key=lambda x: x[1], reverse=True)
     time_script = [f'{k}:{round(v,3)}' for (k,v) in time_sorted if v > 0.05]
     time_total = sum(modules.scripts_manager.time_setup.values())
-    shared.log.debug(f'Scripts setup: time={time_total:.3f} {time_script}')
+    logger.log.debug(f'Scripts setup: time={time_total:.3f} {time_script}')
     time_component = [f'{k}:{round(v,3)}' for (k,v) in modules.scripts_manager.time_component.items() if v > 0.005]
     if len(time_component) > 0:
-        shared.log.debug(f'Scripts components: {time_component}')
+        logger.log.debug(f'Scripts components: {time_component}')
     return app
 
 
@@ -381,7 +383,7 @@ def webui(restart=False):
 
     if shared.cmd_opts.profile:
         for k, v in modules.script_callbacks.callback_map.items():
-            shared.log.debug(f'Registered callbacks: {k}={len(v)} {[c.script for c in v]}')
+            logger.log.debug(f'Registered callbacks: {k}={len(v)} {[c.script for c in v]}')
     debug = log.trace if os.environ.get('SD_SCRIPT_DEBUG', None) is not None else lambda *args, **kwargs: None
     debug('Trace: SCRIPTS')
     for m in modules.scripts_manager.scripts_data:
@@ -410,7 +412,7 @@ def webui(restart=False):
         # autolaunch only on initial start
         if (shared.opts.autolaunch or shared.cmd_opts.autolaunch) and local_url is not None:
             shared.cmd_opts.autolaunch = False
-            shared.log.info('Launching browser')
+            logger.log.info('Launching browser')
             import webbrowser
             webbrowser.open(local_url, new=2, autoraise=True)
     else:

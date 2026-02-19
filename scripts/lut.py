@@ -6,6 +6,7 @@ import os
 import gradio as gr
 from installer import install
 from modules import scripts_manager, shared, processing
+from modules import logger
 
 
 class Script(scripts_manager.Script):
@@ -44,14 +45,14 @@ class Script(scripts_manager.Script):
 
         cube = None
         name = os.path.splitext(os.path.basename(cube_file.name))[0] if cube_file is not None else None
-        shared.log.info(f'Color grading: cube="{name}" scale={cube_scale} brightness={brightness} exposure={exposure} contrast={contrast} warmth={warmth} saturation={saturation} vibrance={vibrance} hue={hue} gamma={gamma}')
+        logger.log.info(f'Color grading: cube="{name}" scale={cube_scale} brightness={brightness} exposure={exposure} contrast={contrast} warmth={warmth} saturation={saturation} vibrance={vibrance} hue={hue} gamma={gamma}')
         if cube_file is not None:
             try:
                 cube = pillow_lut.load_cube_file(cube_file.name)
                 cube = pillow_lut.amplify_lut(cube, cube_scale)
                 cube = pillow_lut.rgb_color_enhance(source=cube, brightness=brightness, exposure=exposure, contrast=contrast, warmth=warmth, saturation=saturation, vibrance=vibrance, hue=hue, gamma=gamma)
             except Exception as e:
-                shared.log.error(f'Color grading: {e}')
+                logger.log.error(f'Color grading: {e}')
 
         images = []
         if processed is not None and len(processed.images) > 0:

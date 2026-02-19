@@ -2,6 +2,7 @@ import os
 from torch import nn
 import safetensors
 from modules import devices, paths
+from modules import logger
 
 preview_model = None
 dtype = devices.dtype_vae
@@ -55,7 +56,7 @@ def download_model(model_path):
     model_url = 'https://huggingface.co/stabilityai/stable-cascade/resolve/main/previewer.safetensors?download=true'
     if not os.path.exists(model_path):
         import torch
-        from installer import log
+        from modules.logger import log
         os.makedirs(os.path.dirname(model_path), exist_ok=True)
         log.info(f'Downloading Stable Cascade previewer: {model_path}')
         torch.hub.download_url_to_file(model_url, model_path)
@@ -79,12 +80,12 @@ def decode(latents):
             preview_model.load_state_dict(previewer_checkpoint if 'state_dict' not in previewer_checkpoint else previewer_checkpoint['state_dict'])
             preview_model.eval().requires_grad_(False).to(devices.device, dtype)
             del previewer_checkpoint
-            shared.log.info(f"Load Stable Cascade previewer: model={model_path}")
+            logger.log.info(f"Load Stable Cascade previewer: model={model_path}")
     try:
         with devices.inference_context():
             latents = latents.detach().clone().unsqueeze(0).to(devices.device, dtype)
             image = preview_model(latents)[0].clamp(0, 1).float()
             return image
     except Exception as e:
-        shared.log.error(f'Stable Cascade previewer: {e}')
+        logger.log.error(f'Stable Cascade previewer: {e}')
         return latents

@@ -3,6 +3,7 @@ from collections import namedtuple
 import numpy as np
 from PIL import Image, ImageFont, ImageDraw
 from modules import shared, script_callbacks
+from modules import logger
 
 
 Grid = namedtuple("Grid", ["tiles", "tile_w", "tile_h", "image_w", "image_h", "overlap"])
@@ -21,7 +22,7 @@ def check_grid_size(imgs):
     mp = round(mp / 1000000)
     ok = mp <= shared.opts.img_max_size_mp
     if not ok:
-        shared.log.warning(f'Maximum image size exceded: size={mp} maximum={shared.opts.img_max_size_mp} MPixels')
+        logger.log.warning(f'Maximum image size exceded: size={mp} maximum={shared.opts.img_max_size_mp} MPixels')
     return ok
 
 

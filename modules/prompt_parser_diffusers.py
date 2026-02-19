@@ -6,10 +6,11 @@ import torch
 from compel.embeddings_provider import BaseTextualInversionManager, EmbeddingsProvider
 from transformers import PreTrainedTokenizer
 from modules import shared, prompt_parser, devices, sd_models
+from modules import logger
 from modules.prompt_parser_xhinker import get_weighted_text_embeddings_sd15, get_weighted_text_embeddings_sdxl_2p, get_weighted_text_embeddings_sd3, get_weighted_text_embeddings_flux1, get_weighted_text_embeddings_chroma
 
 debug_enabled = os.environ.get('SD_PROMPT_DEBUG', None)
-debug = shared.log.trace if debug_enabled else lambda *args, **kwargs: None
+debug = logger.log.trace if debug_enabled else lambda *args, **kwargs: None
 debug('Trace: PROMPT')
 orig_encode_token_ids_to_embeddings = EmbeddingsProvider._encode_token_ids_to_embeddings # pylint: disable=protected-access
 token_dict = None # used by helper get_tokens
@@ -29,7 +30,7 @@ def prompt_compatible(pipe = None):
         'Chroma' not in pipe.__class__.__name__ and
         'HiDreamImage' not in pipe.__class__.__name__
     ):
-        shared.log.warning(f"Prompt parser not supported: {pipe.__class__.__name__}")
+        logger.log.warning(f"Prompt parser not supported: {pipe.__class__.__name__}")
         return False
     return True
 
@@ -80,7 +81,7 @@ class PromptEmbedder:
             return
         self.pipe = prepare_model(p.sd_model)
         if self.pipe is None:
-            shared.log.error("Prompt encode: cannot find text encoder in model")
+            logger.log.error("Prompt encode: cannot find text encoder in model")
             return
         seen_prompts = {}
         # per prompt in batch
@@ -295,7 +296,7 @@ class PromptEmbedder:
                     res = pad_to_same_length(self.pipe, res)
                 return torch.cat(res)
         except Exception as e:
-            shared.log.error(f"Prompt encode: {e}")
+            logger.log.error(f"Prompt encode: {e}")
         return None
 
 
@@ -419,7 +420,7 @@ def get_tokens(pipe, msg, prompt):
             added_tokens = getattr(tokenizer, 'added_tokens_decoder', {})
             for k, v in added_tokens.items():
                 token_dict[str(v)] = k
-            shared.log.debug(f'Tokenizer: words={len(token_dict)} file="{fn}"')
+            logger.log.debug(f'Tokenizer: words={len(token_dict)} file="{fn}"')
         has_bos_token = getattr(tokenizer, 'bos_token_id', None) is not None
         has_eos_token = getattr(tokenizer, 'eos_token_id', None) is not None
         try:
@@ -636,7 +637,7 @@ def get_weighted_text_embeddings(pipe, prompt: str = "", neg_prompt: str = "", c
 
     embedding_providers = prepare_embedding_providers(pipe, clip_skip)
     if len(embedding_providers) == 0:
-        shared.log.error("Prompt encode: cannot find text encoder in model")
+        logger.log.error("Prompt encode: cannot find text encoder in model")
         return None, None, None, None, None, None
     empty_embedding_providers = None
     if 'StableCascade' in pipe.__class__.__name__:

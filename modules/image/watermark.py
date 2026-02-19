@@ -2,6 +2,7 @@ import random
 import numpy as np
 from PIL import Image
 from modules import shared
+from modules import logger
 
 
 def set_watermark(image, wm_text: str | None = None, wm_image: Image.Image | None = None):
@@ -10,7 +11,7 @@ def set_watermark(image, wm_text: str | None = None, wm_image: Image.Image | Non
             try:
                 wm_image = Image.open(wm_image)
             except Exception as e:
-                shared.log.warning(f'Set image watermark: image={wm_image} {e}')
+                logger.log.warning(f'Set image watermark: image={wm_image} {e}')
                 return image
         if isinstance(wm_image, Image.Image):
             if wm_image.mode != 'RGBA':
@@ -39,9 +40,9 @@ def set_watermark(image, wm_text: str | None = None, wm_image: Image.Image | Non
                     b = int(rgba[2] * a + orig[2] * (1 - a))
                     if not a == 0:
                         image.putpixel((x+position[0], y+position[1]), (r, g, b))
-            shared.log.debug(f'Set image watermark: image={wm_image} position={position}')
+            logger.log.debug(f'Set image watermark: image={wm_image} position={position}')
         except Exception as e:
-            shared.log.warning(f'Set image watermark: image={wm_image} {e}')
+            logger.log.warning(f'Set image watermark: image={wm_image} {e}')
 
     if shared.opts.image_watermark_enabled and wm_text is not None: # invisible watermark
         from imwatermark import WatermarkEncoder
@@ -59,9 +60,9 @@ def set_watermark(image, wm_text: str | None = None, wm_image: Image.Image | Non
             encoded = encoder.encode(data, wm_method)
             image = Image.fromarray(encoded)
             image.info = info
-            shared.log.debug(f'Set invisible watermark: {wm_text} method={wm_method} bits={wm_length}')
+            logger.log.debug(f'Set invisible watermark: {wm_text} method={wm_method} bits={wm_length}')
         except Exception as e:
-            shared.log.warning(f'Set invisible watermark error: {wm_text} method={wm_method} bits={wm_length} {e}')
+            logger.log.warning(f'Set invisible watermark error: {wm_text} method={wm_method} bits={wm_length} {e}')
 
     return image
 

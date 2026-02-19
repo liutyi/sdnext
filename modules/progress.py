@@ -4,6 +4,7 @@ import io
 import time
 from pydantic import BaseModel, Field # pylint: disable=no-name-in-module
 import modules.shared as shared
+from modules import logger
 
 
 current_task = None
@@ -12,7 +13,7 @@ finished_tasks = []
 recorded_results = []
 recorded_results_limit = 2
 debug = os.environ.get('SD_PREVIEW_DEBUG', None) is not None
-debug_log = shared.log.trace if debug else lambda *args, **kwargs: None
+debug_log = logger.log.trace if debug else lambda *args, **kwargs: None
 
 
 def start_task(id_task):

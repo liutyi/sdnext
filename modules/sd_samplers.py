@@ -1,9 +1,10 @@
 import os
 import copy
 from modules import shared
+from modules import logger
 
 
-debug = shared.log.trace if os.environ.get('SD_SAMPLER_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug = logger.log.trace if os.environ.get('SD_SAMPLER_DEBUG', None) is not None else lambda *args, **kwargs: None
 debug('Trace: SAMPLER')
 all_samplers = []
 all_samplers_map = {}
@@ -37,7 +38,7 @@ def list_samplers():
     samplers_for_img2img = all_samplers
     samplers_map = {}
     return all_samplers
-    # shared.log.debug(f'Available samplers: {[x.name for x in all_samplers]}')
+    # logger.log.debug(f'Available samplers: {[x.name for x in all_samplers]}')
 
 
 def find_sampler_config(name):
@@ -61,7 +62,7 @@ def restore_default(model):
         shared.state.prediction_type = "flow_prediction"
     elif hasattr(model.scheduler, "config") and hasattr(model.scheduler.config, "prediction_type"):
         shared.state.prediction_type = model.scheduler.config.prediction_type
-    shared.log.debug(f'Sampler: "Default" cls={model.scheduler.__class__.__name__} config={config}')
+    logger.log.debug(f'Sampler: "Default" cls={model.scheduler.__class__.__name__} config={config}')
     return model.scheduler
 
 
@@ -97,10 +98,10 @@ def create_sampler(name, model):
     if (model is not None) and is_flexible:
         pass
     elif (model is not None) and (is_flow and not requires_flow):
-        shared.log.error(f'Sampler: "{sampler.name}" cls={sampler.sampler.__class__.__name__} pipe={model.__class__.__name__} model requires sampler with discrete prediction')
+        logger.log.error(f'Sampler: "{sampler.name}" cls={sampler.sampler.__class__.__name__} pipe={model.__class__.__name__} model requires sampler with discrete prediction')
         return restore_default(model)
     elif (model is not None) and (not is_flow and requires_flow):
-        shared.log.error(f'Sampler: "{sampler.name}" cls={sampler.sampler.__class__.__name__} pipe={model.__class__.__name__} model requires sampler with flow prediction')
+        logger.log.error(f'Sampler: "{sampler.name}" cls={sampler.sampler.__class__.__name__} pipe={model.__class__.__name__} model requires sampler with flow prediction')
         return restore_default(model)
 
     # assign sampler
@@ -124,7 +125,7 @@ def create_sampler(name, model):
         clean_config = {k: v for k, v in sampler.sampler.config.items() if not k.startswith('_') and v is not None and v is not False}
         cls = sampler.sampler.__class__.__name__
     name = sampler.name if sampler is not None and sampler.sampler is not None else 'Default'
-    shared.log.debug(f'Sampler: "{name}" class={cls} config={clean_config}')
+    logger.log.debug(f'Sampler: "{name}" class={cls} config={clean_config}')
     return sampler.sampler
 
 

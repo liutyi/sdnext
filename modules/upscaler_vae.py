@@ -1,3 +1,4 @@
+from modules import logger
 import time
 from PIL import Image
 from modules.upscaler import Upscaler, UpscalerData
@@ -30,7 +31,7 @@ class UpscalerAsymmetricVAE(Upscaler):
             self.vae = self.vae.to(device=devices.device, dtype=devices.dtype)
             self.vae.eval()
             self.selected = selected_model
-            shared.log.debug(f'Upscaler load: selected="{self.selected}" vae="{repo_id}"')
+            logger.log.debug(f'Upscaler load: selected="{self.selected}" vae="{repo_id}"')
         t0 = time.time()
         img = sharpfin.resize(img, (8 * (img.width // 8), 8 * (img.height // 8))).convert('RGB')
         tensor = convert.to_tensor(img).unsqueeze(0).to(device=devices.device, dtype=devices.dtype)
@@ -39,7 +40,7 @@ class UpscalerAsymmetricVAE(Upscaler):
         upscaled = convert.to_pil(tensor.squeeze().clamp(0.0, 1.0).float().cpu())
         self.vae = self.vae.to(device=devices.cpu)
         t1 = time.time()
-        shared.log.debug(f'Upscale: name="{self.selected}" input={img.size} output={upscaled.size} time={t1 - t0:.2f}')
+        logger.log.debug(f'Upscale: name="{self.selected}" input={img.size} output={upscaled.size} time={t1 - t0:.2f}')
         return upscaled
 
 
@@ -75,7 +76,7 @@ class UpscalerWanUpscale(Upscaler):
             self.vae_decode = self.vae_decode.to(device=devices.device, dtype=devices.dtype)
             self.vae_decode.eval()
             self.selected = selected_model
-            shared.log.debug(f'Upscaler load: selected="{self.selected}" encode="{repo_encode}" decode="{repo_decode}"')
+            logger.log.debug(f'Upscaler load: selected="{self.selected}" encode="{repo_encode}" decode="{repo_decode}"')
 
         t0 = time.time()
         self.vae_encode = self.vae_encode.to(device=devices.device)
@@ -90,5 +91,5 @@ class UpscalerWanUpscale(Upscaler):
 
         upscaled = convert.to_pil(tensor.squeeze().clamp(0.0, 1.0).float().cpu())
         t1 = time.time()
-        shared.log.debug(f'Upscale: name="{self.selected}" input={img.size} output={upscaled.size} time={t1 - t0:.2f}')
+        logger.log.debug(f'Upscale: name="{self.selected}" input={img.size} output={upscaled.size} time={t1 - t0:.2f}')
         return upscaled

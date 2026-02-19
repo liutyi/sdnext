@@ -11,10 +11,11 @@ import gradio as gr
 from PIL import Image
 from modules import scripts_manager, shared, devices, errors, processing, sd_models, sd_modules, timer, ui_symbols
 from modules import ui_control_helpers
+from modules import logger
 
 
 debug_enabled = os.environ.get('SD_LLM_DEBUG', None) is not None
-debug_log = shared.log.trace if debug_enabled else lambda *args, **kwargs: None
+debug_log = logger.log.trace if debug_enabled else lambda *args, **kwargs: None
 
 
 def b64(image):
@@ -203,7 +204,7 @@ class Script(scripts_manager.Script):
         # Strip symbols from display name if present
         name = get_model_repo_from_display(name) if name else self.options.default
         if self.busy:
-            shared.log.debug('Prompt enhance: busy')
+            logger.log.debug('Prompt enhance: busy')
             return
         self.busy = True
         if self.model is not None and self.model == name:
@@ -223,8 +224,8 @@ class Script(scripts_manager.Script):
         if model_type is not None and model_file is not None and len(model_type) > 2 and len(model_file) > 2:
             debug_log(f'Prompt enhance: gguf supported={self.options.supported}')
             if model_type not in self.options.supported:
-                shared.log.error(f'Prompt enhance: name="{name}" repo="{model_repo}" fn="{model_file}" type={model_type} gguf not supported')
-                shared.log.trace(f'Prompt enhance: gguf supported={self.options.supported}')
+                logger.log.error(f'Prompt enhance: name="{name}" repo="{model_repo}" fn="{model_file}" type={model_type} gguf not supported')
+                logger.log.trace(f'Prompt enhance: gguf supported={self.options.supported}')
                 self.busy = False
                 return
             ggml.install_gguf()
@@ -237,7 +238,7 @@ class Script(scripts_manager.Script):
             t0 = time.time()
             if self.llm is not None:
                 self.llm = None
-                shared.log.debug(f'Prompt enhance: name="{self.model}" unload')
+                logger.log.debug(f'Prompt enhance: name="{self.model}" unload')
             self.model = None
             load_args = { 'pretrained_model_name_or_path': model_repo if not gguf_args else model_gguf }
             if model_subfolder:
@@ -281,10 +282,10 @@ class Script(scripts_manager.Script):
                     debug_log(f'Prompt enhance: {m}')
             self.model = name
             t1 = time.time()
-            shared.log.info(f'Prompt enhance: cls={self.llm.__class__.__name__} name="{name}" repo="{model_repo}" fn="{model_file}" time={t1-t0:.2f} loaded')
+            logger.log.info(f'Prompt enhance: cls={self.llm.__class__.__name__} name="{name}" repo="{model_repo}" fn="{model_file}" time={t1-t0:.2f} loaded')
             self.compile()
         except Exception as e:
-            shared.log.error(f'Prompt enhance: load {e}')
+            logger.log.error(f'Prompt enhance: load {e}')
             errors.display(e, 'Prompt enhance')
         devices.torch_gc()
         self.busy = False
@@ -296,15 +297,15 @@ class Script(scripts_manager.Script):
     def unload(self):
         if self.llm is not None:
             model_name = self.model
-            shared.log.debug(f'Prompt enhance: unloading model="{model_name}"')
+            logger.log.debug(f'Prompt enhance: unloading model="{model_name}"')
             sd_models.move_model(self.llm, devices.cpu, force=True)
             self.model = None
             self.llm = None
             self.tokenizer = None
             devices.torch_gc(force=True, reason='prompt enhance unload')
-            shared.log.debug(f'Prompt enhance: model="{model_name}" unloaded')
+            logger.log.debug(f'Prompt enhance: model="{model_name}" unloaded')
         else:
-            shared.log.debug('Prompt enhance: no model loaded')
+            logger.log.debug('Prompt enhance: no model loaded')
 
     def clean(self, response, keep_thinking=False, prefill_text='', keep_prefill=False):
         # Handle thinking tags FIRST (before generic tag removal)
@@ -413,7 +414,7 @@ class Script(scripts_manager.Script):
             seed = int(random.randrange(4294967294))
         torch.manual_seed(seed)
         if self.llm is None:
-            shared.log.error('Prompt enhance: model not loaded')
+            logger.log.error('Prompt enhance: model not loaded')
             return prompt
         prompt_text, networks = self.extract(prompt) # Use prompt_text after extraction
         debug_log(f'Prompt enhance: networks={networks}')
@@ -440,7 +441,7 @@ class Script(scripts_manager.Script):
 
         # Check if vision was requested but no image is available
         if use_vision and is_vision_model(model) and current_image is None:
-            shared.log.error(f'Prompt enhance: model="{model}" error="No input image provided"')
+            logger.log.error(f'Prompt enhance: model="{model}" error="No input image provided"')
             return 'Error: No input image provided. Please upload or select an image.'
 
         # Resize large images to match VQA performance (Qwen3-VL performance is sensitive to resolution)
@@ -466,7 +467,7 @@ class Script(scripts_manager.Script):
 
         if current_image is not None and isinstance(current_image, Image.Image):
             if (self.tokenizer is None) or (not self.tokenizer.is_processor):
-                shared.log.error('Prompt enhance: image not supported by model')
+                logger.log.error('Prompt enhance: image not supported by model')
                 return prompt_text # Return original text part if image cannot be processed
             if prompt_text is not None and len(prompt_text) > 0:
                 if not has_system:
@@ -573,7 +574,7 @@ class Script(scripts_manager.Script):
             input_len = inputs['input_ids'].shape[1]
             debug_log(f'Prompt enhance: input_len={input_len} input_ids_shape={inputs["input_ids"].shape} sample={sample} temp={temperature} penalty={penalty} max_tokens={tokens}')
         except Exception as e:
-            shared.log.error(f'Prompt enhance tokenize: {e}')
+            logger.log.error(f'Prompt enhance tokenize: {e}')
             errors.display(e, 'Prompt enhance')
             self.busy = False
             return prompt_text # Return original text part on error
@@ -605,7 +606,7 @@ class Script(scripts_manager.Script):
                 debug_log(f'Prompt enhance: response_before_clean="{response_before_clean}"')
         except Exception as e:
             outputs = None
-            shared.log.error(f'Prompt enhance generate: {e}')
+            logger.log.error(f'Prompt enhance generate: {e}')
             errors.display(e, 'Prompt enhance')
             self.busy = False
             response = f'Error: {str(e)}'
@@ -617,12 +618,12 @@ class Script(scripts_manager.Script):
         if not is_censored:
             response = self.clean(response, keep_thinking=keep_thinking, prefill_text=prefill_text, keep_prefill=keep_prefill)
             response = self.post(response, prefix, suffix, networks)
-        shared.log.info(f'Prompt enhance: model="{model}" nsfw={nsfw} time={t1-t0:.2f} seed={seed} sample={sample} temperature={temperature} penalty={penalty} thinking={thinking} keep_thinking={keep_thinking} prefill="{prefill_text[:20] if prefill_text else ""}" keep_prefill={keep_prefill} tokens={tokens} inputs={input_len} outputs={outputs.shape[-1] if isinstance(outputs, torch.Tensor) else 0} prompt={len(prompt_text)} response={len(response)}')
+        logger.log.info(f'Prompt enhance: model="{model}" nsfw={nsfw} time={t1-t0:.2f} seed={seed} sample={sample} temperature={temperature} penalty={penalty} thinking={thinking} keep_thinking={keep_thinking} prefill="{prefill_text[:20] if prefill_text else ""}" keep_prefill={keep_prefill} tokens={tokens} inputs={input_len} outputs={outputs.shape[-1] if isinstance(outputs, torch.Tensor) else 0} prompt={len(prompt_text)} response={len(response)}')
         debug_log(f'Prompt enhance: prompt="{prompt_text}"')
         debug_log(f'Prompt enhance: response_after_clean="{response}"')
         self.busy = False
         if is_censored:
-            shared.log.warning(f'Prompt enhance: censored response="{response}"')
+            logger.log.warning(f'Prompt enhance: censored response="{response}"')
             return prompt # Return original full prompt on censorship
         return response
 

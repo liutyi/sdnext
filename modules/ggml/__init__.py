@@ -1,3 +1,4 @@
+from modules import logger
 import os
 import time
 import torch
@@ -22,7 +23,7 @@ def install_gguf():
     transformers.utils.import_utils._gguf_version = ver # pylint: disable=protected-access
     diffusers.utils.import_utils._is_gguf_available = True # pylint: disable=protected-access
     diffusers.utils.import_utils._gguf_version = ver # pylint: disable=protected-access
-    shared.log.debug(f'Load GGUF: version={ver}')
+    logger.log.debug(f'Load GGUF: version={ver}')
     return gguf
 
 

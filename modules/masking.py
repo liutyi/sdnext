@@ -8,10 +8,11 @@ import cv2
 from PIL import Image, ImageFilter, ImageOps
 from transformers import SamModel, SamImageProcessor, MaskGenerationPipeline
 from modules import shared, errors, devices, paths, sd_models
+from modules import logger
 from modules.memstats import memory_stats
 
 
-debug = shared.log.trace if os.environ.get('SD_MASK_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug = logger.log.trace if os.environ.get('SD_MASK_DEBUG', None) is not None else lambda *args, **kwargs: None
 debug('Trace: MASK')
 
 
@@ -177,7 +178,7 @@ def init_model(selected_model: str):
     model_path = MODELS[selected_model]
     if model_path is None: # none
         if generator is not None:
-            shared.log.debug('Mask segment unloading model')
+            logger.log.debug('Mask segment unloading model')
         opts.model = None
         generator = None
         devices.torch_gc()
@@ -190,7 +191,7 @@ def init_model(selected_model: str):
     if opts.model != selected_model or generator is None: # sam pipeline
         busy = True
         t0 = time.time()
-        shared.log.debug(f'Mask segment loading: model="{selected_model}" path={model_path}')
+        logger.log.debug(f'Mask segment loading: model="{selected_model}" path={model_path}')
         model = SamModel.from_pretrained(model_path, cache_dir=cache_dir).to(device=devices.device)
         processor = SamImageProcessor.from_pretrained(model_path, cache_dir=cache_dir)
         generator = MaskGenerationPipeline(
@@ -201,7 +202,7 @@ def init_model(selected_model: str):
             # output_rle_masks=False,
         )
         devices.torch_gc()
-        shared.log.debug(f'Mask segment loaded: model="{selected_model}" path={model_path} time={time.time()-t0:.2f}s')
+        logger.log.debug(f'Mask segment loaded: model="{selected_model}" path={model_path} time={time.time()-t0:.2f}s')
         opts.model = selected_model
         busy = False
     return selected_model
@@ -222,7 +223,7 @@ def run_segment(input_image: gr.Image, input_mask: np.ndarray):
                 crop_n_points_downscale_factor=1,
             )
         except Exception as e:
-            shared.log.error(f'Mask segment error: {e}')
+            logger.log.error(f'Mask segment error: {e}')
             errors.display(e, 'Mask segment')
             return outputs
     devices.torch_gc()
@@ -260,7 +261,7 @@ def run_rembg(input_image: Image, input_mask: np.ndarray):
     try:
         import rembg
     except Exception as e:
-        shared.log.error(f'Mask Rembg load failed: {e}')
+        logger.log.error(f'Mask Rembg load failed: {e}')
         return input_mask
     if "U2NET_HOME" not in os.environ:
         os.environ["U2NET_HOME"] = os.path.join(paths.models_path, "Rembg")
@@ -432,21 +433,21 @@ def run_mask(input_image: Image.Image, input_mask: Image.Image = None, return_ty
             mask = cv2.erode(mask, kernel, iterations=opts.kernel_iterations) # remove noise
             debug(f'Mask erode={opts.mask_erode:.3f} kernel={kernel.shape} mask={mask.shape}')
         except Exception as e:
-            shared.log.error(f'Mask erode: {e}')
+            logger.log.error(f'Mask erode: {e}')
     if opts.mask_dilate > 0:
         try:
             kernel = np.ones((int(opts.mask_dilate * size / 4) + 1, int(opts.mask_dilate * size / 4) + 1), np.uint8)
             mask = cv2.dilate(mask, kernel, iterations=opts.kernel_iterations) # expand area
             debug(f'Mask dilate={opts.mask_dilate:.3f} kernel={kernel.shape} mask={mask.shape}')
         except Exception as e:
-            shared.log.error(f'Mask dilate: {e}')
+            logger.log.error(f'Mask dilate: {e}')
     if opts.mask_blur > 0:
         try:
             sigmax, sigmay = 1 + int(opts.mask_blur * size / 4), 1 + int(opts.mask_blur * size / 4)
             mask = cv2.GaussianBlur(mask, (0, 0), sigmaX=sigmax, sigmaY=sigmay) # blur mask
             debug(f'Mask blur={opts.mask_blur:.3f} x={sigmax} y={sigmay} mask={mask.shape}')
         except Exception as e:
-            shared.log.error(f'Mask blur: {e}')
+            logger.log.error(f'Mask blur: {e}')
     if opts.invert:
         mask = np.invert(mask)
 
@@ -476,7 +477,7 @@ def run_mask(input_image: Image.Image, input_mask: Image.Image = None, return_ty
         combined_image = cv2.addWeighted(orig, opts.weight_original, colored_mask, opts.weight_mask, 0)
         return Image.fromarray(combined_image)
     else:
-        shared.log.error(f'Mask unknown return type: {return_type}')
+        logger.log.error(f'Mask unknown return type: {return_type}')
     return input_mask
 
 
@@ -490,9 +491,9 @@ def run_lama(input_image: gr.Image, input_mask: gr.Image = None):
     input_mask = run_mask(input_image, input_mask, return_type='Grayscale')
     if lama_model is None:
         import modules.lama
-        shared.log.debug(f'Mask LaMa loading: model={modules.lama.LAMA_MODEL_URL}')
+        logger.log.debug(f'Mask LaMa loading: model={modules.lama.LAMA_MODEL_URL}')
         lama_model = modules.lama.SimpleLama()
-        shared.log.debug(f'Mask LaMa loaded: {memory_stats()}')
+        logger.log.debug(f'Mask LaMa loaded: {memory_stats()}')
     sd_models.move_model(lama_model.model, devices.device)
 
     result = lama_model(input_image, input_mask)
@@ -574,7 +575,7 @@ def process_kanvas(kanvas_data):
     if kanvas_data is None or 'kanvas' not in kanvas_data:
         return None
     input_image, input_mask = ui_control_helpers.process_kanvas(kanvas_data)
-    shared.log.debug(f'Kanvas mask: opts={vars(opts)}')
+    logger.log.debug(f'Kanvas mask: opts={vars(opts)}')
     output_mask = run_mask(input_image, input_mask)
     return output_mask
 
@@ -584,7 +585,7 @@ def process_kanvas_lama(kanvas_data):
     if kanvas_data is None or 'kanvas' not in kanvas_data:
         return None
     input_image, input_mask = ui_control_helpers.process_kanvas(kanvas_data)
-    shared.log.debug(f'Kanvas LaMa: opts={vars(opts)}')
+    logger.log.debug(f'Kanvas LaMa: opts={vars(opts)}')
     output_mask = run_lama(input_image, input_mask)
     return output_mask
 

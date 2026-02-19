@@ -1,5 +1,6 @@
 import gradio as gr
 from modules import shared, modelloader, ui_symbols, ui_common, sd_samplers
+from modules import logger
 from modules.ui_components import ToolButton
 from modules.caption import caption
 
@@ -69,7 +70,7 @@ def ar_change(ar, width, height):
     try:
         (w, h) = [float(x) for x in ar.split(':')]
     except Exception as e:
-        shared.log.warning(f"Invalid aspect ratio: {ar} {e}")
+        logger.log.warning(f"Invalid aspect ratio: {ar} {e}")
         return gr.update(), gr.update()
     if w > h:
         return gr.update(), gr.update(value=int(width * h / w))
@@ -199,48 +200,48 @@ def create_sampler_options(tabname):
         shared.opts.data['schedulers_use_thresholding'] = 'thresholding' in sampler_options
         shared.opts.data['schedulers_use_loworder'] = 'low order' in sampler_options
         shared.opts.data['schedulers_rescale_betas'] = 'rescale' in sampler_options
-        shared.log.debug(f'Sampler set options: {sampler_options}')
+        logger.log.debug(f'Sampler set options: {sampler_options}')
         shared.opts.save(silent=True)
 
     def set_sampler_timesteps(timesteps):
-        shared.log.debug(f'Sampler set options: timesteps={timesteps}')
+        logger.log.debug(f'Sampler set options: timesteps={timesteps}')
         shared.opts.schedulers_timesteps = timesteps
         shared.opts.save(silent=True)
 
     def set_sampler_spacing(spacing):
-        shared.log.debug(f'Sampler set options: spacing={spacing}')
+        logger.log.debug(f'Sampler set options: spacing={spacing}')
         shared.opts.schedulers_timestep_spacing = spacing
         shared.opts.save(silent=True)
 
     def set_sampler_sigma(sampler_sigma):
-        shared.log.debug(f'Sampler set options: sigma={sampler_sigma}')
+        logger.log.debug(f'Sampler set options: sigma={sampler_sigma}')
         shared.opts.schedulers_sigma = sampler_sigma
         shared.opts.save(silent=True)
 
     def set_sampler_order(sampler_order):
-        shared.log.debug(f'Sampler set options: order={sampler_order}')
+        logger.log.debug(f'Sampler set options: order={sampler_order}')
         shared.opts.schedulers_solver_order = sampler_order
         shared.opts.save(silent=True)
 
     def set_sampler_prediction(sampler_prediction):
-        shared.log.debug(f'Sampler set options: prediction={sampler_prediction}')
+        logger.log.debug(f'Sampler set options: prediction={sampler_prediction}')
         shared.opts.schedulers_prediction_type = sampler_prediction
         shared.opts.save(silent=True)
 
     def set_sampler_beta(sampler_beta):
-        shared.log.debug(f'Sampler set options: beta={sampler_beta}')
+        logger.log.debug(f'Sampler set options: beta={sampler_beta}')
         shared.opts.schedulers_beta_schedule = sampler_beta
         shared.opts.save(silent=True)
 
     def set_sampler_shift(sampler_shift, sampler_base_shift, sampler_max_shift):
-        shared.log.debug(f'Sampler set options: shift={sampler_shift} base={sampler_base_shift} max={sampler_max_shift}')
+        logger.log.debug(f'Sampler set options: shift={sampler_shift} base={sampler_base_shift} max={sampler_max_shift}')
         shared.opts.schedulers_shift = sampler_shift
         shared.opts.schedulers_base_shift = sampler_base_shift
         shared.opts.schedulers_max_shift = sampler_max_shift
         shared.opts.save(silent=True)
 
     def set_sigma_adjust(val, start, end):
-        shared.log.debug(f'Sampler set options: sigma={val} min={start} max={end}')
+        logger.log.debug(f'Sampler set options: sigma={val} min={start} max={end}')
         shared.opts.schedulers_sigma_adjust = val
         shared.opts.schedulers_sigma_adjust_min = start
         shared.opts.schedulers_sigma_adjust_max = end

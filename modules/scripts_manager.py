@@ -6,13 +6,14 @@ from collections import namedtuple
 from dataclasses import dataclass
 import gradio as gr
 from modules import paths, script_callbacks, extensions, script_loading, scripts_postprocessing, errors, timer
+from modules import logger
 from installer import control_extensions
 
 
 AlwaysVisible = object()
 time_component = {}
 time_setup = {}
-debug = errors.log.trace if os.environ.get('SD_SCRIPT_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug = logger.log.trace if os.environ.get('SD_SCRIPT_DEBUG', None) is not None else lambda *args, **kwargs: None
 
 
 class PostprocessImageArgs:
@@ -236,7 +237,7 @@ def list_scripts(scriptdirname, extension):
             if os.path.isfile(os.path.join(base, "..", ".priority")):
                 with open(os.path.join(base, "..", ".priority"), encoding="utf-8") as f:
                     priority = priority + str(f.read().strip())
-                    errors.log.debug(f'Script priority override: ${script.name}:{priority}')
+                    logger.log.debug(f'Script priority override: ${script.name}:{priority}')
             else:
                 priority = priority + script.priority
             priority_list.append(ScriptFile(script.basedir, script.filename, script.path, priority))
@@ -325,7 +326,7 @@ class ScriptSummary:
         if total == 0:
             return
         scripts = [f'{k}:{v}' for k, v in self.time.items() if v > 0]
-        errors.log.debug(f'Script: op={self.op} total={total} scripts={scripts}')
+        logger.log.debug(f'Script: op={self.op} total={total} scripts={scripts}')
 
 
 class ScriptRunner:
@@ -367,7 +368,7 @@ class ScriptRunner:
                 self.scripts.append(script)
                 self.selectable_scripts.append(script)
         except Exception as e:
-            errors.log.error(f'Script initialize: {path} {e}')
+            logger.log.error(f'Script initialize: {path} {e}')
             errors.display(e, 'script')
 
     def initialize_scripts(self, is_img2img=False, is_control=False):
@@ -425,11 +426,11 @@ class ScriptRunner:
                 debug(f'Script control: parent={script.parent} script="{script.name}" label="{control.label}" type={control} id={control.elem_id}')
                 if hasattr(gr.components, 'IOComponent'):
                     if not isinstance(control, gr.components.IOComponent):
-                        errors.log.error(f'Invalid script control: "{script.filename}" control={control}')
+                        logger.log.error(f'Invalid script control: "{script.filename}" control={control}')
                         continue
                 else:
                     if not isinstance(control, gr.components.Component):
-                        errors.log.error(f'Invalid script control: "{script.filename}" control={control}')
+                        logger.log.error(f'Invalid script control: "{script.filename}" control={control}')
                         continue
                 control.custom_script_source = os.path.basename(script.filename)
                 arg_info = api_models.ScriptArg(label=control.label or "")
@@ -462,7 +463,7 @@ class ScriptRunner:
                 if not script.standalone:
                     continue
                 if (self.name == 'control') and (script.name not in control_extensions) and (script.title() not in control_extensions):
-                    errors.log.debug(f'Script: fn="{script.filename}" type={self.name} skip')
+                    logger.log.debug(f'Script: fn="{script.filename}" type={self.name} skip')
                     continue
                 t0 = time.time()
                 with gr.Group(elem_id=f'{parent}_script_{script.title().lower().replace(" ", "_")}', elem_classes=['group-extension']) as group:
@@ -476,7 +477,7 @@ class ScriptRunner:
                     if script.standalone:
                         continue
                     if (self.name == 'control') and (paths.extensions_dir in script.filename) and (script.title() not in control_extensions):
-                        errors.log.debug(f'Script: fn="{script.filename}" type={self.name} skip')
+                        logger.log.debug(f'Script: fn="{script.filename}" type={self.name} skip')
                         continue
                     t0 = time.time()
                     with gr.Group(elem_id=f'{parent}_script_{script.title().lower().replace(" ", "_")}', elem_classes=['group-extension']) as group:
@@ -486,7 +487,7 @@ class ScriptRunner:
 
         for script in self.selectable_scripts:
             if (self.name == 'control') and (paths.extensions_dir in script.filename) and (script.title() not in control_extensions):
-                errors.log.debug(f'Script: fn="{script.filename}" type={self.name} skip')
+                logger.log.debug(f'Script: fn="{script.filename}" type={self.name} skip')
                 continue
             with gr.Group(elem_id=f'{parent}_script_{script.title().lower().replace(" ", "_")}', elem_classes=['group-scripts'], visible=False) as group:
                 t0 = time.time()
@@ -504,7 +505,7 @@ class ScriptRunner:
             if title == 'None': # called when an initial value is set from ui-config.json to show script's UI components
                 return
             if title not in self.titles:
-                errors.log.error(f'Script: title="{title}" op=init not found')
+                logger.log.error(f'Script: title="{title}" op=init not found')
                 return
             script_index = self.titles.index(title)
             self.selectable_scripts[script_index].group.visible = True
@@ -525,7 +526,7 @@ class ScriptRunner:
                 self.script_load_ctr = (self.script_load_ctr + 1) % len(self.titles)
                 return gr.update(visible=visibility)
             else:
-                # errors.log.warning(f'Script: title="{title}" op=visibility not found')
+                # logger.log.warning(f'Script: title="{title}" op=visibility not found')
                 return gr.update(visible=False)
 
         self.infotext_fields.append((dropdown, lambda x: gr.update(value=x.get('Script', 'None'))))
@@ -552,7 +553,7 @@ class ScriptRunner:
             processed = script.run(p, *parsed)
         else:
             processed = None
-            errors.log.error(f'Script: file="{script.filename}" no run function defined')
+            logger.log.error(f'Script: file="{script.filename}" no run function defined')
         s.record(script.title())
         s.report()
         return processed

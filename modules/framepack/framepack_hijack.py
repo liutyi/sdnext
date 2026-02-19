@@ -1,3 +1,4 @@
+from modules import logger
 DEFAULT_PROMPT_TEMPLATE = { # hunyuanvideo reference prompt template
     "template": (
         "<|start_header_id|>system<|end_header_id|>\n\nDescribe the video by detailing the following aspects: "
@@ -71,4 +72,4 @@ def set_prompt_template(prompt, system_prompt:str=None, optimized_prompt:bool=Tr
         "crop_start": tokens_system,
     }
     tokens_user = inputs['length'].item() - int(shared.sd_model.tokenizer.bos_token_id is not None) - int(shared.sd_model.tokenizer.eos_token_id is not None)
-    shared.log.trace(f'FramePack prompt: system={tokens_system} user={tokens_user} optimized={optimized_prompt} unmodified={unmodified_prompt} mode={mode}')
+    logger.log.trace(f'FramePack prompt: system={tokens_system} user={tokens_user} optimized={optimized_prompt} unmodified={unmodified_prompt} mode={mode}')

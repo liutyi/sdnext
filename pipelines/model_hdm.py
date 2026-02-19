@@ -2,6 +2,7 @@ import sys
 import torch
 import diffusers
 from modules import shared, devices, sd_models, errors
+from modules import logger
 
 
 def load_hdm(checkpoint_info, diffusers_load_config=None): # pylint: disable=unused-argument
@@ -25,7 +26,7 @@ def load_hdm(checkpoint_info, diffusers_load_config=None): # pylint: disable=unu
             **diffusers_load_config,
         ).to(devices.device)
     except Exception as e:
-        shared.log.error(f'Load HDM-XUT: path="{checkpoint_info.path}" {e}')
+        logger.log.error(f'Load HDM-XUT: path="{checkpoint_info.path}" {e}')
         errors.display(e, 'hdm')
         return None
 

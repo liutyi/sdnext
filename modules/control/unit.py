@@ -1,6 +1,6 @@
 from PIL import Image
 import gradio as gr
-from installer import log
+from modules.logger import log
 from modules.control import processors
 from modules.control.units import controlnet
 from modules.control.units import xs

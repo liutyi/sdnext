@@ -1,6 +1,7 @@
 import sys
 import gradio as gr
 from modules import scripts_manager, processing, shared
+from modules import logger
 
 
 registered = False
@@ -41,7 +42,7 @@ class Script(scripts_manager.Script):
                 except Exception:
                     return
                 if len(val) > 0:
-                    shared.log.debug(f'SLG: {field}={val}')
+                    logger.log.debug(f'SLG: {field}={val}')
                     p.task_args[field] = val
             return fun
 
@@ -70,4 +71,4 @@ class Script(scripts_manager.Script):
         if len(parsed) == 0:
             return
         p.task_args['skip_guidance_layers'] = parsed
-        shared.log.info(f'SLG: layers={parsed} scale={scale} start={start} stop={stop}')
+        logger.log.info(f'SLG: layers={parsed} scale={scale} start={start} stop={stop}')

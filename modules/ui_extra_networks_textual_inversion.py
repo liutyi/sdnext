@@ -1,6 +1,7 @@
 import json
 import os
 from modules import shared, sd_models, ui_extra_networks, files_cache, modelstats
+from modules import logger
 from modules.textual_inversion import Embedding
 
 
@@ -38,7 +39,7 @@ class ExtraNetworksPageTextualInversion(ui_extra_networks.ExtraNetworksPage):
                 "description": self.find_description(embedding.filename, info),
             }
         except Exception as e:
-            shared.log.debug(f'Networks error: type=embedding file="{embedding.filename}" {e}')
+            logger.log.debug(f'Networks error: type=embedding file="{embedding.filename}" {e}')
         return record
 
     def list_items(self):

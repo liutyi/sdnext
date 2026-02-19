@@ -2,6 +2,7 @@ import re
 import inspect
 from collections import defaultdict
 from modules import errors, shared
+from modules import logger
 
 
 extra_network_registry = {}
@@ -89,14 +90,14 @@ def activate(p, extra_network_data=None, step=0, include=None, exclude=None):
         stepwise = stepwise or is_stepwise(extra_network_args)
     functional = shared.opts.lora_functional
     if shared.opts.lora_force_diffusers and stepwise:
-        shared.log.warning("Network load: type=LoRA method=composable loader=diffusers not compatible")
+        logger.log.warning("Network load: type=LoRA method=composable loader=diffusers not compatible")
         stepwise = False
     shared.opts.data['lora_functional'] = stepwise or functional
 
     for extra_network_name, extra_network_args in extra_network_data.items():
         extra_network = extra_network_registry.get(extra_network_name, None)
         if extra_network is None:
-            errors.log.warning(f"Skipping unknown extra network: {extra_network_name}")
+            logger.log.warning(f"Skipping unknown extra network: {extra_network_name}")
             continue
         try:
             signature = list(inspect.signature(extra_network.activate).parameters)

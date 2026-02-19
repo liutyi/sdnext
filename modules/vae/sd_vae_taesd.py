@@ -10,6 +10,7 @@ import threading
 from PIL import Image
 import torch
 from modules import devices, paths, shared
+from modules import logger
 
 
 debug = os.environ.get('SD_PREVIEW_DEBUG', None) is not None
@@ -52,7 +53,7 @@ def warn_once(msg, variant=None):
     global prev_warnings # pylint: disable=global-statement
     if not prev_warnings:
         prev_warnings = True
-        shared.log.warning(f'Decode: type="taesd" variant="{variant}": {msg}')
+        logger.log.warning(f'Decode: type="taesd" variant="{variant}": {msg}')
     return Image.new('RGB', (8, 8), color = (0, 0, 0))
 
 
@@ -93,16 +94,16 @@ def get_model(model_type = 'decoder', variant = None):
                 uri += '/tae' + model_cls + '_' + model_type + '.pth'
             try:
                 torch.hub.download_url_to_file(uri, fn)
-                shared.log.print() # new line
-                shared.log.info(f'Decode: type="taesd" variant="{variant}": uri="{uri}" fn="{fn}" download')
+                logger.log.print() # new line
+                logger.log.info(f'Decode: type="taesd" variant="{variant}": uri="{uri}" fn="{fn}" download')
             except Exception as e:
                 warn_once(f'download uri={uri} {e}', variant=variant)
         if os.path.exists(fn):
             prev_cls = model_cls
             prev_type = model_type
             prev_model = variant
-            shared.log.print() # new line
-            shared.log.debug(f'Decode: type="taesd" variant="{variant}" fn="{fn}" layers={shared.opts.taesd_layers} load')
+            logger.log.print() # new line
+            logger.log.debug(f'Decode: type="taesd" variant="{variant}" fn="{fn}" layers={shared.opts.taesd_layers} load')
             vae = None
             if 'TAE HunyuanVideo' in variant:
                 from modules.taesd.taehv import TAEHV
@@ -132,7 +133,7 @@ def get_model(model_type = 'decoder', variant = None):
         prev_cls = model_cls
         prev_type = model_type
         prev_model = variant
-        shared.log.debug(f'Decode: type="taesd" variant="{variant}" id="{repo}" load')
+        logger.log.debug(f'Decode: type="taesd" variant="{variant}" id="{repo}" load')
         if 'tiny' in repo:
             from diffusers.models import AutoencoderTiny
             vae = AutoencoderTiny.from_pretrained(repo, cache_dir=shared.opts.hfcache_dir, torch_dtype=dtype)
@@ -162,7 +163,7 @@ def decode(latents):
                 tensor = latents.unsqueeze(0) if len(latents.shape) == 3 else latents
                 tensor = tensor.detach().clone().to(devices.device, dtype=dtype)
                 if debug:
-                    shared.log.debug(f'Decode: type="taesd" variant="{variant}" input={latents.shape} tensor={tensor.shape}')
+                    logger.log.debug(f'Decode: type="taesd" variant="{variant}" input={latents.shape} tensor={tensor.shape}')
                 # Fallback: reshape packed 128-channel latents to 32 channels if not already unpacked
                 if (variant == 'TAE FLUX.2') and (len(tensor.shape) == 4) and (tensor.shape[1] == 128):
                     b, _c, h, w = tensor.shape
@@ -175,7 +176,7 @@ def decode(latents):
                     image = (image / 2.0 + 0.5).clamp(0, 1).detach()
                 t1 = time.time()
                 if (t1 - t0) > 3.0 and not first_run:
-                    shared.log.warning(f'Decode: type="taesd" variant="{variant}" long decode time={t1 - t0:.2f}')
+                    logger.log.warning(f'Decode: type="taesd" variant="{variant}" long decode time={t1 - t0:.2f}')
                 first_run = False
                 return image
         except Exception as e:

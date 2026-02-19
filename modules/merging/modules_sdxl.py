@@ -9,6 +9,7 @@ from safetensors.torch import load_file
 import diffusers
 import transformers
 from modules import shared, devices, errors
+from modules import logger
 
 
 class Recipe:
@@ -57,9 +58,9 @@ status = ''
 def msg(text, err:bool=False):
     global status # pylint: disable=global-statement
     if err:
-        shared.log.error(f'Modules merge: {text}')
+        logger.log.error(f'Modules merge: {text}')
     else:
-        shared.log.info(f'Modules merge: {text}')
+        logger.log.info(f'Modules merge: {text}')
     status += text + '<br>'
     return status
 
@@ -271,12 +272,12 @@ def save_model(pipe: diffusers.StableDiffusionXLPipeline):
     if len(recipe.version) > 0:
         folder += f'-{recipe.version}'
     if not (recipe.diffusers or recipe.safetensors):
-        shared.log.debug(f'Modules merge: type=sdxl {recipe} skipping save')
+        logger.log.debug(f'Modules merge: type=sdxl {recipe} skipping save')
         return
     try:
         yield msg('save')
         yield msg(f'pretrained={folder}')
-        shared.log.info(f'Modules merge save: type=sdxl diffusers="{folder}"')
+        logger.log.info(f'Modules merge save: type=sdxl diffusers="{folder}"')
         pipe.save_pretrained(folder, safe_serialization=True, push_to_hub=False)
         with open(os.path.join(folder, 'vae', 'config.json'), encoding='utf8') as f:
             vae_config = json.load(f)
@@ -293,7 +294,7 @@ def save_model(pipe: diffusers.StableDiffusionXLPipeline):
                 fn = os.path.join(shared.opts.ckpt_dir, fn)
             if not fn.endswith('.safetensors'):
                 fn += '.safetensors'
-            shared.log.info(f'Modules merge save: type=sdxl safetensors="{fn}"')
+            logger.log.info(f'Modules merge save: type=sdxl safetensors="{fn}"')
             yield msg(f'safetensors={fn}')
             from modules.merging import convert_sdxl
             metadata = convert_sdxl.convert(model_path=folder, checkpoint_path=fn, metadata=get_metadata())
@@ -301,7 +302,7 @@ def save_model(pipe: diffusers.StableDiffusionXLPipeline):
                 metadata['modelspec.thumbnail'] = f"{metadata['modelspec.thumbnail'].split(',')[0]}:{len(metadata['modelspec.thumbnail'])}" # pylint: disable=use-maxsplit-arg
             yield msg(f'metadata={metadata}')
     except Exception as e:
-        shared.log.error(f'Modules merge save: {e}')
+        logger.log.error(f'Modules merge save: {e}')
         errors.display(e, 'merge')
         yield msg(f'save: {e}')
 
@@ -311,7 +312,7 @@ def merge():
     yield from load_base()
     if pipeline is None:
         return
-    shared.log.info(f'Modules merge: type=sdxl {recipe}')
+    logger.log.info(f'Modules merge: type=sdxl {recipe}')
     pipeline = pipeline.to(device=devices.device, dtype=recipe.dtype)
     yield from load_scheduler(pipeline)
     yield from load_unet(pipeline)

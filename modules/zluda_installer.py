@@ -6,7 +6,8 @@ import ctypes
 import shutil
 import zipfile
 import urllib.request
-from installer import args, log
+from installer import args
+from modules.logger import log
 from modules import rocm
 
 

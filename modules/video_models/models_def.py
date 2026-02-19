@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import time
 import diffusers
 import transformers
-from installer import log
+from modules.logger import log
 
 
 @dataclass

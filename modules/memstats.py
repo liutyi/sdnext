@@ -4,6 +4,7 @@ import os
 import psutil
 import torch
 from modules import shared, errors
+from modules import logger
 
 
 fail_once = False
@@ -60,7 +61,7 @@ def ram_stats():
         ram['rss'] = 0
         ram['error'] = str(e)
         if not fail_once:
-            shared.log.error(f'RAM stats: {e}')
+            logger.log.error(f'RAM stats: {e}')
             errors.display(e, 'RAM stats')
             fail_once = True
     try:
@@ -78,7 +79,7 @@ def ram_stats():
         ram['cached'] = 0
         ram['error'] = str(e)
         if not fail_once:
-            shared.log.error(f'RAM stats: {e}')
+            logger.log.error(f'RAM stats: {e}')
             errors.display(e, 'RAM stats')
             fail_once = True
     return ram
@@ -102,7 +103,7 @@ def gpu_stats():
         gpu['used'] = 0
         gpu['error'] = str(e)
         if not fail_once:
-            shared.log.warning(f'GPU stats: {e}')
+            logger.log.warning(f'GPU stats: {e}')
             # errors.display(e, 'GPU stats')
             fail_once = True
     return gpu
@@ -168,6 +169,6 @@ def get_objects(gcl=None, threshold:int=0):
 
     objects = sorted(objects, key=lambda x: x.size, reverse=True)
     for obj in objects:
-        shared.log.trace(obj)
+        logger.log.trace(obj)
 
     return objects

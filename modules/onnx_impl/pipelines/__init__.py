@@ -7,7 +7,8 @@ from abc import ABCMeta
 from typing import Type, Tuple, List, Any, Dict, TYPE_CHECKING
 import torch
 import diffusers
-from installer import log, install
+from installer import install
+from modules.logger import log
 from modules import shared
 from modules.paths import sd_configs_path, models_path
 from modules.sd_models import CheckpointInfo

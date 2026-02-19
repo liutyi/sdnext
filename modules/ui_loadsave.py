@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, cast
 import os
 import gradio as gr
 from modules import errors
+from modules import logger
 from modules.ui_components import ToolButton
 
 
@@ -46,7 +47,7 @@ class UiLoadsave:
                 if init_field is not None:
                     init_field(saved_value)
             if debug_ui and key in self.component_mapping and not key.startswith('customscript'):
-                errors.log.warning(f'UI duplicate: key="{key}" id={getattr(obj, "elem_id", None)} class={getattr(obj, "elem_classes", None)}')
+                logger.log.warning(f'UI duplicate: key="{key}" id={getattr(obj, "elem_id", None)} class={getattr(obj, "elem_classes", None)}')
             if hasattr(obj, 'skip'):
                 pass
             if (field == 'value') and (key not in self.component_mapping):
@@ -81,7 +82,7 @@ class UiLoadsave:
         if type(x) == gr.Dropdown:
             def check_dropdown(val):
                 if x.choices is None:
-                    errors.log.warning(f'UI: path={path} value={getattr(x, "value", None)}, choices={getattr(x, "choices", None)}')
+                    logger.log.warning(f'UI: path={path} value={getattr(x, "value", None)}, choices={getattr(x, "choices", None)}')
                     return False
                 choices = [c[0] for c in x.choices] if type(x.choices) == list and len(x.choices) > 0 and type(x.choices[0]) == tuple else x.choices
                 if getattr(x, 'multiselect', False):
@@ -232,7 +233,7 @@ class UiLoadsave:
             else:
                 name, old_value, new_value, default_value = x
                 component = self.component_mapping[name]
-                errors.log.debug(f'Settings: name={name} component={component} old={old_value} default={default_value} new={new_value}')
+                logger.log.debug(f'Settings: name={name} component={component} old={old_value} default={default_value} new={new_value}')
                 num_changed += 1
                 current_ui_settings[name] = new_value
                 # what = name.split('/')[-1]
@@ -240,7 +241,7 @@ class UiLoadsave:
         if num_changed == 0:
             return "No changes"
         self.write_to_file(current_ui_settings)
-        errors.log.info(f'UI defaults saved: {self.filename} changes={num_changed} unchanged={num_unchanged}')
+        logger.log.info(f'UI defaults saved: {self.filename} changes={num_changed} unchanged={num_unchanged}')
         return f"Wrote {num_changed} changes"
 
     def ui_submenu_apply(self, items):
@@ -266,21 +267,21 @@ class UiLoadsave:
         num_changed = 0
         current_ui_settings = self.read_from_file()
         for name, _old_value, new_value, default_value in self.iter_menus():
-            errors.log.debug(f'Settings: name={name} default={default_value} new={new_value}')
+            logger.log.debug(f'Settings: name={name} default={default_value} new={new_value}')
             num_changed += 1
             current_ui_settings[name] = new_value
         if num_changed == 0:
             text += '<br>No changes'
         else:
             self.write_to_file(current_ui_settings)
-            errors.log.info(f'UI defaults saved: {self.filename}')
+            logger.log.info(f'UI defaults saved: {self.filename}')
             text += f'<br>Changes: {num_changed}'
         return text
 
     def ui_restore(self):
         if os.path.exists(self.filename):
             os.remove(self.filename)
-        errors.log.info(f'UI defaults reset: {self.filename}')
+        logger.log.info(f'UI defaults reset: {self.filename}')
         return "Restored system defaults for user interface"
 
     def create_ui(self):

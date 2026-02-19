@@ -4,6 +4,7 @@ import numpy as np
 import torch
 from PIL import Image
 from modules import shared, upscaler
+from modules import logger
 from modules.image import sharpfin
 
 
@@ -19,7 +20,7 @@ def resize_image(resize_mode: int, im: Image.Image | torch.Tensor, width: int, h
                     image = (255.0 * image).astype(np.uint8)
                 image = Image.fromarray(image)
         except Exception as e:
-            shared.log.error(f"Image verification failed: {e}")
+            logger.log.error(f"Image verification failed: {e}")
         return image
 
     def latent(im, scale: float, selected_upscaler: upscaler.UpscalerData):
@@ -50,8 +51,8 @@ def resize_image(resize_mode: int, im: Image.Image | torch.Tensor, width: int, h
                 else:
                     im = selected_upscaler.scaler.upscale(im, scale, selected_upscaler.name)
             else:
-                shared.log.warning(f"Resize upscaler: invalid={upscaler_name} fallback={selected_upscaler.name}")
-                shared.log.debug(f"Resize upscaler: available={[u.name for u in shared.sd_upscalers]}")
+                logger.log.warning(f"Resize upscaler: invalid={upscaler_name} fallback={selected_upscaler.name}")
+                logger.log.debug(f"Resize upscaler: available={[u.name for u in shared.sd_upscalers]}")
         if isinstance(im, Image.Image) and (im.width != w or im.height != h): # probably downsample after upscaler created larger image
             im = sharpfin.resize(im, (w, h))
         return im
@@ -136,7 +137,7 @@ def resize_image(resize_mode: int, im: Image.Image | torch.Tensor, width: int, h
         return res
     im = verify_image(im)
     if not isinstance(im, Image.Image):
-        shared.log.error(f'Resize image: image={type(im)} invalid type')
+        logger.log.error(f'Resize image: image={type(im)} invalid type')
         return im
     if (resize_mode == 0) or ((im.width == width) and (im.height == height)) or (width == 0 and height == 0): # none
         res = im.copy()
@@ -154,9 +155,9 @@ def resize_image(resize_mode: int, im: Image.Image | torch.Tensor, width: int, h
         res = context_aware(im, width, height, context)
     else:
         res = im.copy()
-        shared.log.error(f'Invalid resize mode: {resize_mode}')
+        logger.log.error(f'Invalid resize mode: {resize_mode}')
     t1 = time.time()
     fn = f'{sys._getframe(2).f_code.co_name}:{sys._getframe(1).f_code.co_name}' # pylint: disable=protected-access
     if im.width != width or im.height != height:
-        shared.log.debug(f'Resize image: source={im.width}:{im.height} target={width}:{height} mode="{shared.resize_modes[resize_mode]}" upscaler="{upscaler_name}" type={output_type} time={t1-t0:.2f} fn={fn}') # pylint: disable=protected-access
+        logger.log.debug(f'Resize image: source={im.width}:{im.height} target={width}:{height} mode="{shared.resize_modes[resize_mode]}" upscaler="{upscaler_name}" type={output_type} time={t1-t0:.2f} fn={fn}') # pylint: disable=protected-access
     return np.array(res) if output_type == 'np' else res

@@ -2,6 +2,7 @@ import json
 from PIL import Image
 import gradio as gr
 from modules import scripts_manager, processing, shared, ipadapter, ui_common
+from modules import logger
 
 
 MAX_ADAPTERS = 4
@@ -33,7 +34,7 @@ class Script(scripts_manager.Script):
                     raise ValueError(f'IP adapter unknown input: {file}')
                 init_images.append(image)
             except Exception as e:
-                shared.log.warning(f'IP adapter failed to load image: {e}')
+                logger.log.warning(f'IP adapter failed to load image: {e}')
         return gr.update(value=init_images, visible=len(init_images) > 0)
 
     def display_units(self, num_units):
@@ -116,5 +117,5 @@ class Script(scripts_manager.Script):
                 layers = json.loads(layers)
                 p.ip_adapter_layers = layers
             except Exception as e:
-                shared.log.error(f'IP adapter: failed to parse layer scales: {e}')
+                logger.log.error(f'IP adapter: failed to parse layer scales: {e}')
         # ipadapter.apply(shared.sd_model, p, p.ip_adapter_names, p.ip_adapter_scales, p.ip_adapter_starts, p.ip_adapter_ends, p.ip_adapter_images) # called directly from processing.process_images_inner

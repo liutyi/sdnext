@@ -20,6 +20,7 @@ from hashlib import sha256
 import functools
 
 from modules import shared, devices, sd_models
+from modules import logger
 
 
 # importing openvino.runtime forces DeprecationWarning to "always"
@@ -77,7 +78,7 @@ warned = False
 def warn_once(msg):
     global warned
     if not warned:
-        shared.log.warning(msg)
+        logger.log.warning(msg)
         warned = True
 
 class OpenVINOGraphModule(torch.nn.Module):
@@ -159,7 +160,7 @@ def cached_model_name(model_hash_str, device, args, cache_root, reversed = False
         os.makedirs(model_cache_dir, exist_ok=True)
         file_name = model_cache_dir + model_hash_str + "_" + device
     except OSError as error:
-        shared.log.error(f"Cache directory {cache_root} cannot be created. Model caching is disabled. Error: {error}")
+        logger.log.error(f"Cache directory {cache_root} cannot be created. Model caching is disabled. Error: {error}")
         return None
 
     inputs_str = ""

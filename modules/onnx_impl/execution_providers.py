@@ -1,6 +1,6 @@
 import sys
 from enum import Enum
-from installer import log
+from modules.logger import log
 from modules import devices
 
 

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from modules import cmd_args, errors
 from modules.json_helpers import readfile, writefile
 from modules.shared_legacy import LegacyOption
-from installer import log
+from modules.logger import log
 
 
 if TYPE_CHECKING:

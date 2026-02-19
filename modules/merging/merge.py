@@ -5,7 +5,8 @@ import safetensors.torch
 import torch
 import modules.memstats
 import modules.devices as devices
-from installer import log, console
+from installer import console
+from modules.logger import log
 from modules.sd_models import read_state_dict
 from modules.merging import merge_methods
 from modules.merging.merge_utils import WeightClass

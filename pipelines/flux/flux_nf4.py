@@ -12,6 +12,7 @@ from accelerate.utils import set_module_tensor_to_device
 from diffusers.loaders.single_file_utils import convert_flux_transformer_checkpoint_to_diffusers
 import safetensors.torch
 from modules import shared, devices, model_quant
+from modules import logger
 
 
 debug = os.environ.get('SD_LOAD_DEBUG', None) is not None
@@ -163,7 +164,7 @@ def load_flux_nf4(checkpoint_info, prequantized: bool = True):
         try:
             converted_state_dict = convert_flux_transformer_checkpoint_to_diffusers(original_state_dict)
         except Exception as e:
-            shared.log.error(f"Load model: type=FLUX Failed to convert UNET: {e}")
+            logger.log.error(f"Load model: type=FLUX Failed to convert UNET: {e}")
             if debug:
                 from modules import errors
                 errors.display(e, 'FLUX convert:')
@@ -190,7 +191,7 @@ def load_flux_nf4(checkpoint_info, prequantized: bool = True):
                 create_quantized_param(transformer, param, param_name, target_device=0, state_dict=original_state_dict, pre_quantized=prequantized)
     except Exception as e:
         transformer, text_encoder_2 = None, None
-        shared.log.error(f"Load model: type=FLUX failed to load UNET: {e}")
+        logger.log.error(f"Load model: type=FLUX failed to load UNET: {e}")
         if debug:
             from modules import errors
             errors.display(e, 'FLUX:')

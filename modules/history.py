@@ -7,6 +7,7 @@ import datetime
 from collections import deque
 import torch
 from modules import shared, devices
+from modules import logger
 
 
 class Item:
@@ -40,7 +41,7 @@ class History:
 
     @property
     def list(self):
-        shared.log.info(f'History: items={self.count}/{shared.opts.latent_history} size={self.size}')
+        logger.log.info(f'History: items={self.count}/{shared.opts.latent_history} size={self.size}')
         return [item.name for item in self.latents]
 
     @property
@@ -51,7 +52,7 @@ class History:
         else:
             current_index = 0
         item = self.latents[current_index]
-        shared.log.debug(f'History get: index={current_index} time={item.ts} shape={list(item.latent.shape)} dtype={item.latent.dtype} count={self.count}')
+        logger.log.debug(f'History get: index={current_index} time={item.ts} shape={list(item.latent.shape)} dtype={item.latent.dtype} count={self.count}')
         return item.latent.to(devices.device), current_index
 
     def find(self, name):
@@ -74,7 +75,7 @@ class History:
 
     def clear(self):
         self.latents.clear()
-        # shared.log.debug(f'History clear: count={self.count}')
+        # logger.log.debug(f'History clear: count={self.count}')
 
     def load(self):
         pass

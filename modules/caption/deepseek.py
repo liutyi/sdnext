@@ -13,6 +13,7 @@ import sys
 import importlib
 from transformers import AutoModelForCausalLM
 from modules import shared, devices, paths, sd_models
+from modules import logger
 
 
 # model_path = "deepseek-ai/deepseek-vl2-small"
@@ -32,11 +33,11 @@ def load(repo: str):
     """Load DeepSeek VL2 model (experimental)."""
     global vl_gpt, vl_chat_processor, loaded_repo  # pylint: disable=global-statement
     if not shared.cmd_opts.experimental:
-        shared.log.error(f'Caption: type=vlm model="DeepSeek VL2" repo="{repo}" is experimental-only')
+        logger.log.error(f'Caption: type=vlm model="DeepSeek VL2" repo="{repo}" is experimental-only')
         return False
     folder = os.path.join(paths.script_path, 'repositories', 'deepseek-vl2')
     if not os.path.exists(folder):
-        shared.log.error(f'Caption: type=vlm model="DeepSeek VL2" repo="{repo}" deepseek-vl2 repo not found')
+        logger.log.error(f'Caption: type=vlm model="DeepSeek VL2" repo="{repo}" deepseek-vl2 repo not found')
         return False
     if vl_gpt is None or loaded_repo != repo:
         # GLOBAL PATCHES (not reverted): DeepSeek VL2 requires attrdict and uses LlamaFlashAttention2
@@ -58,7 +59,7 @@ def load(repo: str):
         vl_gpt.eval()  # required: trust_remote_code model
         loaded_repo = repo
         devices.torch_gc()
-        shared.log.info(f'Caption: type=vlm model="DeepSeek VL2" repo="{repo}"')
+        logger.log.info(f'Caption: type=vlm model="DeepSeek VL2" repo="{repo}"')
     sd_models.move_model(vl_gpt, devices.device)
     return True
 
@@ -67,14 +68,14 @@ def unload():
     """Release DeepSeek VL2 model from GPU/memory."""
     global vl_gpt, vl_chat_processor, loaded_repo  # pylint: disable=global-statement
     if vl_gpt is not None:
-        shared.log.debug(f'DeepSeek unload: model="{loaded_repo}"')
+        logger.log.debug(f'DeepSeek unload: model="{loaded_repo}"')
         sd_models.move_model(vl_gpt, devices.cpu, force=True)
         vl_gpt = None
         vl_chat_processor = None
         loaded_repo = None
         devices.torch_gc(force=True)
     else:
-        shared.log.debug('DeepSeek unload: no model loaded')
+        logger.log.debug('DeepSeek unload: no model loaded')
 
 
 def predict(question, image, repo):

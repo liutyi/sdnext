@@ -1,3 +1,4 @@
+from modules import logger
 import platform
 from typing import NamedTuple, Optional
 from collections.abc import Callable
@@ -108,9 +109,9 @@ def directml_override_opts():
         if getattr(shared.opts, key) != item.value and (item.condition is None or item.condition(shared.opts)):
             count += 1
             setattr(shared.opts, key, item.value)
-            shared.log.warning(f'Overriding: {key}={item.value} {item.message if item.message is not None else ""}')
+            logger.log.warning(f'Overriding: {key}={item.value} {item.message if item.message is not None else ""}')
 
     if count > 0:
-        shared.log.info(f'Options override: count={count}. If you want to keep them from overriding, run with --experimental argument.')
+        logger.log.info(f'Options override: count={count}. If you want to keep them from overriding, run with --experimental argument.')
 
     _set_memory_provider()

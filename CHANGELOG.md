@@ -59,6 +59,7 @@ TBD
   - refactor: switch from deprecated `pkg_resources` to `importlib`  
   - refactor: modernize typing and type annotations  
   - refactor: improve `pydantic==2.x` compatibility  
+  - refactor: entire logging into separate `modules/logger`  
   - update `lint` rules, thanks @awsr  
   - remove requirements: `clip`, `open-clip`  
   - update `requirements`  

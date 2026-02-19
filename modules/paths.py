@@ -4,7 +4,7 @@ import sys
 import json
 import argparse
 import tempfile
-from installer import log
+from modules.logger import log
 
 
 # parse args, parse again after we have the data-dir and early-read the config file

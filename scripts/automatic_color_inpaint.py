@@ -2,6 +2,7 @@ import gradio as gr
 from PIL import Image
 import numpy as np
 from modules import shared, scripts_manager, processing, masking
+from modules import logger
 
 """
 Automatic Color Inpaint Script for SD.NEXT - SD & SDXL Support
@@ -89,7 +90,7 @@ class Script(scripts_manager.Script):
     # Run pipeline
     def run(self, p: processing.StableDiffusionProcessing, *args):  # pylint: disable=arguments-differ
         if shared.sd_model_type not in supported_models:
-            shared.log.warning(f'MoD: class={shared.sd_model.__class__.__name__} model={shared.sd_model_type} required={supported_models}')
+            logger.log.warning(f'MoD: class={shared.sd_model.__class__.__name__} model={shared.sd_model_type} required={supported_models}')
             return None
         if not hasattr(p, 'init_images') or p.init_images is None or len(p.init_images) == 0:
             return None
@@ -98,7 +99,7 @@ class Script(scripts_manager.Script):
         # Convert hex color to RGB tuple (0-255)
         color_to_mask_rgb = tuple(int(color_to_mask_hex[i:i+2], 16) for i in (1, 3, 5))
 
-        shared.log.debug(f'ACI: rgb={color_to_mask_rgb} tolerance={mask_tolerance} dilate={mask_dilate} erode={mask_erode} blur={mask_blur} denoise={inpaint_denoising_strength}')
+        logger.log.debug(f'ACI: rgb={color_to_mask_rgb} tolerance={mask_tolerance} dilate={mask_dilate} erode={mask_erode} blur={mask_blur} denoise={inpaint_denoising_strength}')
 
         # Create Color Mask using vectorized operations
         init_image = p.init_images[0].convert("RGB")

@@ -4,7 +4,7 @@ from collections import UserDict
 from dataclasses import dataclass, field
 from typing import Union
 from collections.abc import Callable, Iterator
-from installer import log
+from modules.logger import log
 
 
 do_cache_folders = os.environ.get('SD_NO_CACHE', None) is None

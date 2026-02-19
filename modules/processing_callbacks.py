@@ -3,11 +3,12 @@ import time
 import torch
 import numpy as np
 from modules import shared, devices, processing_correction, timer, prompt_parser_diffusers
+from modules import logger
 
 
 p = None
 debug = os.environ.get('SD_CALLBACK_DEBUG', None) is not None
-debug_callback = shared.log.trace if debug else lambda *args, **kwargs: None
+debug_callback = logger.log.trace if debug else lambda *args, **kwargs: None
 warned = False
 
 
@@ -43,7 +44,7 @@ def diffusers_callback_legacy(step: int, timestep: int, latents: torch.FloatTens
     if shared.state.interrupted or shared.state.skipped:
         raise AssertionError('Interrupted...')
     if shared.state.paused:
-        shared.log.debug('Sampling paused')
+        logger.log.debug('Sampling paused')
         while shared.state.paused:
             if shared.state.interrupted or shared.state.skipped:
                 raise AssertionError('Interrupted...')
@@ -67,7 +68,7 @@ def diffusers_callback(pipe, step: int = 0, timestep: int = 0, kwargs: dict = No
     if shared.state.interrupted or shared.state.skipped:
         raise AssertionError('Interrupted...')
     if shared.state.paused:
-        shared.log.debug('Sampling paused')
+        logger.log.debug('Sampling paused')
         while shared.state.paused:
             if shared.state.interrupted or shared.state.skipped:
                 raise AssertionError('Interrupted...')
@@ -175,7 +176,7 @@ def diffusers_callback(pipe, step: int = 0, timestep: int = 0, kwargs: dict = No
     except Exception as e:
         global warned # pylint: disable=global-statement
         if not warned:
-            shared.log.error(f'Callback: {e}')
+            logger.log.error(f'Callback: {e}')
             warned = True
         # from modules import errors
         # errors.display(e, 'Callback')

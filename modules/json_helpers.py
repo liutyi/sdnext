@@ -5,7 +5,7 @@ import json
 from typing import overload, Literal
 import fasteners
 import orjson
-from installer import log
+from modules.logger import log
 
 
 locking_available = True # used by file read/write locking

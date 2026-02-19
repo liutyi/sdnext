@@ -1,3 +1,4 @@
+from modules import logger
 import os
 import re
 import sys
@@ -6,7 +7,8 @@ import json
 import time
 import diffusers
 import transformers
-from installer import installed, install, log, setup_logging
+from installer import installed, install, setup_logging
+from modules.logger import log
 
 
 ao = None
@@ -45,7 +47,7 @@ def dont_quant():
     models_list = re.split(r'[ ,]+', shared.opts.models_not_to_quant)
     models_list = [m.lower().strip() for m in models_list]
     if shared.sd_model_type.lower() in models_list:
-        shared.log.debug(f'Quantization: model={shared.sd_model_type} skip')
+        logger.log.debug(f'Quantization: model={shared.sd_model_type} skip')
         return True
     return False
 
@@ -169,7 +171,7 @@ def create_sdnq_config(kwargs = None, allow: bool = True, module: str = 'Model',
         from modules.sdnq.common import use_torch_compile as sdnq_use_torch_compile
 
         if shared.opts.sdnq_use_quantized_matmul and not sdnq_use_torch_compile:
-            shared.log.warning('SDNQ Quantized MatMul requires a working Triton install. Disabling Quantized MatMul.')
+            logger.log.warning('SDNQ Quantized MatMul requires a working Triton install. Disabling Quantized MatMul.')
             shared.opts.sdnq_use_quantized_matmul = False
 
         if weights_dtype is None:
@@ -514,7 +516,7 @@ def sdnq_quantize_model(model, op=None, sd_model=None, do_gc: bool = True, weigh
     from modules.sdnq.common import use_torch_compile as sdnq_use_torch_compile
 
     if shared.opts.sdnq_use_quantized_matmul and not sdnq_use_torch_compile:
-        shared.log.warning('SDNQ Quantized MatMul requires a working Triton install. Disabling Quantized MatMul.')
+        logger.log.warning('SDNQ Quantized MatMul requires a working Triton install. Disabling Quantized MatMul.')
         shared.opts.sdnq_use_quantized_matmul = False
 
     if weights_dtype is None:
@@ -807,15 +809,15 @@ def do_post_load_quant(sd_model, allow=True):
     if dont_quant():
         return sd_model
     if shared.opts.sdnq_quantize_weights and (shared.opts.sdnq_quantize_mode == 'post' or (allow and shared.opts.sdnq_quantize_mode == 'auto')):
-        shared.log.debug('Load model: post_quant=sdnq')
+        logger.log.debug('Load model: post_quant=sdnq')
         sd_model = sdnq_quantize_weights(sd_model)
     if len(shared.opts.optimum_quanto_weights) > 0:
-        shared.log.debug('Load model: post_quant=quanto')
+        logger.log.debug('Load model: post_quant=quanto')
         sd_model = optimum_quanto_weights(sd_model)
     if shared.opts.torchao_quantization and (shared.opts.torchao_quantization_mode == 'post' or (allow and shared.opts.torchao_quantization_mode == 'auto')):
-        shared.log.debug('Load model: post_quant=torchao')
+        logger.log.debug('Load model: post_quant=torchao')
         sd_model = torchao_quantization(sd_model)
     if shared.opts.layerwise_quantization:
-        shared.log.debug('Load model: post_quant=layerwise')
+        logger.log.debug('Load model: post_quant=layerwise')
         apply_layerwise(sd_model)
     return sd_model

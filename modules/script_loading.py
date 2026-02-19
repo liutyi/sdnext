@@ -3,6 +3,7 @@ import os
 import contextlib
 import importlib.util
 import modules.errors as errors
+from modules import logger
 from installer import setup_logging
 
 
@@ -29,7 +30,7 @@ def load_module(path):
                     if '2;36m' in line: # color escape sequence
                         print(line.strip())
                     else:
-                        errors.log.info(f"Extension: script='{os.path.relpath(path)}' {line.strip()}")
+                        logger.log.info(f"Extension: script='{os.path.relpath(path)}' {line.strip()}")
     except Exception as e:
         errors.display(e, f'Module load: {path}')
     return module

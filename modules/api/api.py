@@ -4,6 +4,7 @@ from fastapi import FastAPI, APIRouter, Depends, Request
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.exceptions import HTTPException
 from modules import errors, shared
+from modules import logger
 from modules.api import models, endpoints, script, helpers, server, generate, process, control, docs, gpu
 
 
@@ -142,13 +143,13 @@ class Api:
             if hasattr(self.app, 'tokens') and (self.app.tokens is not None):
                 if credentials.password in self.app.tokens.keys():
                     return True
-        shared.log.error(f'API authentication: user="{credentials.username}"')
+        logger.log.error(f'API authentication: user="{credentials.username}"')
         raise HTTPException(status_code=401, detail="Unauthorized", headers={"WWW-Authenticate": "Basic"})
 
     def get_session_start(self, req: Request, agent: str | None = None):
         token = req.cookies.get("access-token") or req.cookies.get("access-token-unsecure")
         user = self.app.tokens.get(token) if hasattr(self.app, 'tokens') else None
-        shared.log.info(f'Browser session: user={user} client={req.client.host} agent={agent}')
+        logger.log.info(f'Browser session: user={user} client={req.client.host} agent={agent}')
         return {}
 
     def launch(self):
@@ -165,7 +166,7 @@ class Api:
         # from modules.server import HypercornServer
         # server = HypercornServer(self.app, **config)
         http_server.start()
-        shared.log.info(f'API server: Uvicorn options={config}')
+        logger.log.info(f'API server: Uvicorn options={config}')
         return http_server
 
 

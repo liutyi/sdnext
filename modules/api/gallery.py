@@ -9,10 +9,11 @@ from starlette.websockets import WebSocket, WebSocketState
 from pydantic import BaseModel, Field # pylint: disable=no-name-in-module
 from PIL import Image
 from modules import shared, images, files_cache, modelstats
+from modules import logger
 from modules.paths import resolve_output_path
 
 
-debug = shared.log.debug if os.environ.get('SD_BROWSER_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug = logger.log.debug if os.environ.get('SD_BROWSER_DEBUG', None) is not None else lambda *args, **kwargs: None
 
 
 OPTS_FOLDERS = [
@@ -96,7 +97,7 @@ def register_api(app: FastAPI): # register api
             }
             return content
         except Exception as e:
-            shared.log.error(f'Gallery video: file="{filepath}" {e}')
+            logger.log.error(f'Gallery video: file="{filepath}" {e}')
             return {}
 
     def get_image_thumbnail(filepath):
@@ -123,7 +124,7 @@ def register_api(app: FastAPI): # register api
             }
             return content
         except Exception as e:
-            shared.log.error(f'Gallery image: file="{filepath}" {e}')
+            logger.log.error(f'Gallery image: file="{filepath}" {e}')
             return {}
 
     # @app.get('/sdapi/v1/browser/folders', response_model=List[str])
@@ -183,7 +184,7 @@ def register_api(app: FastAPI): # register api
             else:
                 return JSONResponse(content=get_image_thumbnail(decoded))
         except Exception as e:
-            shared.log.error(f'Gallery: {file} {e}')
+            logger.log.error(f'Gallery: {file} {e}')
             content = { 'error': str(e) }
             return JSONResponse(content=content)
 
@@ -199,10 +200,10 @@ def register_api(app: FastAPI): # register api
                 msg = msg[:1] + ":" + msg[4:] if msg[1:4] == "%3A" else msg
                 lines.append(msg)
             t1 = time.time()
-            shared.log.debug(f'Gallery: type=ht folder="{folder}" files={len(lines)} time={t1-t0:.3f}')
+            logger.log.debug(f'Gallery: type=ht folder="{folder}" files={len(lines)} time={t1-t0:.3f}')
             return lines
         except Exception as e:
-            shared.log.error(f'Gallery: {folder} {e}')
+            logger.log.error(f'Gallery: {folder} {e}')
             return []
 
     shared.api.add_api_route("/sdapi/v1/browser/folders", get_folders, methods=["GET"], response_model=list[str])
@@ -228,7 +229,7 @@ def register_api(app: FastAPI): # register api
                 await manager.send(ws, msg)
             await manager.send(ws, '#END#')
             t1 = time.time()
-            shared.log.debug(f'Gallery: type=ws folder="{folder}" files={numFiles} time={t1-t0:.3f}')
+            logger.log.debug(f'Gallery: type=ws folder="{folder}" files={numFiles} time={t1-t0:.3f}')
         except Exception as e:
             debug(f'Browser WS error: {e}')
         manager.disconnect(ws)

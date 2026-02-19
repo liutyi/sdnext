@@ -15,11 +15,12 @@ from modules import shared, errors, scripts_manager, images, processing
 from modules.ui_components import ToolButton
 from modules.ui_sections import create_video_inputs
 import modules.ui_symbols as symbols
+from modules import logger
 
 
 active = False
 xyz_results_cache = None
-debug = shared.log.trace if os.environ.get('SD_XYZ_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug = logger.log.trace if os.environ.get('SD_XYZ_DEBUG', None) is not None else lambda *args, **kwargs: None
 
 
 class Script(scripts_manager.Script):
@@ -202,11 +203,11 @@ class Script(scripts_manager.Script):
                             end_val = int(m.group(2)) if m.group(2) is not None else val
                             num = int(m.group(3)) if m.group(3) is not None else int(end_val-start_val)
                             valslist_ext += [int(x) for x in np.linspace(start=start_val, stop=end_val, num=max(2, num)).tolist()]
-                            shared.log.debug(f'XYZ grid range: start={start_val} end={end_val} num={max(2, num)} list={valslist}')
+                            logger.log.debug(f'XYZ grid range: start={start_val} end={end_val} num={max(2, num)} list={valslist}')
                         else:
                             valslist_ext.append(int(val))
                     except Exception as e:
-                        shared.log.error(f"XYZ grid: value={val} {e}")
+                        logger.log.error(f"XYZ grid: value={val} {e}")
                 valslist.clear()
                 valslist = [x for x in valslist_ext if x not in valslist]
             elif opt.type == float:
@@ -219,11 +220,11 @@ class Script(scripts_manager.Script):
                             end_val = float(m.group(2)) if m.group(2) is not None else val
                             num = int(m.group(3)) if m.group(3) is not None else int(end_val-start_val)
                             valslist_ext += [round(float(x), 2) for x in np.linspace(start=start_val, stop=end_val, num=max(2, num)).tolist()]
-                            shared.log.debug(f'XYZ grid range: start={start_val} end={end_val} num={max(2, num)} list={valslist}')
+                            logger.log.debug(f'XYZ grid range: start={start_val} end={end_val} num={max(2, num)} list={valslist}')
                         else:
                             valslist_ext.append(float(val))
                     except Exception as e:
-                        shared.log.error(f"XYZ grid: value={val} {e}")
+                        logger.log.error(f"XYZ grid: value={val} {e}")
                 valslist.clear()
                 valslist = [x for x in valslist_ext if x not in valslist]
             elif opt.type == str_permutations: # pylint: disable=comparison-with-callable
@@ -257,7 +258,7 @@ class Script(scripts_manager.Script):
             y_opt, ys = parse_axis(y_type, y_values, y_values_dropdown)
             z_opt, zs = parse_axis(z_type, z_values, z_values_dropdown)
         except Exception as e:
-            shared.log.error(f"XYZ grid: invalid axis values {e}")
+            logger.log.error(f"XYZ grid: invalid axis values {e}")
             errors.display(e, 'xyz')
             return None
 
@@ -302,7 +303,7 @@ class Script(scripts_manager.Script):
         shared.state.update('Grid', total_steps, total_jobs)
 
         image_cell_count = p.n_iter * p.batch_size
-        shared.log.info(f"XYZ grid start: images={len(xs)*len(ys)*len(zs)*image_cell_count} grid={len(zs)} shape={len(xs)}x{len(ys)} cells={len(zs)} steps={total_steps} csv={csv_mode} legend={draw_legend} grid={include_grid} subgrid={include_subgrids} images={include_images} time={include_time} text={include_text}")
+        logger.log.info(f"XYZ grid start: images={len(xs)*len(ys)*len(zs)*image_cell_count} grid={len(zs)} shape={len(xs)}x{len(ys)} cells={len(zs)} steps={total_steps} csv={csv_mode} legend={draw_legend} grid={include_grid} subgrid={include_subgrids} images={include_images} time={include_time} text={include_text}")
         AxisInfo = namedtuple('AxisInfo', ['axis', 'values'])
         shared.state.xyz_plot_x = AxisInfo(x_opt, xs)
         shared.state.xyz_plot_y = AxisInfo(y_opt, ys)
@@ -332,7 +333,7 @@ class Script(scripts_manager.Script):
 
         def cell(x, y, z, ix, iy, iz):
             if shared.state.interrupted:
-                shared.log.warning('XYZ grid: Interrupted')
+                logger.log.warning('XYZ grid: Interrupted')
                 return processing.Processed(p, [], p.seed, ""), 0
             p.xyz = True
             pc = copy(p)
@@ -351,7 +352,7 @@ class Script(scripts_manager.Script):
             try:
                 processed = processing.process_images(pc)
             except Exception as e:
-                shared.log.error(f"XYZ grid: Failed to process image: {e}")
+                logger.log.error(f"XYZ grid: Failed to process image: {e}")
                 errors.display(e, 'XYZ grid')
                 processed = None
 
@@ -415,7 +416,7 @@ class Script(scripts_manager.Script):
         have_subgrids = len(zs) if len(zs) > 1 and include_subgrids else 0
         have_images = processed.images[have_grid+have_subgrids:]
         processed.infotexts[:have_grid+have_subgrids] = grid_infotext[:have_grid+have_subgrids] # update infotexts with grid and subgrid info
-        shared.log.debug(f'XYZ grid: grid={have_grid} subgrids={have_subgrids} images={len(have_images)} total={len(processed.images)}')
+        logger.log.debug(f'XYZ grid: grid={have_grid} subgrids={have_subgrids} images={len(have_images)} total={len(processed.images)}')
 
         if not include_images: # dont need images anymore, drop from list:
             processed.images = processed.images[:have_grid+have_subgrids]

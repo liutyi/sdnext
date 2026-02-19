@@ -2,6 +2,7 @@
 # Provides a common interface for the Booru Tags tab
 
 from modules import shared
+from modules import logger
 
 DEEPBOORU_MODEL = "DeepBooru"
 
@@ -27,7 +28,7 @@ def save_tags_to_file(img_path, tags_str: str, save_append: bool) -> bool:
                 f.write(tags_str)
         return True
     except Exception as e:
-        shared.log.error(f'Tagger batch: failed to save file="{img_path}" error={e}')
+        logger.log.error(f'Tagger batch: failed to save file="{img_path}" error={e}')
         return False
 
 

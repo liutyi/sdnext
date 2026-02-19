@@ -4,6 +4,7 @@ import time
 import gradio as gr
 import diffusers
 from modules import scripts_manager, processing, shared, devices, sd_models
+from modules import logger
 from installer import install
 
 
@@ -47,21 +48,21 @@ class Script(scripts_manager.Script):
             return None
         image = getattr(p, 'init_images', None)
         if image is None or len(image) == 0:
-            shared.log.error(f'{title}: tool={tool} no init_images')
+            logger.log.error(f'{title}: tool={tool} no init_images')
             return None
         else:
             image = image[0] if isinstance(image, list) else image
 
-        shared.log.info(f'{title}: tool={tool} init')
+        logger.log.info(f'{title}: tool={tool} init')
 
         t0 = time.time()
         if tool == 'Redux':
             supported_model_list = ['f1']
             if shared.sd_model_type not in supported_model_list:
-                shared.log.warning(f'{title}: class={shared.sd_model.__class__.__name__} model={shared.sd_model_type} required={supported_model_list}')
+                logger.log.warning(f'{title}: class={shared.sd_model.__class__.__name__} model={shared.sd_model_type} required={supported_model_list}')
                 return None
             # pipe_prior_redux = FluxPriorReduxPipeline.from_pretrained("black-forest-labs/FLUX.1-Redux-dev", revision="refs/pr/8", torch_dtype=torch.bfloat16).to("cuda")
-            shared.log.debug(f'{title}: tool={tool} prompt={prompt}')
+            logger.log.debug(f'{title}: tool={tool} prompt={prompt}')
             if redux_pipe is None:
                 redux_pipe = diffusers.FluxPriorReduxPipeline.from_pretrained(
                     "black-forest-labs/FLUX.1-Redux-dev",
@@ -70,7 +71,7 @@ class Script(scripts_manager.Script):
                     cache_dir=shared.opts.hfcache_dir
                 ).to(devices.device)
             if prompt > 0:
-                shared.log.info(f'{title}: tool={tool} load text encoder')
+                logger.log.info(f'{title}: tool={tool} load text encoder')
                 redux_pipe.tokenizer, redux_pipe.tokenizer_2 = shared.sd_model.tokenizer, shared.sd_model.tokenizer_2
                 redux_pipe.text_encoder, redux_pipe.text_encoder_2 = shared.sd_model.text_encoder, shared.sd_model.text_encoder_2
             sd_models.apply_balanced_offload(redux_pipe)
@@ -88,13 +89,13 @@ class Script(scripts_manager.Script):
                 p.task_args[k] = v
         else:
             if redux_pipe is not None:
-                shared.log.debug(f'{title}: tool=Redux unload')
+                logger.log.debug(f'{title}: tool=Redux unload')
                 redux_pipe = None
 
         if tool in ['Fill', 'Fill (Nunchaku)']:
             # pipe = FluxFillPipeline.from_pretrained("black-forest-labs/FLUX.1-Fill-dev", torch_dtype=torch.bfloat16, revision="refs/pr/4").to("cuda")
             if p.image_mask is None:
-                shared.log.error(f'{title}: tool={tool} no image_mask')
+                logger.log.error(f'{title}: tool={tool} no image_mask')
                 return None
             nunchaku_suffix = '+nunchaku' if tool == 'Fill (Nunchaku)' else ''
             checkpoint = f"black-forest-labs/FLUX.1-Fill-dev{nunchaku_suffix}"
@@ -123,7 +124,7 @@ class Script(scripts_manager.Script):
                 p.task_args['strength'] = None
         else:
             if processor_canny is not None:
-                shared.log.debug(f'{title}: tool=Canny unload processor')
+                logger.log.debug(f'{title}: tool=Canny unload processor')
                 processor_canny = None
 
         if tool in ['Depth', 'Depth (Nunchaku)']:
@@ -146,9 +147,9 @@ class Script(scripts_manager.Script):
                 p.task_args['strength'] = None
         else:
             if processor_depth is not None:
-                shared.log.debug(f'{title}: tool=Depth unload processor')
+                logger.log.debug(f'{title}: tool=Depth unload processor')
                 processor_depth = None
 
-        shared.log.debug(f'{title}: tool={tool} ready time={time.time() - t0:.2f}')
+        logger.log.debug(f'{title}: tool={tool} ready time={time.time() - t0:.2f}')
         devices.torch_gc()
         return None

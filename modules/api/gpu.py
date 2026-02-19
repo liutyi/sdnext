@@ -1,5 +1,5 @@
 import torch
-from installer import log
+from modules.logger import log
 
 
 device = None

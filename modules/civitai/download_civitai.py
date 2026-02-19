@@ -3,6 +3,7 @@ import json
 import rich.progress as p
 from PIL import Image
 from modules import shared, errors, paths
+from modules import logger
 
 
 pbar = None
@@ -13,15 +14,15 @@ def save_video_frame(filepath: str):
     try:
         frames, fps, duration, w, h, codec, frame = video.get_video_params(filepath, capture=True)
     except Exception as e:
-        shared.log.error(f'Video: file={filepath} {e}')
+        logger.log.error(f'Video: file={filepath} {e}')
         return None
     if frame is not None:
         basename = os.path.splitext(filepath)
         thumb = f'{basename[0]}.thumb.jpg'
-        shared.log.debug(f'Video: file={filepath} frames={frames} fps={fps} size={w}x{h} codec={codec} duration={duration} thumb={thumb}')
+        logger.log.debug(f'Video: file={filepath} frames={frames} fps={fps} size={w}x{h} codec={codec} duration={duration} thumb={thumb}')
         frame.save(thumb)
     else:
-        shared.log.error(f'Video: file={filepath} no frames found')
+        logger.log.error(f'Video: file={filepath} no frames found')
     return frame
 
 
@@ -33,11 +34,11 @@ def download_civit_meta(model_path: str, model_id):
         try:
             data = r.json()
             shared.writefile(data, filename=fn, mode='w', silent=True)
-            shared.log.info(f'CivitAI download: id={model_id} url={url} file="{fn}"')
+            logger.log.info(f'CivitAI download: id={model_id} url={url} file="{fn}"')
             return r.status_code, len(data), '' # code/size/note
         except Exception as e:
             errors.display(e, 'civitai meta')
-            shared.log.error(f'CivitAI meta: id={model_id} url={url} file="{fn}" {e}')
+            logger.log.error(f'CivitAI meta: id={model_id} url={url} file="{fn}" {e}')
             return r.status_code, '', str(e)
     return r.status_code, '', ''
 
@@ -52,7 +53,7 @@ def download_civit_preview(model_path: str, preview_url: str):
     is_video = preview_file.lower().endswith('.mp4')
     is_json = preview_file.lower().endswith('.json')
     if is_json:
-        shared.log.warning(f'CivitAI download: url="{preview_url}" skip json')
+        logger.log.warning(f'CivitAI download: url="{preview_url}" skip json')
         return 500, '', 'exepected preview image got json'
     if os.path.exists(preview_file):
         return 304, '', 'already exists'
@@ -64,7 +65,7 @@ def download_civit_preview(model_path: str, preview_url: str):
     img = None
     jobid = shared.state.begin('Download CivitAI')
     if pbar is None:
-        pbar = p.Progress(p.TextColumn('[cyan]Download'), p.DownloadColumn(), p.BarColumn(), p.TaskProgressColumn(), p.TimeRemainingColumn(), p.TimeElapsedColumn(), p.TransferSpeedColumn(), p.TextColumn('[yellow]{task.description}'), console=shared.console)
+        pbar = p.Progress(p.TextColumn('[cyan]Download'), p.DownloadColumn(), p.BarColumn(), p.TaskProgressColumn(), p.TimeRemainingColumn(), p.TimeElapsedColumn(), p.TransferSpeedColumn(), p.TextColumn('[yellow]{task.description}'), console=logger.console)
     try:
         with open(preview_file, 'wb') as f:
             with pbar:
@@ -81,13 +82,13 @@ def download_civit_preview(model_path: str, preview_url: str):
         else:
             img = Image.open(preview_file)
     except Exception as e:
-        shared.log.error(f'CivitAI download error: url={preview_url} file="{preview_file}" written={written} {e}')
+        logger.log.error(f'CivitAI download error: url={preview_url} file="{preview_file}" written={written} {e}')
         shared.state.end(jobid)
         return 500, '', str(e)
     shared.state.end(jobid)
     if img is None:
         return 500, '', 'image is none'
-    shared.log.info(f'CivitAI download: url={preview_url} file="{preview_file}" size={total_size} image={img.size}')
+    logger.log.info(f'CivitAI download: url={preview_url} file="{preview_file}" size={total_size} image={img.size}')
     img.close()
     return 200, str(total_size), '' # code/size/note
 
@@ -135,17 +136,17 @@ def download_civit_model_thread(model_name: str, model_url: str, model_path: str
     res = f'Model download: name="{model_name}" url="{model_url}" path="{model_path}" temp="{temp_file}"'
     if os.path.isfile(model_file):
         res += ' already exists'
-        shared.log.warning(res)
+        logger.log.warning(res)
         return res
 
     res += f' size={round((starting_pos + total_size)/1024/1024, 2)}Mb'
-    shared.log.info(res)
+    logger.log.info(res)
     jobid = shared.state.begin('Download CivitAI')
     block_size = 16384 # 16KB blocks
     written = starting_pos
     global pbar # pylint: disable=global-statement
     if pbar is None:
-        pbar = p.Progress(p.TextColumn('[cyan]{task.description}'), p.DownloadColumn(), p.BarColumn(), p.TaskProgressColumn(), p.TimeRemainingColumn(), p.TimeElapsedColumn(), p.TransferSpeedColumn(), p.TextColumn('[cyan]{task.fields[name]}'), console=shared.console)
+        pbar = p.Progress(p.TextColumn('[cyan]{task.description}'), p.DownloadColumn(), p.BarColumn(), p.TaskProgressColumn(), p.TimeRemainingColumn(), p.TimeElapsedColumn(), p.TransferSpeedColumn(), p.TextColumn('[cyan]{task.fields[name]}'), console=logger.console)
     with pbar:
         task = pbar.add_task(description="Download starting", total=starting_pos+total_size, name=model_name)
         try:
@@ -153,7 +154,7 @@ def download_civit_model_thread(model_name: str, model_url: str, model_path: str
                 for data in r.iter_content(block_size):
                     if written == 0:
                         try: # check if response is JSON message instead of bytes
-                            shared.log.error(f'Model download: response={json.loads(data.decode("utf-8"))}')
+                            logger.log.error(f'Model download: response={json.loads(data.decode("utf-8"))}')
                             raise ValueError('response: type=json expected=bytes')
                         except Exception: # this is good
                             pass
@@ -164,14 +165,14 @@ def download_civit_model_thread(model_name: str, model_url: str, model_path: str
                 os.remove(temp_file)
                 raise ValueError(f'removed invalid download: bytes={written}')
         except Exception as e:
-            shared.log.error(f'{res} {e}')
+            logger.log.error(f'{res} {e}')
         finally:
             pbar.stop_task(task)
             pbar.remove_task(task)
     if starting_pos+total_size != written:
-        shared.log.warning(f'{res} written={round(written/1024/1024)}Mb incomplete download')
+        logger.log.warning(f'{res} written={round(written/1024/1024)}Mb incomplete download')
     elif os.path.exists(temp_file):
-        shared.log.debug(f'Model download complete: temp="{temp_file}" path="{model_file}"')
+        logger.log.debug(f'Model download complete: temp="{temp_file}" path="{model_file}"')
         os.rename(temp_file, model_file)
     shared.state.end(jobid)
     if os.path.exists(model_file):
@@ -183,7 +184,7 @@ def download_civit_model_thread(model_name: str, model_url: str, model_path: str
 def download_civit_model(model_url: str, model_name: str = '', model_path: str = '', model_type: str = '', token: str = None):
     import threading
     if model_url is None or len(model_url) == 0:
-        shared.log.error('Model download: no url provided')
+        logger.log.error('Model download: no url provided')
         return
     thread = threading.Thread(target=download_civit_model_thread, args=(model_name, model_url, model_path, model_type, token))
     thread.start()

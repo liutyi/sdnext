@@ -6,7 +6,8 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from PIL import Image
-from installer import install, reload, log
+from installer import install, reload
+from modules.logger import log
 
 
 image_size_buckets = {

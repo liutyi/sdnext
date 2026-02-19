@@ -8,11 +8,12 @@ import numpy as np
 import cv2
 from PIL import Image
 from modules import shared, devices, images, sd_models, sd_samplers, sd_vae, sd_hijack_hypertile, processing_vae, timer
+from modules import logger
 from modules.api import helpers
 
 
-debug = shared.log.trace if os.environ.get('SD_PROCESS_DEBUG', None) is not None else lambda *args, **kwargs: None
-debug_steps = shared.log.trace if os.environ.get('SD_STEPS_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug = logger.log.trace if os.environ.get('SD_PROCESS_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug_steps = logger.log.trace if os.environ.get('SD_STEPS_DEBUG', None) is not None else lambda *args, **kwargs: None
 debug_steps('Trace: STEPS')
 
 
@@ -40,7 +41,7 @@ def apply_color_correction(correction, original_image):
     install('blendmodes', quiet=True)
     from skimage import exposure
     from blendmodes.blend import blendLayers, BlendType
-    shared.log.debug(f"Applying color correction: correction={correction.shape} image={original_image}")
+    logger.log.debug(f"Applying color correction: correction={correction.shape} image={original_image}")
     np_image = np.asarray(original_image)
     np_recolor = cv2.cvtColor(np_image, cv2.COLOR_RGB2LAB)
     np_match = exposure.match_histograms(np_recolor, correction, channel_axis=2)
@@ -71,7 +72,7 @@ def apply_overlay(image: Image, paste_loc, index, overlays):
         image.alpha_composite(overlay)
         image = image.convert('RGB')
     except Exception as e:
-        shared.log.error(f'Apply overlay: {e}')
+        logger.log.error(f'Apply overlay: {e}')
     return image
 
 
@@ -105,10 +106,10 @@ def get_sampler_name(sampler_index: int, img: bool = False) -> str:
         sampler_name = sd_samplers.samplers[sampler_index].name
     else:
         sampler_name = "Default"
-        shared.log.warning(f'Sampler not found: index={sampler_index} available={[s.name for s in sd_samplers.samplers]} fallback={sampler_name}')
+        logger.log.warning(f'Sampler not found: index={sampler_index} available={[s.name for s in sd_samplers.samplers]} fallback={sampler_name}')
     if img and sampler_name == "PLMS":
         sampler_name = "Default"
-        shared.log.warning(f'Sampler not compatible: name=PLMS fallback={sampler_name}')
+        logger.log.warning(f'Sampler not compatible: name=PLMS fallback={sampler_name}')
     return sampler_name
 
 
@@ -210,7 +211,7 @@ def create_random_tensors(shape, seeds, subseeds=None, subseed_strength=0.0, see
 
 def decode_first_stage(model, x):
     if not shared.opts.keep_incomplete and (shared.state.skipped or shared.state.interrupted):
-        shared.log.debug(f'Decode VAE: skipped={shared.state.skipped} interrupted={shared.state.interrupted}')
+        logger.log.debug(f'Decode VAE: skipped={shared.state.skipped} interrupted={shared.state.interrupted}')
         x_sample = torch.zeros((len(x), 3, x.shape[2] * 8, x.shape[3] * 8), dtype=devices.dtype_vae, device=devices.device)
         return x_sample
     with devices.autocast(disable = x.dtype==devices.dtype_vae):
@@ -222,10 +223,10 @@ def decode_first_stage(model, x):
                 x_sample = processing_vae.vae_decode(latents=x, model=model, output_type='np')
             else:
                 x_sample = x
-                shared.log.error('Decode VAE unknown model')
+                logger.log.error('Decode VAE unknown model')
         except Exception as e:
             x_sample = x
-            shared.log.error(f'Decode VAE: {e}')
+            logger.log.error(f'Decode VAE: {e}')
     return x_sample
 
 
@@ -273,7 +274,7 @@ def validate_sample(tensor):
     elif isinstance(tensor, np.ndarray):
         sample = tensor
     else:
-        shared.log.warning(f'Decode: type={type(tensor)} unknown sample')
+        logger.log.warning(f'Decode: type={type(tensor)} unknown sample')
         return tensor
     sample = 255.0 * sample
     with warnings.catch_warnings(record=True) as w:
@@ -284,10 +285,10 @@ def validate_sample(tensor):
         cast = cast.astype(np.uint8)
         vae = shared.sd_model.vae.dtype if hasattr(shared.sd_model, 'vae') else None
         upcast = getattr(shared.sd_model.vae.config, 'force_upcast', None) if hasattr(shared.sd_model, 'vae') and hasattr(shared.sd_model.vae, 'config') else None
-        shared.log.error(f'Decode: sample={sample.shape} invalid={nans} dtype={dtype} vae={vae} upcast={upcast} failed to validate')
+        logger.log.error(f'Decode: sample={sample.shape} invalid={nans} dtype={dtype} vae={vae} upcast={upcast} failed to validate')
         if upcast is not None and not upcast:
             setattr(shared.sd_model.vae.config, 'force_upcast', True) # noqa: B010
-            shared.log.info('Decode: set upcast=True and attempt to retry operation')
+            logger.log.info('Decode: set upcast=True and attempt to retry operation')
     t1 = time.time()
     timer.process.add('validate', t1 - t0)
     return cast
@@ -301,24 +302,24 @@ def decode_images(image):
                 try:
                     decoded.append(helpers.decode_base64_to_image(img, quiet=True))
                 except Exception as e:
-                    shared.log.error(f'Decode image[{i}]: {e}')
+                    logger.log.error(f'Decode image[{i}]: {e}')
             elif isinstance(img, Image.Image):
                 decoded.append(img)
             else:
-                shared.log.error(f'Decode image[{i}]: {type(img)} unknown type')
+                logger.log.error(f'Decode image[{i}]: {type(img)} unknown type')
         return decoded
     elif isinstance(image, str):
         try:
             return helpers.decode_base64_to_image(image, quiet=True)
         except Exception as e:
-            shared.log.error(f'Decode image: {e}')
+            logger.log.error(f'Decode image: {e}')
     # elif isinstance(image, Image.Image):
     #     return image
     # elif torch.is_tensor(image):
     #     return image
     else:
         return image
-        # shared.log.error(f'Decode image: {type(image)} unknown type')
+        # logger.log.error(f'Decode image: {type(image)} unknown type')
     return None
 
 
@@ -332,7 +333,7 @@ def resize_init_images(p):
             tgt_width = vae_scale_factor * math.ceil(p.init_images[0].width / vae_scale_factor)
             tgt_height = vae_scale_factor * math.ceil(p.init_images[0].height / vae_scale_factor)
             if p.init_images[0].size != (tgt_width, tgt_height):
-                shared.log.debug(f'Resizing init images: original={p.init_images[0].width}x{p.init_images[0].height} target={tgt_width}x{tgt_height}')
+                logger.log.debug(f'Resizing init images: original={p.init_images[0].width}x{p.init_images[0].height} target={tgt_width}x{tgt_height}')
                 p.init_images = [images.resize_image(1, image, tgt_width, tgt_height, upscaler_name=None) for image in p.init_images]
                 p.height = tgt_height
                 p.width = tgt_width
@@ -354,7 +355,7 @@ def resize_init_images(p):
 
 def resize_hires(p, latents): # input=latents output=pil if not latent_upscaler else latent
     if (p.hr_upscale_to_x == 0 or p.hr_upscale_to_y == 0) and hasattr(p, 'init_hr'):
-        shared.log.error('Hires: missing upscaling dimensions')
+        logger.log.error('Hires: missing upscaling dimensions')
         return latents
 
     jobid = shared.state.begin('Resize')
@@ -364,14 +365,14 @@ def resize_hires(p, latents): # input=latents output=pil if not latent_upscaler 
             try:
                 for i in range(len(latents)):
                     if not torch.is_tensor(latents[i]):
-                        shared.log.warning(f'Hires: input[{i}]={type(latents[i])} not tensor')
+                        logger.log.warning(f'Hires: input[{i}]={type(latents[i])} not tensor')
                         latents[i] = processing_vae.vae_encode(image=latents[i], model=shared.sd_model, vae_type=p.vae_type)
                     latents = torch.cat(latents, dim=0)
             except Exception as e:
-                shared.log.error(f'Hires: prepare latents: {e}')
+                logger.log.error(f'Hires: prepare latents: {e}')
                 resized = latents
         elif not torch.is_tensor(latents):
-            shared.log.warning(f'Hires: input={type(latents)} not tensor')
+            logger.log.warning(f'Hires: input={type(latents)} not tensor')
         resized = images.resize_image(p.hr_resize_mode, latents, p.hr_upscale_to_x, p.hr_upscale_to_y, upscaler_name=p.hr_upscaler, context=p.hr_resize_context)
     else:
         decoded = processing_vae.vae_decode(latents=latents, model=shared.sd_model, vae_type=p.vae_type, output_type='pil', width=p.width, height=p.height)
@@ -457,7 +458,7 @@ def get_generator(p):
             devices.randn(p.seeds[0])
             generator = [torch.Generator(generator_device).manual_seed(s) for s in p.seeds]
         except Exception as e:
-            shared.log.error(f'Torch generator: seeds={p.seeds} device={generator_device} {e}')
+            logger.log.error(f'Torch generator: seeds={p.seeds} device={generator_device} {e}')
             generator = None
     return generator
 
@@ -492,7 +493,7 @@ def apply_circular(enable: bool, model):
             layer.padding_mode = 'circular' if enable else 'zeros'
         model.texture_tiling = enable
         if current is not None or enable:
-            shared.log.debug(f'Apply texture tiling: enabled={enable} layers={i} cls={model.__class__.__name__} ')
+            logger.log.debug(f'Apply texture tiling: enabled={enable} layers={i} cls={model.__class__.__name__} ')
     except Exception as e:
         debug(f"Diffusers tiling failed: {e}")
 
@@ -513,7 +514,7 @@ def update_sampler(p, sd_model, second_pass=False):
             return
         sampler = sd_samplers.find_sampler(sampler_selection)
         if sampler is None:
-            shared.log.warning(f'Sampler: "{sampler_selection}" not found')
+            logger.log.warning(f'Sampler: "{sampler_selection}" not found')
             sampler = sd_samplers.all_samplers_map.get("UniPC")
         sampler = sd_samplers.create_sampler(sampler.name, sd_model)
         if sampler is None or sampler_selection == 'Default':

@@ -1,3 +1,4 @@
+from modules import logger
 from modules import shared
 
 
@@ -14,11 +15,11 @@ def apply_first_block_cache():
     try:
         if 'Nunchaku' in shared.sd_model.transformer.__class__.__name__:
             from nunchaku.caching.diffusers_adapters import apply_cache_on_pipe
-            shared.log.info(f'Transformers cache: type=nunchaku rdt={shared.opts.para_diff_threshold} cls={shared.sd_model.transformer.__class__.__name__}')
+            logger.log.info(f'Transformers cache: type=nunchaku rdt={shared.opts.para_diff_threshold} cls={shared.sd_model.transformer.__class__.__name__}')
         else:
             from para_attn.first_block_cache.diffusers_adapters import apply_cache_on_pipe
-            shared.log.info(f'Transformers cache: type=paraattn rdt={shared.opts.para_diff_threshold} cls={shared.sd_model.transformer.__class__.__name__}')
+            logger.log.info(f'Transformers cache: type=paraattn rdt={shared.opts.para_diff_threshold} cls={shared.sd_model.transformer.__class__.__name__}')
         apply_cache_on_pipe(shared.sd_model, residual_diff_threshold=shared.opts.para_diff_threshold)
     except Exception as e:
-        shared.log.error(f'Transformers cache: type=paraattn {e}')
+        logger.log.error(f'Transformers cache: type=paraattn {e}')
         return

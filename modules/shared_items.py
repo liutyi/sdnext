@@ -130,13 +130,12 @@ def get_pipelines():
                 'ONNX Stable Diffusion Upscale': getattr(diffusers, 'OnnxStableDiffusionUpscalePipeline', None),
             }
         except Exception as e:
-            from installer import log
+            from modules.logger import log
             log.error(f'ONNX initialization error: {e}')
             onnx_pipelines = {}
         pipelines.update(onnx_pipelines)
     for k, v in pipelines.items():
         if k != 'Autodetect' and v is None:
-            from installer import log # pylint: disable=redefined-outer-name
             log.error(f'Model="{k}" diffusers={diffusers.__version__} path={diffusers.__file__} pipeline not available')
     return pipelines
 

@@ -2,7 +2,7 @@ import sys
 import torch
 import numpy as np
 from PIL import Image
-from installer import log
+from modules.logger import log
 
 
 def to_tensor(image: Image.Image | np.ndarray):

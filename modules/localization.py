@@ -1,5 +1,6 @@
 import json
 import modules.errors as errors
+from modules import logger
 
 
 localizations = {}
@@ -31,7 +32,7 @@ def localization_js(current_localization_name):
             with open(fn, encoding="utf8") as file:
                 data = json.load(file)
         except Exception as e:
-            errors.log.error(f"Error loading localization from {fn}:")
+            logger.log.error(f"Error loading localization from {fn}:")
             errors.display(e, 'localization')
 
     return f"var localization = {json.dumps(data)}\n"

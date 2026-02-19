@@ -1,6 +1,7 @@
 # MIT-Han-Lab Nunchaku: <https://github.com/mit-han-lab/nunchaku>
 
-from installer import log, pip
+from installer import pip
+from modules.logger import log
 from modules import devices
 
 

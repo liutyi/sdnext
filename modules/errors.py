@@ -1,6 +1,6 @@
 import logging
 import warnings
-from installer import get_log, get_console, setup_logging, install_traceback
+from modules.logger import get_log, get_console, setup_logging, install_traceback
 from modules.errorlimiter import ErrorLimiterAbort
 
 

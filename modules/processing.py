@@ -4,6 +4,7 @@ import time
 import numpy as np
 from PIL import Image, ImageOps
 from modules import shared, devices, errors, images, scripts_manager, memstats, script_callbacks, extra_networks, detailer, sd_models, sd_checkpoint, sd_vae, processing_helpers, timer
+from modules import logger
 from modules.sd_hijack_hypertile import context_hypertile_vae, context_hypertile_unet
 from modules.processing_class import ( # pylint: disable=unused-import
     StableDiffusionProcessing,
@@ -18,7 +19,7 @@ from modules.modeldata import model_data
 
 opt_C = 4
 opt_f = 8
-debug = shared.log.trace if os.environ.get('SD_PROCESS_DEBUG', None) is not None else lambda *args, **kwargs: None
+debug = logger.log.trace if os.environ.get('SD_PROCESS_DEBUG', None) is not None else lambda *args, **kwargs: None
 debug('Trace: PROCESS')
 create_binary_mask = processing_helpers.create_binary_mask
 apply_overlay = processing_helpers.apply_overlay
@@ -139,10 +140,10 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
     timer.process.reset()
     debug(f'Process images: class={p.__class__.__name__} {vars(p)}')
     if not hasattr(p.sd_model, 'sd_checkpoint_info'):
-        shared.log.error('Processing: incomplete model')
+        logger.log.error('Processing: incomplete model')
         return None
     if p.abort:
-        shared.log.debug('Processing: aborted')
+        logger.log.debug('Processing: aborted')
         return None
     if p.scripts is not None and isinstance(p.scripts, scripts_manager.ScriptRunner):
         p.scripts.before_process(p)
@@ -159,11 +160,11 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
     try:
         # if no checkpoint override or the override checkpoint can't be found, remove override entry and load opts checkpoint
         if p.override_settings.get('sd_model_checkpoint', None) is not None and sd_checkpoint.checkpoint_aliases.get(p.override_settings.get('sd_model_checkpoint')) is None:
-            shared.log.warning(f"Override not found: checkpoint={p.override_settings.get('sd_model_checkpoint', None)}")
+            logger.log.warning(f"Override not found: checkpoint={p.override_settings.get('sd_model_checkpoint', None)}")
             p.override_settings.pop('sd_model_checkpoint', None)
             sd_models.reload_model_weights()
         if p.override_settings.get('sd_model_refiner', None) is not None and sd_checkpoint.checkpoint_aliases.get(p.override_settings.get('sd_model_refiner')) is None:
-            shared.log.warning(f"Override not found: refiner={p.override_settings.get('sd_model_refiner', None)}")
+            logger.log.warning(f"Override not found: refiner={p.override_settings.get('sd_model_refiner', None)}")
             p.override_settings.pop('sd_model_refiner', None)
             sd_models.reload_model_weights()
         if p.override_settings.get('sd_vae', None) is not None:
@@ -176,7 +177,7 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
         if p.override_settings.get('Hires upscaler', None) is not None:
             p.enable_hr = True
         if len(p.override_settings.keys()) > 0:
-            shared.log.debug(f'Override: {p.override_settings}')
+            logger.log.debug(f'Override: {p.override_settings}')
         for k, v in p.override_settings.items():
             setattr(shared.opts, k, v)
             if k == 'sd_model_checkpoint':
@@ -206,7 +207,7 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
                     activities.append(torch.profiler.ProfilerActivity.CUDA)
                 if devices.has_xpu() and hasattr(torch.profiler.ProfilerActivity, "XPU"):
                     activities.append(torch.profiler.ProfilerActivity.XPU)
-                shared.log.debug(f'Torch profile: activities={activities}')
+                logger.log.debug(f'Torch profile: activities={activities}')
                 if shared.profiler is None:
                     profile_args = {
                         'activities': activities,
@@ -218,7 +219,7 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
                         'record_shapes': os.environ.get('SD_PROFILE_SHAPES', None) is not None,
                         'on_trace_ready': torch.profiler.tensorboard_trace_handler(os.environ.get('SD_PROFILE_FOLDER', None)) if os.environ.get('SD_PROFILE_FOLDER', None) is not None else None,
                     }
-                    shared.log.debug(f'Torch profile: {profile_args}')
+                    logger.log.debug(f'Torch profile: {profile_args}')
                     shared.profiler = torch.profiler.profile(**profile_args)
                 shared.profiler.start()
                 results = process_images_inner(p)
@@ -295,7 +296,7 @@ def process_samples(p: StableDiffusionProcessing, samples):
 
         if isinstance(image, list):
             if len(image) > 1:
-                shared.log.warning(f'Processing: images={image} contains multiple images using first one only')
+                logger.log.warning(f'Processing: images={image} contains multiple images using first one only')
             image = image[0]
 
         if not shared.state.interrupted and not shared.state.skipped:
@@ -408,15 +409,15 @@ def process_images_inner(p: StableDiffusionProcessing) -> Processed:
         for n in range(p.n_iter):
             p.init_images = p.iter_init_images
             if p.n_iter > 1:
-                shared.log.debug(f'Processing: batch={n+1} total={p.n_iter} progress={(n+1)/p.n_iter:.2f}')
+                logger.log.debug(f'Processing: batch={n+1} total={p.n_iter} progress={(n+1)/p.n_iter:.2f}')
             shared.state.batch_no = n + 1
             debug(f'Processing inner: iteration={n+1}/{p.n_iter}')
             p.iteration = n
             if shared.state.interrupted:
-                shared.log.debug(f'Process interrupted: {n+1}/{p.n_iter}')
+                logger.log.debug(f'Process interrupted: {n+1}/{p.n_iter}')
                 break
             if shared.state.skipped:
-                shared.log.debug(f'Process skipped: {n+1}/{p.n_iter}')
+                logger.log.debug(f'Process skipped: {n+1}/{p.n_iter}')
                 shared.state.skipped = False
                 continue
 
@@ -450,7 +451,7 @@ def process_images_inner(p: StableDiffusionProcessing) -> Processed:
             timer.process.record('process')
 
             if shared.state.interrupted:
-                shared.log.debug(f'Process: batch={n+1}/{p.n_iter} interrupted')
+                logger.log.debug(f'Process: batch={n+1}/{p.n_iter} interrupted')
                 p.do_not_save_samples = not shared.opts.keep_incomplete
                 if shared.state.current_image is not None and isinstance(shared.state.current_image, Image.Image):
                     samples = [shared.state.current_image]
@@ -525,9 +526,9 @@ def process_images_inner(p: StableDiffusionProcessing) -> Processed:
     timer.process.record('post')
     p.ops = list(set(p.ops))
     if not p.disable_extra_networks:
-        shared.log.info(f'Processed: images={len(output_images)} its={(p.steps * len(output_images)) / (t1 - t0):.2f} ops={p.ops}')
-        shared.log.debug(f'Processed: timers={timer.process.dct()}')
-        shared.log.debug(f'Processed: memory={memstats.memory_stats()}')
+        logger.log.info(f'Processed: images={len(output_images)} its={(p.steps * len(output_images)) / (t1 - t0):.2f} ops={p.ops}')
+        logger.log.debug(f'Processed: timers={timer.process.dct()}')
+        logger.log.debug(f'Processed: memory={memstats.memory_stats()}')
 
     if shared.cmd_opts.lowvram or shared.cmd_opts.medvram:
         devices.torch_gc(force=True, reason='final')

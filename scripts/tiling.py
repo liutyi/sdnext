@@ -7,6 +7,7 @@ from torch import Tensor
 from torch.nn import functional as F
 from torch.nn.modules.utils import _pair
 from modules import scripts_manager, processing, shared
+from modules import logger
 
 
 modex = 'constant'
@@ -49,7 +50,7 @@ class Script(scripts_manager.Script):
         global modex, modey # pylint: disable=global-statement
         supported_model_list = ['sd', 'sdxl']
         if shared.sd_model_type not in supported_model_list:
-            shared.log.warning(f'Tiling: class={shared.sd_model.__class__.__name__} model={shared.sd_model_type} required={supported_model_list}')
+            logger.log.warning(f'Tiling: class={shared.sd_model.__class__.__name__} model={shared.sd_model_type} required={supported_model_list}')
             return None
         if not tilex and not tiley:
             return None
@@ -70,7 +71,7 @@ class Script(scripts_manager.Script):
             if hasattr(cl, '_conv_forward'):
                 cl._orig_conv_forward = cl._conv_forward # pylint: disable=protected-access
             cl._conv_forward = asymmetricConv2DConvForward.__get__(cl, torch.nn.Conv2d) # pylint: disable=protected-access, no-value-for-parameter
-        shared.log.info(f'Tiling: x={tilex}:{numx} y={tiley}:{numy}')
+        logger.log.info(f'Tiling: x={tilex}:{numx} y={tiley}:{numy}')
         return None
 
     def after(self, p: processing.StableDiffusionProcessing, processed: processing.Processed, tilex:bool=False, numx:int=1, tiley:bool=False, numy:int=1): # pylint: disable=arguments-differ, unused-argument
