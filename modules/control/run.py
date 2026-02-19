@@ -546,19 +546,21 @@ def control_run(state: str = '', # pylint: disable=keyword-arg-before-vararg
                     if input_type == 1:
                         debug_log('Control Init image: same as control')
                         init_image = input_image
-                    elif inits is None:
+                    elif inits is None or len(inits) == 0:
                         debug_log('Control Init image: none')
                         init_image = None
-                    elif isinstance(inits[i], str):
+                    elif len(inits) > i and isinstance(inits[i], str):
                         debug_log(f'Control: init image: {inits[i]}')
                         try:
                             init_image = Image.open(inits[i])
                         except Exception as e:
                             log.error(f'Control: image open failed: path={inits[i]} type=init error={e}')
                             continue
-                    else:
+                    elif len(inits) > i:
                         debug_log(f'Control Init image: {i % len(inits) + 1} of {len(inits)}')
                         init_image = inits[i % len(inits)]
+                    else:
+                        init_image = None
                     if video is not None and index % (video_skip_frames + 1) != 0:
                         index += 1
                         continue

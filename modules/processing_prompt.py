@@ -139,7 +139,7 @@ def set_prompt(p,
                 if 'prompt_attention_mask' in possible:
                     args['prompt_attention_mask'] = prompt_attention_masks
 
-        if 'negative_prompt' in possible:
+        if 'negative_prompt' in possible and prompt_parser_diffusers.embedder is not None:
             debug_log(f'Prompt set embeds: negative={negative_prompts}')
             negative_embeds = prompt_parser_diffusers.embedder('negative_prompt_embeds')
             negative_pooled_embeds = prompt_parser_diffusers.embedder('negative_pooleds')

@@ -517,18 +517,15 @@ def prepare_embedding_providers(pipe, clip_skip) -> list[EmbeddingsProvider]:
         no_mask_provider = EmbeddingsProvider(padding_attention_mask_value=1 if "sote" in pipe.sd_checkpoint_info.name.lower() else 0, tokenizer=pipe.prior_pipe.tokenizer, text_encoder=pipe.prior_pipe.text_encoder, **embedding_args)
         embeddings_providers.append(no_mask_provider)
     elif getattr(pipe, "tokenizer", None) is not None and getattr(pipe, "text_encoder", None) is not None:
-        if pipe.text_encoder.__class__.__name__.startswith('CLIP'):
-            sd_models.move_model(pipe.text_encoder, devices.device, force=True)
+        sd_models.move_model(pipe.text_encoder, devices.device, force=True)
         provider = EmbeddingsProvider(tokenizer=pipe.tokenizer, text_encoder=pipe.text_encoder, **embedding_args)
         embeddings_providers.append(provider)
     if getattr(pipe, "tokenizer_2", None) is not None and getattr(pipe, "text_encoder_2", None) is not None:
-        if pipe.text_encoder_2.__class__.__name__.startswith('CLIP'):
-            sd_models.move_model(pipe.text_encoder_2, devices.device, force=True)
+        sd_models.move_model(pipe.text_encoder_2, devices.device, force=True)
         provider = EmbeddingsProvider(tokenizer=pipe.tokenizer_2, text_encoder=pipe.text_encoder_2, **embedding_args)
         embeddings_providers.append(provider)
     if getattr(pipe, "tokenizer_3", None) is not None and getattr(pipe, "text_encoder_3", None) is not None:
-        if pipe.text_encoder_3.__class__.__name__.startswith('CLIP'):
-            sd_models.move_model(pipe.text_encoder_3, devices.device, force=True)
+        sd_models.move_model(pipe.text_encoder_3, devices.device, force=True)
         provider = EmbeddingsProvider(tokenizer=pipe.tokenizer_3, text_encoder=pipe.text_encoder_3, **embedding_args)
         embeddings_providers.append(provider)
     return embeddings_providers
