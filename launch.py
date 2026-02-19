@@ -7,6 +7,7 @@ import time
 import shlex
 import threading
 import subprocess
+
 import installer
 from modules.logger import log
 
@@ -232,7 +233,6 @@ def start_server(immediate=True, server=None):
 
 def main():
     global args # pylint: disable=global-statement
-    installer.ensure_base_requirements()
     init_args() # setup argparser and default folders
     installer.args = args
     installer.setup_logging(debug=args.debug, trace=args.trace, filename=args.log)

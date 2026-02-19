@@ -13,7 +13,6 @@ import cProfile
 import importlib
 import importlib.util
 import importlib.metadata
-from modules.logger import setup_logging, log
 
 
 class Dot(dict): # dot notation access to dictionary attributes
@@ -29,9 +28,10 @@ version = {
     'url': 'unknown',
     'kanvas': 'unknown',
 }
+log = logging.getLogger('sdnext.installer')
+debug = log.debug if os.environ.get('SD_INSTALL_DEBUG', None) is not None else lambda *args, **kwargs: None
 setuptools, distutils = None, None # defined via ensure_base_requirements
 current_branch = None
-debug = log.debug if os.environ.get('SD_INSTALL_DEBUG', None) is not None else lambda *args, **kwargs: None
 pip_log = '--log pip.log ' if os.environ.get('SD_PIP_DEBUG', None) is not None else ''
 log_file = os.path.join(os.path.dirname(__file__), 'sdnext.log')
 hostname = socket.gethostname()
@@ -83,9 +83,6 @@ try:
 except Exception:
     ts = lambda *args, **kwargs: None # pylint: disable=unnecessary-lambda-assignment
     elapsed = lambda *args, **kwargs: None # pylint: disable=unnecessary-lambda-assignment
-
-
-# setup console and file logging is imported from modules.logger
 
 
 @lru_cache
@@ -1038,56 +1035,6 @@ def reload(package, desired=None):
     log.debug(f'Reload: package={package} version={sys.modules[package].__version__ if hasattr(sys.modules[package], "__version__") else "N/A"}')
 
 
-def ensure_base_requirements():
-    t_start = time.time()
-    setuptools_version = '69.5.1'
-
-    def update_setuptools():
-        local_log = logging.getLogger('sdnext.installer')
-        global setuptools, distutils # pylint: disable=global-statement
-        # python may ship with incompatible setuptools
-        subprocess.run(f'"{sys.executable}" -m pip install setuptools=={setuptools_version}', shell=True, check=False, env=os.environ, capture_output=True)
-        # need to delete all references to modules to be able to reload them otherwise python will use cached version
-        modules = [m for m in sys.modules if m.startswith('setuptools') or m.startswith('distutils')]
-        for m in modules:
-            del sys.modules[m]
-        try:
-            setuptools = importlib.import_module('setuptools')
-            sys.modules['setuptools'] = setuptools
-        except ImportError as e:
-            local_log.info(f'Python: version={platform.python_version()} platform={platform.system()} bin="{sys.executable}" venv="{sys.prefix}"')
-            local_log.critical(f'Import: setuptools {e}')
-            os._exit(1)
-        try:
-            distutils = importlib.import_module('distutils')
-            sys.modules['distutils'] = distutils
-        except ImportError as e:
-            local_log.info(f'Python: version={platform.python_version()} platform={platform.system()} bin="{sys.executable}" venv="{sys.prefix}"')
-            local_log.critical(f'Import: distutils {e}')
-            os._exit(1)
-        try:
-            distutils = importlib.import_module('distutils')
-            sys.modules['distutils'] = distutils
-        except ImportError as e:
-            local_log.info(f'Python: version={platform.python_version()} platform={platform.system()} bin="{sys.executable}" venv="{sys.prefix}"')
-            local_log.critical(f'Import: distutils {e}')
-            os._exit(1)
-
-    try:
-        global setuptools # pylint: disable=global-statement
-        import setuptools # pylint: disable=redefined-outer-name
-        if setuptools.__version__ != setuptools_version:
-            update_setuptools()
-    except ImportError:
-        update_setuptools()
-
-    # used by installler itself so must be installed before requirements
-    install('rich==14.1.0', 'rich', quiet=True)
-    install('psutil', 'psutil', quiet=True)
-    install('requests==2.32.3', 'requests', quiet=True)
-    ts('base', t_start)
-
-
 def install_gradio():
     # pip install gradio==3.43.2 installs:
     # aiofiles-23.2.1 altair-5.5.0 annotated-types-0.7.0 anyio-4.9.0 attrs-25.3.0 certifi-2025.6.15 charset_normalizer-3.4.2 click-8.2.1 contourpy-1.3.2 cycler-0.12.1 fastapi-0.115.14 ffmpy-0.6.0 filelock-3.18.0 fonttools-4.58.4 fsspec-2025.5.1 gradio-3.43.2 gradio-client-0.5.0 h11-0.16.0 hf-xet-1.1.5 httpcore-1.0.9 httpx-0.28.1 huggingface-hub-0.33.1 idna-3.10 importlib-resources-6.5.2 jinja2-3.1.6 jsonschema-4.24.0 jsonschema-specifications-2025.4.1 kiwisolver-1.4.8 markupsafe-2.1.5 matplotlib-3.10.3 narwhals-1.45.0 numpy-1.26.4 orjson-3.10.18 packaging-25.0 pandas-2.3.0 pillow-10.4.0 pydantic-2.11.7 pydantic-core-2.33.2 pydub-0.25.1 pyparsing-3.2.3 python-dateutil-2.9.0.post0 python-multipart-0.0.20 pytz-2025.2 pyyaml-6.0.2 referencing-0.36.2 requests-2.32.4 rpds-py-0.25.1 semantic-version-2.10.0 six-1.17.0 sniffio-1.3.1 starlette-0.46.2 tqdm-4.67.1 typing-extensions-4.14.0 typing-inspection-0.4.1 tzdata-2025.2 urllib3-2.5.0 uvicorn-0.35.0 websockets-11.0.3
@@ -1670,3 +1617,60 @@ def read_options():
             except Exception as e:
                 log.error(f'Error reading options file: {file} {e}')
     ts('options', t_start)
+
+
+def ensure_base_requirements():
+    t_start = time.time()
+    setuptools_version = '69.5.1'
+
+    def update_setuptools():
+        local_log = logging.getLogger('sdnext.installer')
+        global setuptools, distutils # pylint: disable=global-statement
+        # python may ship with incompatible setuptools
+        subprocess.run(f'"{sys.executable}" -m pip install setuptools=={setuptools_version}', shell=True, check=False, env=os.environ, capture_output=True)
+        # need to delete all references to modules to be able to reload them otherwise python will use cached version
+        modules = [m for m in sys.modules if m.startswith('setuptools') or m.startswith('distutils')]
+        for m in modules:
+            del sys.modules[m]
+        try:
+            setuptools = importlib.import_module('setuptools')
+            sys.modules['setuptools'] = setuptools
+        except ImportError as e:
+            local_log.info(f'Python: version={platform.python_version()} platform={platform.system()} bin="{sys.executable}" venv="{sys.prefix}"')
+            local_log.critical(f'Import: setuptools {e}')
+            os._exit(1)
+        try:
+            distutils = importlib.import_module('distutils')
+            sys.modules['distutils'] = distutils
+        except ImportError as e:
+            local_log.info(f'Python: version={platform.python_version()} platform={platform.system()} bin="{sys.executable}" venv="{sys.prefix}"')
+            local_log.critical(f'Import: distutils {e}')
+            os._exit(1)
+        try:
+            distutils = importlib.import_module('distutils')
+            sys.modules['distutils'] = distutils
+        except ImportError as e:
+            local_log.info(f'Python: version={platform.python_version()} platform={platform.system()} bin="{sys.executable}" venv="{sys.prefix}"')
+            local_log.critical(f'Import: distutils {e}')
+            os._exit(1)
+
+    try:
+        global setuptools # pylint: disable=global-statement
+        import setuptools # pylint: disable=redefined-outer-name
+        if setuptools.__version__ != setuptools_version:
+            update_setuptools()
+    except ImportError:
+        update_setuptools()
+
+    # used by installler itself so must be installed before requirements
+    install('rich==14.1.0', 'rich', quiet=True)
+    install('psutil', 'psutil', quiet=True)
+    install('requests==2.32.3', 'requests', quiet=True)
+    ts('base', t_start)
+
+# startup
+
+ensure_base_requirements()
+from modules.logger import setup_logging # must be loaded after ensure_base_requirements
+from modules.logger import log as log_instance
+log = log_instance
