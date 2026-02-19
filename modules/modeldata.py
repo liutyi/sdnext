@@ -185,6 +185,9 @@ class Shared(sys.modules[__name__].__class__):
     @sd_model.setter
     def sd_model(self, value):
         import modules.sd_models # pylint: disable=W0621
+        if value is None:
+            fn = f'{os.path.basename(sys._getframe(2).f_code.co_filename)}:{sys._getframe(2).f_code.co_name}:{sys._getframe(1).f_code.co_name}' # pylint: disable=protected-access
+            log.debug(f'Model unloaded: fn={fn}') # pylint: disable=protected-access
         modules.sd_models.model_data.set_sd_model(value)
 
     @property
@@ -204,7 +207,7 @@ class Shared(sys.modules[__name__].__class__):
             if modules.sd_models.model_data.sd_model is None:
                 model_type = 'none'
                 return model_type
-            model_type = get_model_type(self.sd_model)
+            model_type = get_model_type(modules.sd_models.model_data.sd_model)
         except Exception:
             model_type = 'unknown'
         return model_type
@@ -216,7 +219,7 @@ class Shared(sys.modules[__name__].__class__):
             if modules.sd_models.model_data.sd_refiner is None:
                 model_type = 'none'
                 return model_type
-            model_type = get_model_type(self.sd_refiner)
+            model_type = get_model_type(modules.sd_models.model_data.sd_refiner)
         except Exception:
             model_type = 'unknown'
         return model_type

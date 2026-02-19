@@ -473,6 +473,7 @@ def control_run(state: str = '', # pylint: disable=keyword-arg-before-vararg
     index = 0
     frames = 0
     blended_image = None
+    cap = None
 
     # set pipeline
     if pipe is None:

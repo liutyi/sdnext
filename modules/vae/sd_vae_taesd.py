@@ -77,7 +77,7 @@ def get_model(model_type = 'decoder', variant = None):
     elif model_cls in {'wanai', 'qwen', 'chrono', 'cosmos'}:
         variant = variant or 'TAE WanVideo'
     elif model_cls not in supported:
-        warn_once(f'cls={shared.sd_model.__class__.__name__} type={model_cls} unsuppported', variant=variant)
+        warn_once(f'cls={shared.sd_model.__class__.__name__} type={shared.sd_model_type} unsuppported', variant=variant)
         return None, variant
     variant = variant or shared.opts.taesd_variant
     folder = os.path.join(paths.models_path, "TAESD")
