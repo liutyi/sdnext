@@ -10,7 +10,7 @@
     "torch": "unknown",
     "python": "3.14.3 (main, Feb  4 2026, 09:28:29) [GCC 13.3.0]",
     "platform": "linux",
-    "requirements": "48d1c48d0709cdb9cad3c0da88b582783f02f0ecaf3499c4a81d9e1a1e453c40",
+    "requirements": "cb99715eb5944d558a05c4f573053d62837fce7ba6337f1025c5c1e363f1be59",
     "extensions": {
         "stable-diffusion-webui-rembg": "cfceed7243ce97cf8fd64a43df0291448c22a9dd",
         "sd-extension-chainner": "2a7005fbcf8985644b66121365fa7228a65f34b0",
