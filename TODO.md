@@ -108,36 +108,6 @@ TODO: Investigate which models are diffusers-compatible and prioritize!
 - [DenseDiffusion](https://github.com/naver-ai/DenseDiffusion): Based on SD15
 - [IC-Light](https://github.com/lllyasviel/IC-Light): Based on SD15
 
-## Migration
-
-### Asyncio
-
-- Policy system is deprecated and will be removed in Python 3.16
- [Python 3.14 removalsasyncio](https://docs.python.org/3.14/whatsnew/3.14.html#id10)
- https://docs.python.org/3.14/library/asyncio-policy.html
- Affected files:
-   [`webui.py`](webui.py)
-   [`cli/sdapi.py`](cli/sdapi.py)
- Migration:
-   [asyncio.run](https://docs.python.org/3.14/library/asyncio-runner.html#asyncio.run)
-   [asyncio.Runner](https://docs.python.org/3.14/library/asyncio-runner.html#asyncio.Runner)
-
-### rmtree
-
-- `onerror` deprecated and replaced with `onexc` in Python 3.12
-``` python
-    def excRemoveReadonly(func, path, exc: BaseException):
-        import stat
-        shared.log.debug(f'Exception during cleanup: {func} {path} {type(exc).__name__}')
-        if func in (os.rmdir, os.remove, os.unlink) and isinstance(exc, PermissionError):
-            shared.log.debug(f'Retrying cleanup: {path}')
-            os.chmod(path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
-            func(path)
-    # ...
-      try:
-          shutil.rmtree(found.path, ignore_errors=False, onexc=excRemoveReadonly)
-```
-
 ## Code TODO
 
 > npm run todo

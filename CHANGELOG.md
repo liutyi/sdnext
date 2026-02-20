@@ -6,7 +6,7 @@
 
 TBD
 
-### Details for 2026-02-18
+### Details for 2026-02-20
 
 - **Models**
   - [FireRed Image Edit](https://huggingface.co/FireRedTeam/FireRed-Image-Edit-1.0)  
