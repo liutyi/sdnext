@@ -47,27 +47,28 @@ TBD
     `clip, numba, skimage, torchsde, omegaconf, antlr, patch-ng, patch-ng, astunparse, addict, inflection, jsonmerge, kornia`,  
     `resize-right, voluptuous, yapf, sqlalchemy, invisible-watermark, pi-heif, ftfy, blendmodes, PyWavelets, imp`  
     these are now installed on-demand when needed  
-  - refactor: to/from image/tensor logic, thanks @CalamitousFelicitousness  
-  - refactor: switch to `pyproject.toml` for tool configs  
-  - refactor: reorganize `cli` scripts  
-  - refactor: move tests to dedicated `/test/`  
-  - refactor: all image handling to `modules/image/`  
-  - refactor: remove face restoration, thanks @CalamitousFelicitousness  
-  - refactor: unified command line parsing  
-  - refactor: launch use threads to async execute non-critical tasks  
-  - refactor: switch from deprecated `pkg_resources` to `importlib`  
-  - refactor: modernize typing and type annotations  
-  - refactor: improve `pydantic==2.x` compatibility  
-  - refactor: entire logging into separate `modules/logger`  
-  - refactor: replace `timestamp` based startup checks with state caching  
-  - refactor: split monolithic `shared` module and introduce `ui_definitions`  
-  - refactor: modularize all imports and avoid re-imports  
+  - refactor to/from image/tensor logic, thanks @CalamitousFelicitousness  
+  - switch to `pyproject.toml` for tool configs  
+  - refactor reorganize `cli` scripts  
+  - refactor move tests to dedicated `/test/`  
+  - refactor all image handling to `modules/image/`  
+  - remove face restoration, thanks @CalamitousFelicitousness  
+  - unified command line parsing  
+  - launch use threads to async execute non-critical tasks  
+  - switch from deprecated `pkg_resources` to `importlib`  
+  - modernize typing and type annotations  
+  - improve `pydantic==2.x` compatibility  
+  - refactor entire logging into separate `modules/logger`  
+  - replace `timestamp` based startup checks with state caching  
+  - split monolithic `shared` module and introduce `ui_definitions`  
+  - modularize all imports and avoid re-imports  
   - use `threading` for deferable operatios  
   - use `threading` for io-independent parallel operations  
   - remove requirements: `clip`, `open-clip`  
   - remove `normalbae` pre-processor  
-  - refactor: captioning part-2, thanks @CalamitousFelicitousness  
+  - captioning part-2, thanks @CalamitousFelicitousness  
   - update `lint` rules, thanks @awsr  
+  - add new build of `insightface`, thanks @hameerabbasi  
 - **Fixes**
   - handle `clip` installer doing unwanted `setuptools` update  
   - cleanup for `uv` installer fallback  

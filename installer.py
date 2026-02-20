@@ -1071,11 +1071,12 @@ def install_opencv():
 
 
 def install_insightface():
-    install('git+https://github.com/deepinsight/insightface@29b6cd65aa0e9ae3b6602de3c52e9d8949c8ee86#subdirectory=python-package', 'insightface') # insightface==0.7.3 with patches
-    if args.new:
+    if sys.version_info >= (3, 13):
+        install('insightfacex==0.7.4', 'insightfacex', ignore=True, quiet=True)
         uninstall('albumentations')
         install('albumentationsx')
     else:
+        install('git+https://github.com/deepinsight/insightface@29b6cd65aa0e9ae3b6602de3c52e9d8949c8ee86#subdirectory=python-package', 'insightface') # insightface==0.7.3 with patches
         uninstall('albumentationsx')
         install('albumentations==1.4.3', ignore=True, quiet=True)
     install_pydantic()
