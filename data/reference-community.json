@@ -148,10 +148,10 @@
     "date": "2026 February",
     "skip": true
   },
-  "Skywork UniPic3-Consistency": {
-    "path": "Skywork/Unipic3-Consistency-Model",
-    "preview": "Skywork--Unipic3-Consistency-Model.jpg",
-    "desc": "UniPic3-Consistency-Model is a few-step image editing and multi-image composition model based on Consistency Flow Matching (CM) and is a fine-tune of Qwen-Image-Edit.",
+  "Skywork UniPic3": {
+    "path": "Skywork/Unipic3",
+    "preview": "Skywork--Unipic3.jpg",
+    "desc": "UniPic3 is an image editing and multi-image composition model based. It is a fine-tune of Qwen-Image-Edit.",
     "tags": "community",
     "date": "2026 February",
     "skip": true
