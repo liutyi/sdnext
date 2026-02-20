@@ -1,8 +1,8 @@
 # Change Log for SD.Next
 
-## Update for 2026-02-18
+## Update for 2026-02-20
 
-### Highlights for 2026-02-18
+### Highlights for 2026-02-20
 
 TBD
 

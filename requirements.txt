@@ -37,8 +37,8 @@ pytorch_lightning==2.6.0
 urllib3==1.26.19
 Pillow==10.4.0
 timm==1.0.24
-pyparsing==3.2.3
-typing-extensions==4.14.1
+pyparsing==3.3.2
+typing-extensions==4.15.0
 sentencepiece==0.2.1
 
 # lint

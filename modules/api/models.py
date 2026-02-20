@@ -3,12 +3,18 @@ import inspect
 from typing import Any, Optional, Union
 from collections.abc import Callable
 from pydantic import BaseModel, Field, create_model
+from pydantic import VERSION
+PYDANTIC_V2 = VERSION.startswith("2.")
+
 try:
     from pydantic import ConfigDict
-    PYDANTIC_V2 = True
 except ImportError:
     ConfigDict = None
-    PYDANTIC_V2 = False
+
+try:
+    from pydantic import BaseConfig
+except ImportError:
+    BaseConfig = object
 from modules.processing import StableDiffusionProcessingTxt2Img, StableDiffusionProcessingImg2Img
 import modules.shared as shared
 
@@ -28,7 +34,7 @@ class ModelDef(BaseModel):
     field_exclude: bool = False
 
 
-class DummyConfig:
+class DummyConfig(BaseConfig):
     dummy_value = None
 
 
@@ -36,7 +42,7 @@ if not hasattr(BaseModel, "__config__"):
     BaseModel.__config__ = DummyConfig
 
 
-class PydanticConfig:
+class PydanticConfig(BaseConfig):
     arbitrary_types_allowed = True
     orm_mode = True
     allow_population_by_field_name = True
@@ -492,15 +498,19 @@ def create_model_from_signature(func: Callable, model_name: str, base_model: typ
 
     if PYDANTIC_V2:
         config = ConfigDict(arbitrary_types_allowed=True, from_attributes=True, populate_by_name=True, extra='allow' if varkw else 'ignore')
+        create_model_args = {'__base__': base_model, '__config__': config}
     else:
         class CustomConfig(PydanticConfig):
             extra = 'allow' if varkw else 'ignore'
         config = CustomConfig
+        if base_model == BaseModel:
+             create_model_args = {'__config__': config}
+        else:
+             create_model_args = {'__base__': base_model}
 
     model = create_model(
         model_name,
-        __base__=base_model,
-        __config__=config,
+        **create_model_args,
         **model_fields,
         **keyword_only_params,
     )
