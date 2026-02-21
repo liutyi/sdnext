@@ -116,7 +116,7 @@ def guess_by_name(fn, current_guess):
         new_guess = 'ChronoEdit'
     elif 'bria' in fn.lower():
         new_guess = 'Bria'
-    elif 'qwen' in fn.lower() or 'firered' in fn.lower():
+    elif 'qwen' in fn.lower() or 'firered' in fn.lower() or 'unipic3' in fn.lower():
         new_guess = 'Qwen'
     elif 'nextstep' in fn.lower():
         new_guess = 'NextStep'
