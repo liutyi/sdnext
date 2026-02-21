@@ -728,7 +728,7 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin, UNet2DConditionLoadersMixin)
         down_bridge_residuals: Optional[Tuple[torch.Tensor]] = None,
         fusion_guidance_scale: Optional[torch.FloatTensor] = None,
         fusion_type: Optional[str] = 'ADD',
-        adapter: Optional = None
+        adapter = None
     ) -> Union[UNet2DConditionOutput, Tuple]:
         r"""
         The [`UNet2DConditionModel`] forward method.

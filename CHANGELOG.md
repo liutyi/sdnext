@@ -1,12 +1,12 @@
 # Change Log for SD.Next
 
-## Update for 2026-02-20
+## Update for 2026-02-21
 
-### Highlights for 2026-02-20
+### Highlights for 2026-02-21
 
 TBD
 
-### Details for 2026-02-20
+### Details for 2026-02-21
 
 - **Models**
   - [FireRed Image Edit](https://huggingface.co/FireRedTeam/FireRed-Image-Edit-1.0)  
@@ -47,8 +47,7 @@ TBD
     `clip, numba, skimage, torchsde, omegaconf, antlr, patch-ng, patch-ng, astunparse, addict, inflection, jsonmerge, kornia`,  
     `resize-right, voluptuous, yapf, sqlalchemy, invisible-watermark, pi-heif, ftfy, blendmodes, PyWavelets, imp`  
     these are now installed on-demand when needed  
-  - refactor to/from image/tensor logic, thanks @CalamitousFelicitousness  
-  - switch to `pyproject.toml` for tool configs  
+  - refactor to/from *image/tensor* logic, thanks @CalamitousFelicitousness  
   - refactor reorganize `cli` scripts  
   - refactor move tests to dedicated `/test/`  
   - refactor all image handling to `modules/image/`  
@@ -67,8 +66,12 @@ TBD
   - remove requirements: `clip`, `open-clip`  
   - remove `normalbae` pre-processor  
   - captioning part-2, thanks @CalamitousFelicitousness  
-  - update `lint` rules, thanks @awsr  
   - add new build of `insightface`, thanks @hameerabbasi  
+- **Checks**
+  - switch to `pyproject.toml` for tool configs  
+  - update `lint` rules, thanks @awsr  
+  - add `ty` to optional lint tooling  
+  - add `pyright` to optional lint tooling  
 - **Fixes**
   - handle `clip` installer doing unwanted `setuptools` update  
   - cleanup for `uv` installer fallback  

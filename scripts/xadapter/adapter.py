@@ -1,3 +1,4 @@
+from typing import List, Tuple
 import torch
 import torch.nn as nn
 from collections import OrderedDict
@@ -46,7 +47,7 @@ def get_parameter_dtype(parameter: torch.nn.Module):
     except StopIteration:
         # For torch.nn.DataParallel compatibility in PyTorch 1.5
 
-        def find_tensor_attributes(module: torch.nn.Module) -> List[Tuple[str, Tensor]]:
+        def find_tensor_attributes(module: torch.nn.Module) -> List[Tuple[str, torch.Tensor]]:
             tuples = [(k, v) for k, v in module.__dict__.items() if torch.is_tensor(v)]
             return tuples
 
@@ -76,7 +77,7 @@ class Downsample(nn.Module):
         else:
             assert self.channels == self.out_channels
             from torch.nn import MaxUnpool2d
-            self.op = MaxUnpool2d(dims, kernel_size=stride, stride=stride)
+            self.op = MaxUnpool2d(kernel_size=stride, stride=stride)
 
     def forward(self, x):
         assert x.shape[1] == self.channels
@@ -267,10 +268,7 @@ class Adapter_XL(nn.Module):
         if t is not None:
             if not torch.is_tensor(t):
                 is_mps = x[0].device.type == "mps"
-                if isinstance(timestep, float):
-                    dtype = torch.float32 if is_mps else torch.float64
-                else:
-                    dtype = torch.int32 if is_mps else torch.int64
+                dtype = torch.int32 if is_mps else torch.int64
                 t = torch.tensor([t], dtype=dtype, device=x[0].device)
             elif len(t.shape) == 0:
                 t = t[None].to(x[0].device)

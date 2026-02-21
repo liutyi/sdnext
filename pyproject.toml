@@ -366,3 +366,42 @@ variables.redefining-builtins-modules=["six.moves","past.builtins","future.built
 pythonVersion = "3.10"
 pythonPlatform = "All"
 typeCheckingMode = "off"
+venvPath = "./venv"
+include = [
+        "*.py",
+        "modules/**/*.py",
+        "pipelines/**/*.py",
+        "scripts/**/*.py",
+        "extensions-builtin/**/*.py"
+        ]
+exclude = [
+        "**/.*",
+        ".git/",
+        "**/node_modules",
+        "**/__pycache__",
+        "venv",
+        ]
+reportMissingImports = "none"
+reportInvalidTypeForm = "none"
+
+[tool.ty.environment]
+python = "./venv/bin/python"
+python-platform = "all"
+python-version = "3.10"
+
+[tool.ty.src]
+include = [
+        "./extensions-builtin"
+       ]
+exclude = [
+       "venv/",
+       "*.git/",
+       ]
+
+[tool.ty.rules]
+invalid-method-overrides = "ignore"
+invalid-argument-types = "ignore"
+unresolved-imports = "ignore"
+unresolved-attributes = "ignore"
+invalid-assignments = "ignore"
+unsupported-operators = "ignore"
