@@ -310,6 +310,7 @@ def load_diffuser_initial(diffusers_load_config, op='model'):
 
 
 def load_diffuser_force(detected_model_type, checkpoint_info, diffusers_load_config, op='model'):
+    from modules import sdnq # pylint: disable=unused-import
     sd_model = None
     global allow_post_quant # pylint: disable=global-statement
     unload_model_weights(op=op)
