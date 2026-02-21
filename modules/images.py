@@ -2,15 +2,16 @@ from modules.image.metadata import image_data, read_info_from_image
 from modules.image.save import save_image, sanitize_filename_part
 from modules.image.resize import resize_image
 from modules.image.namegen import FilenameGenerator
-from modules.image.grid import image_grid, check_grid_size, get_grid_size, draw_grid_annotations, draw_prompt_matrix, combine_grid
+from modules.image.grid import Grid, image_grid, check_grid_size, get_grid_size, draw_grid_annotations, draw_prompt_matrix, combine_grid
 
 __all__ = [
-    'FilenameGenerator',
     'check_grid_size',
     'combine_grid',
     'draw_grid_annotations',
     'draw_prompt_matrix',
+    'FilenameGenerator',
     'get_grid_size',
+    'Grid',
     'image_data',
     'image_grid',
     'read_info_from_image',
