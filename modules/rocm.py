@@ -209,26 +209,29 @@ def find() -> ROCmEnvironment | None:
 
 
 def get_version() -> str:
-    if isinstance(environment, ROCmEnvironment):
-        # We don't load the hip library that will not be used by PyTorch.
-        if sys.platform == "win32":
-            # ROCm is system-wide installed. Assume the version is the folder name. (e.g. C:\Program Files\AMD\ROCm\6.4)
-            # hipconfig requires Perl
-            return os.path.basename(environment.path) or os.path.basename(os.path.dirname(environment.path))
+    try:
+        if isinstance(environment, ROCmEnvironment):
+            # We don't load the hip library that will not be used by PyTorch.
+            if sys.platform == "win32":
+                # ROCm is system-wide installed. Assume the version is the folder name. (e.g. C:\Program Files\AMD\ROCm\6.4)
+                # hipconfig requires Perl
+                return os.path.basename(environment.path) or os.path.basename(os.path.dirname(environment.path))
+            else:
+                arr = spawn("hipconfig --version", cwd=os.path.join(environment.path, 'bin')).split(".")
+                return f'{arr[0]}.{arr[1]}' if len(arr) >= 2 else None
+        elif isinstance(environment, PythonPackageEnvironment):
+            # If rocm-sdk package is installed, the hip library may be used by PyTorch.
+            ver = ctypes.c_int()
+            environment.hip.hipRuntimeGetVersion(ctypes.byref(ver))
+            major = ver.value // 10000000
+            minor = (ver.value // 100000) % 100
+            #patch = version.value % 100000
+            return f"{major}.{minor}"
         else:
-            arr = spawn("hipconfig --version", cwd=os.path.join(environment.path, 'bin')).split(".")
-            return f'{arr[0]}.{arr[1]}' if len(arr) >= 2 else None
-    elif isinstance(environment, PythonPackageEnvironment):
-        # If rocm-sdk package is installed, the hip library may be used by PyTorch.
-        ver = ctypes.c_int()
-        environment.hip.hipRuntimeGetVersion(ctypes.byref(ver))
-        major = ver.value // 10000000
-        minor = (ver.value // 100000) % 100
-        #patch = version.value % 100000
-        return f"{major}.{minor}"
-    else:
+            return None
+    except Exception as e:
+        log.error(f'ROCm: failed to get version: {e}')
         return None
-
 
 def get_flash_attention_command(agent: Agent) -> str:
     default = "git+https://github.com/ROCm/flash-attention"
@@ -242,7 +245,8 @@ def get_flash_attention_command(agent: Agent) -> str:
 def refresh():
     global rocm_sdk, environment, blaslt_tensile_libpath, is_installed, version # pylint: disable=global-statement
     try:
-        import rocm_sdk
+        import rocm_sdk as rocm_sdk_module
+        rocm_sdk = rocm_sdk_module
         environment = PythonPackageEnvironment(rocm_sdk)
         try:
             target_family = rocm_sdk._dist_info.determine_target_family() # pylint: disable=protected-access
