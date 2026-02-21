@@ -461,7 +461,7 @@ def check_diffusers():
     t_start = time.time()
     if args.skip_all:
         return
-    target_commit = 'bcbbded7c3fc873343a7c8f8a63d91d5c727a4a3' # diffusers commit hash
+    target_commit = 'a80b19218b4bd4faf2d6d8c428dcf1ae6f11e43d' # diffusers commit hash
     # if args.use_rocm or args.use_zluda or args.use_directml:
     #     sha = '043ab2520f6a19fce78e6e060a68dbc947edb9f9' # lock diffusers versions for now
     pkg = package_spec('diffusers')
@@ -1049,12 +1049,17 @@ def install_gradio():
 
 
 def install_pydantic():
+    """
     if args.new or (sys.version_info >= (3, 14)):
         install('pydantic==2.12.5', ignore=True, quiet=True)
         reload('pydantic', '2.12.5')
     else:
         install('pydantic==1.10.21', ignore=True, quiet=True)
         reload('pydantic', '1.10.21')
+    """
+    install('pydantic==2.12.5', ignore=True, quiet=True)
+    reload('pydantic', '2.12.5')
+
 
 def install_scipy():
     if args.new or (sys.version_info >= (3, 14)):

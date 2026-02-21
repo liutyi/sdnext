@@ -264,23 +264,23 @@ def main():
     installer.check_transformers()
     installer.check_diffusers()
     if args.test:
-        log.info('Startup: test mode')
+        log.info('Startup: mode=test')
         installer.quick_allowed = False
     if args.reinstall:
-        log.info('Startup: force reinstall of all packages')
+        log.info('Startup: mode=reinstall')
         installer.quick_allowed = False
     if args.skip_all:
-        log.info('Startup: skip all')
+        log.info('Startup: skip=all')
         installer.quick_allowed = True
         init_paths()
     else:
         installer.install_requirements()
         if installer.check_timestamp():
-            log.info('Startup: quick launch')
+            log.info('Startup: launch=quick')
             init_paths()
             installer.check_extensions()
         else:
-            log.info('Startup: full launch')
+            log.info('Startup: launch=full')
             installer.install_submodules()
             init_paths()
             installer.install_extensions()

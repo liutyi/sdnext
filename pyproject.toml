@@ -263,6 +263,7 @@ logging.logging-modules="logging"
 messages_control.confidence=["HIGH","CONTROL_FLOW","INFERENCE","INFERENCE_FAILURE","UNDEFINED"]
 messages_control.disable=[
         "abstract-method",
+        "arguments-renamed",
         "bad-inline-option",
         "bare-except",
         "broad-exception-caught",
