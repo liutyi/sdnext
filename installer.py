@@ -805,10 +805,9 @@ def install_openvino():
     t_start = time.time()
     log.info('Backend: OpenVINO')
     os.environ.setdefault('PYTORCH_TRACING_MODE', 'TORCHFX')
-    if sys.platform == 'darwin':
-        torch_command = os.environ.get('TORCH_COMMAND', 'torch==2.11.0 torchvision==0.26.0')
-    else:
-        torch_command = os.environ.get('TORCH_COMMAND', 'torch==2.11.0+cpu torchvision==0.26.0 --index-url https://download.pytorch.org/whl/cpu')
+    torch_command = os.environ.get('TORCH_COMMAND', 'torch==2.7.1+xpu torchvision==0.22.1+xpu torchaudio==2.7.1+xpu --index-url https://download.pytorch.org/whl/xpu')
+    install(os.environ.get('TORCH_COMMAND', 'torch==2.7.1+xpu torchvision==0.22.1+xpu torchaudio==2.7.1+xpu --index-url https://download.pytorch.org/whl/xpu'), ignore=True)
+    install(os.environ.get('TORCH_COMMAND', 'intel-extension-for-pytorch==2.7.10+xpu oneccl_bind_pt==2.7.0+xpu --extra-index-url https://pytorch-extension.intel.com/release-whl/stable/xpu/us/'), ignore=True)
 
     if not (args.skip_all or args.skip_requirements):
         install(os.environ.get('OPENVINO_COMMAND', 'openvino==2026.2.1'), 'openvino')
