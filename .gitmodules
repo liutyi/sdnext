@@ -15,3 +15,6 @@
 [submodule "extensions-builtin/sdnq"]
   path = extensions-builtin/sdnq
   url = https://github.com/Disty0/sdnq
+[submodule "extensions-builtin/sdnext-scheduler"]
+	path = extensions-builtin/sdnext-scheduler
+	url = https://github.com/liutyi/sdnext-scheduler
