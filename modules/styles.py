@@ -200,14 +200,15 @@ def apply_wildcards_to_prompt(prompt, all_wildcards, seed=-1, silent=False, p: S
             except Exception as e:
                 log.error(f'Wildcards: wildcard="{wildcard}" error={e}')
     t1 = time.time()
-    prompt, replaced_file, not_found = apply_file_wildcards(prompt, [], [], recursion=0, seed=seed, p=p)
+    prompt, replaced_files, missing_files = apply_file_wildcards(prompt, [], [], recursion=0, seed=seed, p=p)
     t2 = time.time()
     if replaced and not silent:
         log.debug(f'Apply wildcards: {replaced} path="{shared.opts.wildcards_dir}" type=style time={t1-t0:.2f}')
-    if (len(replaced_file) > 0 or len(not_found) > 0) and not silent:
-        log.debug(f'Apply wildcards: found={replaced_file} missing={not_found} path="{shared.opts.wildcards_dir}" type=file seed={seed} time={t2-t2:.2f}')
+    if (len(replaced_files) > 0 or len(missing_files) > 0) and not silent:
+        log.debug(f'Apply wildcards: found={replaced_files} missing={missing_files} path="{shared.opts.wildcards_dir}" type=file seed={seed} time={t2-t1:.2f}')
         if p is not None:
-            p.extra_generation_params['Wildcards'] = p.extra_generation_params.get('Wildcards', []) + [replaced_file]
+            wildcards = p.extra_generation_params.get('Wildcards', []) + replaced_files
+            p.extra_generation_params['Wildcards'] = ', '.join(wildcards)
     if old_state is not None:
         random.setstate(old_state)
     return prompt

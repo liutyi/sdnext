@@ -208,11 +208,6 @@ def create_infotext(p: StableDiffusionProcessing, all_prompts=None, all_seeds=No
         args['Sampler shift'] = get_opt('schedulers_shift') if get_opt('schedulers_shift') != shared.opts.data_labels.get('schedulers_shift').default else None
         args['Sampler dynamic shift'] = get_opt('schedulers_dynamic_shift') if get_opt('schedulers_dynamic_shift') != shared.opts.data_labels.get('schedulers_dynamic_shift').default else None
 
-    # model specific
-    if shared.sd_model_type == 'h1':
-        args['LLM'] =  None if shared.opts.model_h1_llama_repo == 'Default' else shared.opts.model_h1_llama_repo
-
-    # args.update(p.extra_generation_params)
     for k, v in p.extra_generation_params.items():
         if isinstance(v, (list, tuple)) and (job_size > index) and (len(v) > 1) and (len(v) == job_size): # likely a per-job param
             args[k] = v[index]
