@@ -123,6 +123,7 @@ Plus inevitable bug-fixes...
   - lora: support transformer ref models
   - lucida: handle requirements
   - lumina-dimoo: attention-kwargs, thanks @Anai-Guo
+  - metadata: fix wildcard info
   - minimax: crop image to video aspect ratio
   - modular: handle module with remote-code
   - network: improve type/version lookup
