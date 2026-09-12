@@ -608,7 +608,7 @@ def create_settings(cmd_opts):
 
         "other_sep_ui": OptionInfo("<h2>Other...</h2>", "", gr.HTML),
         "ui_locale": OptionInfo("Auto", "UI locale", gr.Dropdown, lambda: {"choices": theme.list_locales()}),
-        "font_size": OptionInfo(14, "Font size", gr.Slider, {"minimum": 8, "maximum": 32, "step": 1}),
+        "font_size": OptionInfo(15, "Font size", gr.Slider, {"minimum": 8, "maximum": 32, "step": 1}),
         "gpu_monitor": OptionInfo(3000, "GPU monitor interval", gr.Slider, {"minimum": 100, "maximum": 60000, "step": 100}),
         "aspect_ratios": OptionInfo("1:1, 4:3, 3:2, 16:9, 16:10, 21:9, 2:3, 3:4, 9:16, 10:16, 9:21", "Allowed aspect ratios"),
         "compact_view": OptionInfo(False, "Compact view"),
