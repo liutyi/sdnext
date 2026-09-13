@@ -1,18 +1,31 @@
 # Change Log for SD.Next
 
-## Update for 2026-09-07
+## Update for 2026-09-12
 
-### Highlights for 2026-09-07
+### Highlights for 2026-09-12
 
-All-about-optimizations: 
-- improved LoRA performance and quality, especially with quantized models
-- newly structured attention mechanisms
-- modular pipelines with new guidance methods
-- support for different caching stacks
+*What's New*? Well, code-wise, this is a big one...  
+First, a-lot-of-optimizations:
+- updated core packages
+- improved **LoRA** performance and quality, especially with quantized models
+- newly structured **attention** mechanisms
+- modular pipelines with new **guidance** methods
+- support for different **caching** stacks
 - compute updates across the board
-- enhanced cloud model support
 
-### Details for 2026-09-07
+And some cool new stuff and models:
+- **DLSSv5** integration  
+- New models:  
+  **Anima 2.9B**, **LLaDa-Image**  
+- And few cloud models:  
+  *Google's Gemini, NanoBanana, Veo, Omni* and *X.AI's Grok*  
+- Some (light) UI restyling
+
+Plus inevitable bug-fixes...
+
+[Home](https://vladmandic.github.io/sdnext/) | [ChangeLog](https://github.com/vladmandic/automatic/blob/master/CHANGELOG.md) | [Docs](https://vladmandic.github.io/sdnext-docs/) | [Discord](https://discord.com/invite/sd-next-federal-batch-inspectors-1101998836328697867) | [Sponsor](https://github.com/sponsors/vladmandic)  
+
+### Details for 2026-09-12
 
 - **Models**
   - [Anima 2.9B Preview v1](https://huggingface.co/yeoj34760/Anima-2.9B)  
@@ -21,6 +34,7 @@ All-about-optimizations:
     LLaDA-Image is a 6.5B transformer with massive 16.3B fully-custom MoE text-encoder and optional 1.3B SigVQ conditioning model  
     with support for text-to-image, vq-conditioned text-to-image and image-editing workflows  
     *note* model is extremely quantization sensitive so minimum allowed quant type is `uint8`  
+  - [MiniMax-H3](https://huggingface.co/MiniMaxAI/MiniMax-H3) update with pre-quantized `sdnq-uint8` *pruned* variants  
 - **LoRA**
   - see [LoRA docs](https://vladmandic.github.io/sdnext-docs/LoRA) for all of the improvements and usage instructions  
     *note*: lora now has its own settings section in *settings -> lora*
@@ -34,6 +48,16 @@ All-about-optimizations:
     can significantly improve lora quality when using multiple loras at once  
   - per-block strength
   - native support for **MiniMax**
+- **DLSS**
+  - add DLSS support for: *NeuralRender, SuperSample and FrameGen*  
+    dlls 5 caused quite a stir, but combined with generative ai it becomes a nice tool  
+  - available as part of image/video generate workflows via *extras -> dlss*  
+    or as a standalone *processing* workflow  
+    or via xyz grid  
+  - *note*: requires nvidia rtx gpu, windows platform and compatible gpu drivers  
+    but...it can be used from wsl2: unpack required package on windows host and you can access it from the wsl2 environment  
+  - *install*: requires [DLSS 5 Visual Enhancer](https://github.com/Merserk/dlss5-visual-enhancer/releases/tag/v7.0)  
+  - *diag*: enable `SD_DLSS_DEBUG=true` and monitor `dlss.log` in the package directory  
 - **Attention**
   - see [Attention docs](https://vladmandic.github.io/sdnext-docs/Attention) for details and usage instructions  
     *note*: attention now has its own settings section in *settings -> cross attention*  
@@ -73,6 +97,7 @@ All-about-optimizations:
   - option to skip triton autotune and use default config for all triton kernels  
     in *settings -> compute settings*  
     *note*: this may improve initial generate time, but may also reduce performance on some models  
+  - rocm: update `rocm` script and add detailed `miopen` logging, thanks @resonantsky  
   - new optional transformer hooks  
     in *settings -> compute add-ons*  
     *PAG: Perturbed attention guidance, PAB: Pyramid attention broadcast, FBC: First Block Cache, FC: Faster Cache, LS: Layer Skip, MC: Mag Cache, TS: TaylorSeer*  
@@ -89,24 +114,34 @@ All-about-optimizations:
   - new articles: *Attention, Modular-Pipelines*
   - updated: *LoRA, MiniMax*
 - **Fixes**
-  - prompt: unnecessary secondary prompt if same
-  - ui: js fetch exception handling
-  - detailer: handling of stop/skip/pause
-  - rife: cleanup dead code, thanks @Anai-Guo
-  - lumina-dimoo: attention-kwargs, thanks @Anai-Guo
-  - network: improve type/version lookup
-  - lora: cleanup tags
-  - xyz grid: apply bool values
-  - vdm scheduler: fix steps, thanks @zjn20030811
-  - openvino: optimize recompile checks and lora loading
-  - log: ansi color handling
+  - api: prompt enhance with vision
+  - autocomplete: skip disabled networks
   - compile: keep model compiled state
-  - prompt: cache checks when cfg changes
+  - detailer: handling of stop/skip/pause
+  - framepack: correct device assignment, thanks @li-lizhe
+  - log: ansi color handling
+  - lora: cleanup tags
+  - lora: support transformer ref models
   - lucida: handle requirements
-  - vae: fetch scale factor from the model
-  - todo: remove dead code, thanks @Anai-Guo
+  - lumina-dimoo: attention-kwargs, thanks @Anai-Guo
+  - metadata: fix wildcard info
+  - minimax: crop image to video aspect ratio
+  - modular: handle module with remote-code
+  - network: improve type/version lookup
   - offline: honor offline mode for more models, thanks @ryanmeador
+  - openvino: optimize recompile checks and lora loading
   - prompt enhance: cloud models use correct system prompt  
+  - prompt enhance: use init image for video
+  - prompt: cache checks when cfg changes
+  - prompt: unnecessary secondary prompt if same
+  - prompt: clean prompt after network parsing
+  - rife: cleanup dead code, thanks @Anai-Guo
+  - todo: remove dead code, thanks @Anai-Guo
+  - ui: js fetch exception handling
+  - update: handle git errors gracefully
+  - vae: fetch scale factor from the model
+  - vdm scheduler: fix steps, thanks @zjn20030811
+  - xyz grid: apply bool values
 
 ## Update for 2026-08-26
 

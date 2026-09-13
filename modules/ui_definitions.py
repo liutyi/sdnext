@@ -504,6 +504,7 @@ def create_settings(cmd_opts):
         "openvino_cache_path": OptionInfo('cache', "Folder for OpenVINO cache", folder=True),
         "onnx_cached_models_path": OptionInfo(os.path.join(paths.models_path, 'ONNX', 'cache'), "Folder for ONNX cached models", folder=True),
         "onnx_temp_dir": OptionInfo(os.path.join(paths.models_path, 'ONNX', 'temp'), "Folder for ONNX conversion", folder=True),
+        "dlss_pkg_path": OptionInfo('', "Folder with DLSS package", gr.Textbox, { "visible": False}),
     }))
 
     # --- Image Options ---
@@ -610,13 +611,13 @@ def create_settings(cmd_opts):
         "ui_disabled": OptionInfo([], "Disabled UI tabs", gr.Dropdown, { 'visible': False }),
 
         "cards_sep_ui": OptionInfo("<h2>Networks panel</h2>", "", gr.HTML),
-        "extra_networks_card_size": OptionInfo(140, "Network card size (px)", gr.Slider, {"minimum": 20, "maximum": 2000, "step": 1}),
+        "extra_networks_card_size": OptionInfo(130, "Network card size (px)", gr.Slider, {"minimum": 20, "maximum": 2000, "step": 1}),
         "extra_networks_card_cover": OptionInfo("sidebar", "Network panel position", gr.Radio, {"choices": ["cover", "inline", "sidebar"]}),
         "extra_networks_card_square": OptionInfo(True, "Disable variable aspect ratio"),
 
         "other_sep_ui": OptionInfo("<h2>Other...</h2>", "", gr.HTML),
         "ui_locale": OptionInfo("Auto", "UI locale", gr.Dropdown, lambda: {"choices": theme.list_locales()}),
-        "font_size": OptionInfo(14, "Font size", gr.Slider, {"minimum": 8, "maximum": 32, "step": 1}),
+        "font_size": OptionInfo(15, "Font size", gr.Slider, {"minimum": 8, "maximum": 32, "step": 1}),
         "gpu_monitor": OptionInfo(3000, "GPU monitor interval", gr.Slider, {"minimum": 100, "maximum": 60000, "step": 100}),
         "aspect_ratios": OptionInfo("1:1, 4:3, 3:2, 16:9, 16:10, 21:9, 2:3, 3:4, 9:16, 10:16, 9:21", "Allowed aspect ratios"),
         "compact_view": OptionInfo(False, "Compact view"),

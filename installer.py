@@ -409,7 +409,7 @@ def branch(folder=None):
         b = 'master'
     else:
         b = b.split('\n')[0].replace('*', '').strip()
-    log.debug(f'Git submodule: {folder} / {b}')
+    log.debug(f'Submodule: folder="{folder}" branch="{b}"')
     git(f'checkout {b}', folder, ignore=True, optional=True)
     ts('branch', t_start)
     return b
@@ -1140,7 +1140,7 @@ def list_extensions_folder(folder, quiet=False):
     disabled_extensions = opts.get('disabled_extensions', [])
     enabled_extensions = [x for x in os.listdir(folder) if os.path.isdir(os.path.join(folder, x)) and x not in disabled_extensions and not x.startswith('.')]
     if not quiet:
-        log.info(f'Extensions: path="{folder}" enabled={enabled_extensions}')
+        log.info(f'Extensions: path="{folder}" available={enabled_extensions}')
     return enabled_extensions
 
 
@@ -1363,7 +1363,6 @@ def install_requirements():
         log.info('Install requirements: this may take a while...')
         pip('install -r requirements.txt')
     if args.optional:
-        quick_allowed = False
         install_optional()
     log.info('Install: verifying requirements')
     if args.new:
@@ -1386,7 +1385,10 @@ def install_requirements():
 
 # set environment variables controlling the behavior of various libraries
 def set_environment():
+
     log.debug('Setting environment tuning')
+    from modules.logger import console
+    log.debug(f'Console: terminal={console.is_terminal} width={console.width} height={console.height} color={console.color_system} legacy={console.legacy_windows}')
     os.environ.setdefault('ACCELERATE', 'True')
     os.environ.setdefault('ATTN_PRECISION', 'fp16')
     os.environ.setdefault('ClDeviceGlobalMemSizeAvailablePercent', '100')
@@ -1704,7 +1706,7 @@ def check_version(reset=True): # pylint: disable=unused-argument
         else:
             dt = commits["commit"]["commit"]["author"]["date"]
             commit = commits["commit"]["sha"][:8]
-            log.info(f'Version: app=sd.next latest={dt} hash={commit} branch={branch_name}')
+            log.info(f'Version: app="sd.next" latest={dt} hash={commit} branch={branch_name}')
     except Exception as e:
         log.error(f'Repository failed to check version: {e} {commits}')
     ts('latest', t_start)

@@ -10051,6 +10051,7 @@ var ignoreElements = ["logMonitorData", "logWarnings", "logErrors", "tooltip-con
 var ignoreElementsSet = new Set(ignoreElements);
 var ignoreClasses = ["wrap"];
 var mutationTimer;
+var mutationTS;
 var validMutations = [];
 async function mutationCallback(mutations) {
   if (mutations.length <= 0) return;
@@ -10064,7 +10065,10 @@ async function mutationCallback(mutations) {
   if (validMutations.length < 1) return;
   if (mutationTimer) clearTimeout(mutationTimer);
   mutationTimer = setTimeout(async () => {
+    const ts = Date.now() - mutationTS;
+    if (!executedOnLoaded && ts > 1e3) log("onUiLoaded delayed", { ts, prompts: anyPromptExists() });
     if (!executedOnLoaded && anyPromptExists()) {
+      log("onUiLoaded", ts);
       executedOnLoaded = true;
       executeCallbacks(uiLoadedCallbacks);
     }
@@ -10083,6 +10087,7 @@ async function mutationCallback(mutations) {
 }
 document.addEventListener("DOMContentLoaded", () => {
   log("DOMContentLoaded");
+  mutationTS = Date.now();
   gradioObserver = new MutationObserver(mutationCallback);
   gradioObserver.observe(gradioApp(), { childList: true, subtree: true, attributes: false });
 });
@@ -10403,7 +10408,7 @@ function readCardTags(el2, tags) {
     textarea.value = new_prompt;
     updateInput(textarea);
   };
-  if (tags.length === 0) return;
+  if (!tags || tags.length === 0) return;
   const cardTags = tags.split("|");
   if (!cardTags || cardTags.length === 0) return;
   const tagsEl = el2.getElementsByClassName("tags")[0];
@@ -12556,7 +12561,7 @@ var ConnectionMonitorState = class _ConnectionMonitorState {
       else return;
     }
     this.element.dataset.hint = this.toHTML();
-    this.element.style.backgroundColor = this.online ? "var(--sd-main-accent-color)" : "var(--color-error)";
+    this.element.style.background = this.online ? "var(--sd-main-accent-color)" : "var(--color-error)";
   }
 };
 async function updateIndicator(online, data = {}, msg) {
@@ -13569,7 +13574,7 @@ Resolution: ${this.width} x ${this.height}`;
         }
       }
     };
-    let ok2 = true;
+    let ok = true;
     if (cachedData?.img) {
       img.src = cachedData.img;
       this.exif = cachedData.exif;
@@ -13582,7 +13587,7 @@ Resolution: ${this.width} x ${this.height}`;
       try {
         const json = await delayFetchThumb(this.src, this.#signal);
         if (!json) {
-          ok2 = false;
+          ok = false;
           pb.stats.failed = (pb.stats.failed || 0) + 1;
         } else {
           img.src = json.data;
@@ -13617,7 +13622,7 @@ Resolution: ${this.width} x ${this.height}`;
     pb.stats.callback = (pb.stats.callback || 0) + Math.round(performance.now() - t0);
     if (this.#signal.aborted) return;
     galleryHashes.add(this.hash);
-    if (!ok2) return;
+    if (!ok) return;
     img.onclick = () => {
       setGallerySelectionByElement(this, { send: true });
     };
@@ -14754,16 +14759,24 @@ var xnEngine = {
       }
       this.lora = new XnIndex(items);
     }
-    const embData = await this.fetchJson("/embeddings");
-    if (embData && typeof embData === "object") {
-      const loaded = Array.isArray(embData.loaded) ? embData.loaded : [];
-      this.embed = new XnIndex(loaded.map((name) => ({ name: String(name) })));
+    if (window.opts.diffusers_enable_embed) {
+      const embData = await this.fetchJson("/embeddings");
+      if (embData && typeof embData === "object") {
+        const loaded = Array.isArray(embData.loaded) ? embData.loaded : [];
+        this.embed = new XnIndex(loaded.map((name) => ({ name: String(name) })));
+      }
+    } else {
+      this.embed = new XnIndex([]);
     }
-    const wcData = await this.fetchJson("/wildcards");
-    if (Array.isArray(wcData)) {
-      this.wildcard = new XnIndex(
-        wcData.filter((w) => typeof w === "object" && w && "name" in w && typeof w.name === "string").map((w) => ({ name: w.name }))
-      );
+    if (window.opts.wildcards_enabled) {
+      const wcData = await this.fetchJson("/wildcards");
+      if (Array.isArray(wcData)) {
+        this.wildcard = new XnIndex(
+          wcData.filter((w) => typeof w === "object" && w && "name" in w && typeof w.name === "string").map((w) => ({ name: w.name }))
+        );
+      }
+    } else {
+      this.wildcard = new XnIndex([]);
     }
     log("autoComplete", {
       xnLoaded: true,
@@ -16086,8 +16099,8 @@ async function createSplash() {
       <div id="splashLog" class="splash-log" style="position: fixed; bottom: 0; text-align: left; padding: 8vh 8px 8px 8px; font-size: 12px; width: 100%; background: linear-gradient(0deg, darkslategray, transparent); opacity: 50%;"></div>
     </div>`;
   document.body.insertAdjacentHTML("beforeend", splash);
-  const ok2 = await preloadImages();
-  if (!ok2) {
+  const ok = await preloadImages();
+  if (!ok) {
     removeSplash();
     return;
   }
@@ -16106,6 +16119,15 @@ async function createSplash() {
     if (motdEl) motdEl.innerHTML = clean;
   }).catch((err) => error(`getMOTD: ${err}`));
   log("loadGradioUi");
+  const splashMonitor = setInterval(() => {
+    const splashVisible = !!document.getElementById("splash");
+    if (splashVisible) {
+      log("splashVisible", { visible: true, elapsed: Math.round(performance.now() - appStartTime) });
+    } else {
+      log("splashVisible", { visible: false, elapsed: Math.round(performance.now() - appStartTime) });
+      clearInterval(splashMonitor);
+    }
+  }, 5e3);
 }
 window.onload = createSplash;
 
@@ -16124,22 +16146,26 @@ function addLegacyNotice() {
 window.api = "/sdapi/v1";
 window.subpath = "";
 var startupPromises = [];
-var ok = false;
+var optsReady = false;
+var initialized = false;
 async function waitForOpts() {
   const t0 = performance.now();
   let t1 = performance.now();
   while (true) {
-    if (t1 - t0 > 12e4) {
+    if (t1 - t0 > 6e4) {
       log("waitForOpts timeout");
       break;
     }
     if (window.opts && Object.keys(window.opts).length > 0) {
-      ok = window.opts.theme_type === "Modern" ? "uiux_separator_appearance" in window.opts : true;
-      if (ok) {
+      optsReady = window.opts.theme_type === "Modern" ? "uiux_separator_appearance" in window.opts : true;
+      if (optsReady) {
         log("waitForOpts", Math.round(t1 - t0));
         timer("waitForOpts", t1 - t0);
         break;
       }
+    }
+    if (t1 - t0 > 15e3) {
+      log("waitForOpts delayed", Math.round(t1 - t0));
     }
     await sleep(100);
     t1 = performance.now();
@@ -16159,6 +16185,8 @@ async function updateSubpath() {
   log("API", { url: window.api });
 }
 async function initStartup() {
+  if (initialized) return;
+  initialized = true;
   const t0 = performance.now();
   log("initGradio", Math.round(t0 - appStartTime));
   timer("initGradio", t0 - appStartTime);
@@ -16202,6 +16230,7 @@ async function initStartup() {
 }
 onUiLoaded(initStartup);
 onUiReady(() => log("uiReady"));
+window.initStartup = initStartup;
 
 // ui/extensions.ts
 function extensions_apply(_extensionsDisabledList, _extensionsUpdateList, disableAll) {
