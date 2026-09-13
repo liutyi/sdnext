@@ -1,8 +1,8 @@
 # Change Log for SD.Next
 
-## Update for 2026-09-12
+## Update for 2026-09-13
 
-### Highlights for 2026-09-12
+### Highlights for 2026-09-13
 
 *What's New*? Well, code-wise, this is a big one...  
 First, a-lot-of-optimizations:
@@ -15,17 +15,15 @@ First, a-lot-of-optimizations:
 
 And some cool new stuff and models:
 - **DLSSv5** integration  
-- New models:  
-  **Anima 2.9B**, **LLaDa-Image**  
-- And few cloud models:  
-  *Google's Gemini, NanoBanana, Veo, Omni* and *X.AI's Grok*  
+- New models: **Anima 2.9B**, **LLaDa-Image**  
+- And few cloud models: *Google's Gemini, NanoBanana, Veo, Omni* and *X.AI's Grok*  
 - Some (light) UI restyling
 
 Plus inevitable bug-fixes...
 
 [Home](https://vladmandic.github.io/sdnext/) | [ChangeLog](https://github.com/vladmandic/automatic/blob/master/CHANGELOG.md) | [Docs](https://vladmandic.github.io/sdnext-docs/) | [Discord](https://discord.com/invite/sd-next-federal-batch-inspectors-1101998836328697867) | [Sponsor](https://github.com/sponsors/vladmandic)  
 
-### Details for 2026-09-12
+### Details for 2026-09-13
 
 - **Models**
   - [Anima 2.9B Preview v1](https://huggingface.co/yeoj34760/Anima-2.9B)  
@@ -110,6 +108,7 @@ Plus inevitable bug-fixes...
     *note*: requires grok api key  
   - remove `/redocs` as `/docs` are primary api docs  
   - rebuild docs site index  
+  - **ui**: ability to filter samplers and upscalers, thanks @emecii
 - **Wiki/Docs**:
   - new articles: *Attention, Modular-Pipelines*
   - updated: *LoRA, MiniMax*
