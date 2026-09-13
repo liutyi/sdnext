@@ -115,6 +115,7 @@ Plus inevitable bug-fixes...
   - updated: *LoRA, MiniMax*
 - **Fixes**
   - api: prompt enhance with vision
+  - autocomplete: skip disabled networks
   - compile: keep model compiled state
   - detailer: handling of stop/skip/pause
   - framepack: correct device assignment, thanks @li-lizhe
