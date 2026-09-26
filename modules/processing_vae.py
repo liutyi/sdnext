@@ -222,6 +222,7 @@ def taesd_vae_decode(latents):
 
 def vae_postprocess(tensor, model, output_type='np'):
     from PIL import Image
+    from modules.image.util import collapse_alpha
     images = []
     try:
         if isinstance(tensor, list) and len(tensor) > 0 and torch.is_tensor(tensor[0]):
@@ -297,7 +298,7 @@ def vae_postprocess(tensor, model, output_type='np'):
     if isinstance(images, np.ndarray) and images.ndim == 4 and images.shape[-1] == 4 and images[..., 3].min() >= 0.5:
         images = images[..., :3]
     elif output_type == 'pil' and isinstance(images, list):
-        images = [i.convert('RGB') if isinstance(i, Image.Image) and i.mode == 'RGBA' and i.getextrema()[3][0] >= 128 else i for i in images]
+        images = [collapse_alpha(i) if isinstance(i, Image.Image) else i for i in images]
     return images
 
 

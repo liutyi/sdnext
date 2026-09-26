@@ -7,6 +7,7 @@ from PIL import Image
 from modules import shared, processing, images, sd_samplers, timer, errors
 from modules.logger import log
 from modules.image import convert
+from modules.image.util import collapse_alpha
 
 
 SamplerData = namedtuple('SamplerData', ['name', 'constructor', 'aliases', 'options'])
@@ -82,7 +83,7 @@ def single_sample_to_image(sample, approximation=None):
                 else:
                     x_sample = torch.nan_to_num(x_sample, nan=0.0, posinf=1, neginf=0)
                     x_sample = (255.0 * x_sample).to(torch.uint8)
-                    image = convert.to_pil(x_sample)
+                    image = collapse_alpha(convert.to_pil(x_sample))
         except Exception as e:
             warn_once('exception', e)
             image = Image.new(mode="RGB", size=(512, 512), color=(0, 0, 0))
