@@ -45,6 +45,7 @@ def load_qwen21(checkpoint_info, diffusers_load_config=None):
     )
 
     generic.load_vae_override(pipe, diffusers_load_config)
+    pipe.patch_size = 2 # latents pack into 2x2 patches and the pipeline floors sizes to vae_scale_factor * 2
 
     del transformer
     del text_encoder
