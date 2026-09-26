@@ -276,7 +276,7 @@ class State:
         from modules import shared, images, sd_samplers_common
         if self.disable_preview or (self.preview_job == self.job_no) or (self.current_image_sampling_step == self.sampling_step):
             return False
-        if shared.opts.live_preview_force:
+        if shared.opts.live_preview_force and not self.api:
             return True # handled in callback directly
         if (shared.opts.show_progress_type == "None") and (shared.history.last_image is not None):
             last_image = images.image_grid(shared.history.last_image)
